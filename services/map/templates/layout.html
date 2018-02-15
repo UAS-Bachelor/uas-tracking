@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>UAS live tracking</title>
+        <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+        
+        <script type="text/javascript" src="{{ url_for('static', filename='map.js', _external=True) }}"></script>
+    </body>
+</html>
