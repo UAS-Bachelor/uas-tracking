@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -7,6 +8,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/map')
 def map():
@@ -16,5 +18,7 @@ def map():
         return 'Map service unavailable'
     return map
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    print('Running {} service'.format(os.path.basename(__file__).split('.')[0]))
+    app.run(port=5000, debug=True)

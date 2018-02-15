@@ -1,6 +1,8 @@
 from configobj import ConfigObj
 import os
 import socket
+from sys import executable
+from subprocess import Popen, CREATE_NEW_CONSOLE
 
 SERVICES_DIR = 'services/'
 SERVICES_CONFIG = 'services.ini'
@@ -15,10 +17,9 @@ def load_dependencies():
 def launch_service(service, host, port):
     print('Checking {} service...'.format(service))
     response = check_port(host, int(port))
-    print(response)
     if response != 0:
         print("{} service is not running, starting service at port {}".format(service, port))
-        os.system('python ' + SERVICES_DIR + service + '/' + service + '.py &')
+        Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], creationflags=CREATE_NEW_CONSOLE)
     else:
         print("{} service is already running at port {} ".format(service, port))
 
