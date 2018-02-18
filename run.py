@@ -2,7 +2,7 @@ from configobj import ConfigObj
 import os
 import socket
 from sys import executable
-from subprocess import Popen, CREATE_NEW_CONSOLE
+from subprocess import Popen, CREATE_NEW_CONSOLE, PIPE
 
 SERVICES_DIR = 'services/'
 SERVICES_CONFIG = 'services.ini'
@@ -20,6 +20,8 @@ def launch_service(service, host, port):
     if response != 0:
         print("{} service is not running, starting service at port {}".format(service, port))
         Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], creationflags=CREATE_NEW_CONSOLE)
+        #Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], shell=True)
+        #Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], stdout=PIPE)
     else:
         print("{} service is already running at port {} ".format(service, port))
 
