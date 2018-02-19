@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, request
 import requests
 import sys
 import argparse
+from os import system
 
 app = Flask(__name__)
 
@@ -34,6 +35,8 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', type=int, default=5000,
                         help='specity which port to run this service on')
     args = parser.parse_args()
+    args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
-    print('Running {} service'.format(sys.argv[0].split('.')[0]))
+    print('Running {} service'.format(args.prog))
+    system('title {} service on port {}'.format(args.prog, args.port))
     app.run(port=args.port, debug=True)
