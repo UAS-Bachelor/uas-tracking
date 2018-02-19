@@ -1,6 +1,8 @@
 from flask import Flask, render_template, url_for, request
 import requests
 import os
+import sys
+import argparse
 
 app = Flask(__name__)
 
@@ -31,5 +33,9 @@ def login():
 
 
 if __name__ == '__main__':
-    print('Running {} service'.format(os.path.basename(__file__).split('.')[0]))
-    app.run(port=5000, debug=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, default=5000, help='specity which port to run this service on')
+    args = parser.parse_args()
+
+    print('Running {} service'.format(sys.argv[0].split('.')[0]))
+    app.run(port=args.port, debug=True)
