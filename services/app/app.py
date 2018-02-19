@@ -18,18 +18,18 @@ def map():
         return 'Map service unavailable'
     return map
 
-#Skal stå sammen med GET og POST - driller
+#Skal stå sammen med GET og POST
 #@app.route('/login', methods=['GET', 'POST'])
 #def login():
-#   if request.method == 'POST':
+#    if request.method == 'POST':
 #        username = request.form['username']
 #        password_candidate = request.form['password']
 #        app.logger.info(username)
 #        app.logger.info(password_candidate)
-#
 #    else: 
 #        return render_template('http://127.0.0.1:5002/login')
-        
+
+ 
 
 
 if __name__ == '__main__':
