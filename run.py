@@ -18,11 +18,9 @@ def launch_service(service, host, port):
     response = check_port(host, int(port))
     if response != 0:
         print("{} service is not running, starting service at port {}".format(service, port))
-        Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], creationflags=CREATE_NEW_CONSOLE)
-        #Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], shell=True)
-        #Popen([executable, SERVICES_DIR + service + '/' + service + '.py'], stdout=PIPE)
+        Popen([executable, SERVICES_DIR + service + '/' + service + '.py', '-p', port], creationflags=CREATE_NEW_CONSOLE)
     else:
-        print("{} service is already running at port {} ".format(service, port))
+        print("{} service is already running at port {}".format(service, port))
 
 
 def check_port(host, port):

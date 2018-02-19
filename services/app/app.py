@@ -1,6 +1,5 @@
 from flask import Flask, render_template, url_for, request
 import requests
-import os
 import sys
 import argparse
 
@@ -29,12 +28,11 @@ def login():
         return 'Login service unavailable'
     return login
 
- 
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--port', type=int, default=5000, help='specity which port to run this service on')
+    parser.add_argument('-p', '--port', type=int, default=5000,
+                        help='specity which port to run this service on')
     args = parser.parse_args()
 
     print('Running {} service'.format(sys.argv[0].split('.')[0]))
