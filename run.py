@@ -1,7 +1,7 @@
 from configobj import ConfigObj
-import socket
 from sys import executable
-from subprocess import Popen, CREATE_NEW_CONSOLE, PIPE
+from subprocess import Popen, CREATE_NEW_CONSOLE
+import psutil
 
 SERVICES_DIR = 'services/'
 SERVICES_CONFIG = 'services.ini'
@@ -9,23 +9,39 @@ SERVICES_CONFIG = 'services.ini'
 
 def load_dependencies():
     config = ConfigObj(SERVICES_CONFIG)
-    for section in config:
-        launch_service(section, config[section]['host'], config[section]['port'])
+    for service in config:
+        launch_service(service, config)
 
 
-def launch_service(service, host, port):
-    print('Checking {} service...'.format(service))
-    response = check_port(host, int(port))
-    if response != 0:
-        print("{} service is not running, starting service at port {}".format(service, port))
-        Popen([executable, SERVICES_DIR + service + '/' + service + '.py', '-p', port], creationflags=CREATE_NEW_CONSOLE)
+def launch_service(service, config):
+    port = config[service]['port']
+    version = config[service]['version']
+    if 'instances' in config[service]:
+        instances = int(config[service]['instances'])
     else:
-        print("{} service is already running at port {}".format(service, port))
+        instances = 1
+
+    print('Checking {} service...'.format(service))
+    amount_of_instances = check_port(int(port))
+    if amount_of_instances < instances:
+        instance_difference = instances - amount_of_instances
+        print("Only {} instances of {} service are running, starting {} more at port {}".format(
+            amount_of_instances, service, instance_difference, port))
+        for i in range(instance_difference):
+            Popen([executable, SERVICES_DIR + service + '/' + service + '.py',
+                   '-p', port, '-v', version], creationflags=CREATE_NEW_CONSOLE)
+    else:
+        print("{} instances of {} service are already running at port {}".format(
+            amount_of_instances, service, port))
 
 
-def check_port(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    return sock.connect_ex((host, port))
+def check_port(port_to_check):
+    amount_of_instances = 0
+    for connection in psutil.net_connections('inet'):
+        (ip, port) = connection.laddr
+        if ip == '127.0.0.1' and port == port_to_check:
+            amount_of_instances += 1
+    return amount_of_instances
 
 
 if __name__ == '__main__':
