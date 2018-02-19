@@ -1,5 +1,4 @@
 from configobj import ConfigObj
-import os
 import socket
 from sys import executable
 from subprocess import Popen, CREATE_NEW_CONSOLE, PIPE
