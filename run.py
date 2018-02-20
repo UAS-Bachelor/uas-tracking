@@ -7,33 +7,43 @@ import time
 SERVICES_DIR = 'services/'
 SERVICES_CONFIG = 'services.ini'
 
+configobj = ConfigObj(SERVICES_CONFIG)
 
-def launch_service(service, config):
-    port = config[service]['port']
-    version = config[service]['version']
-    if 'instances' in config[service]:
-        instances = int(config[service]['instances'])
+
+def __launch_service(service, config):
+    port = config['port']
+    version = config['version']
+    if 'instances' in config:
+        instances = int(config['instances'])
     else:
         instances = 1
 
-    amount_of_instances = check_port(int(port))
+    amount_of_instances = check_port(port)
     if amount_of_instances < instances:
         instance_difference = instances - amount_of_instances
         print("Only {} instances of {} service are running, starting {} more of version {} at port {}".format(
             amount_of_instances, service, instance_difference, version, port))
         for i in range(instance_difference):
-            Popen([executable, SERVICES_DIR + service + '/' + service + '.py',
-                   '-p', port, '-v', version], creationflags=CREATE_NEW_CONSOLE)
+            __open_cmd(service, port, version)
     else:
         print("{} instances of {} service are already running at port {}".format(
             amount_of_instances, service, port))
+
+
+def __open_cmd(service, port, version):
+    Popen([executable, SERVICES_DIR + service + '/' + service + '.py',
+           '-p', str(port), '-v', str(version)], creationflags=CREATE_NEW_CONSOLE)
+
+
+def __close_cmd(pid):
+    psutil.Process(pid).terminate()
 
 
 def check_port(port_to_check):
     amount_of_instances = 0
     for connection in psutil.net_connections('inet'):
         (ip, port) = connection.laddr
-        if ip == '127.0.0.1' and port == port_to_check:
+        if ip == '127.0.0.1' and port == int(port_to_check):
             amount_of_instances += 1
     return amount_of_instances
 
@@ -42,37 +52,51 @@ def gather_pids(port_to_check):
     pids = []
     for connection in psutil.net_connections('inet'):
         (ip, port) = connection.laddr
-        if ip == '127.0.0.1' and port == port_to_check and connection.pid != 0:
+        if ip == '127.0.0.1' and port == int(port_to_check) and connection.pid != 0:
             pids.append(connection.pid)
     return pids
 
 
 def run(service):
-    config = ConfigObj(SERVICES_CONFIG)
-    print('Starting {} service...'.format(service))
-    if service in config:
-        launch_service(service, config)
+    if service in configobj:
+        print('Starting {} service...'.format(service))
+        __launch_service(service, configobj[service])
     elif service == 'all':
-        for service_section in config:
-            launch_service(service_section, config)
+        print('Starting all services...')
+        for service_section in configobj:
+            __launch_service(service_section, configobj[service_section])
 
 
 def upgrade(service):
-    config = ConfigObj(SERVICES_CONFIG)
-    if service in config:
-        print('Starting upgrade of {} service...'.format(service))
-        port = int(config[service]['port'])
-        version = config[service]['version']
+    if service in configobj:
+        port = configobj[service]['port']
+        version = configobj[service]['version']
         amount_of_instances = check_port(port)
+        print('Starting upgrade of {} service to version {}...'.format(
+            service, version))
+
         count = 0
         for pid in gather_pids(port):
             count += 1
             print('Upgrading service with PID {} ({}/{})'.format(pid,
                                                                  count, amount_of_instances))
-            Popen([executable, SERVICES_DIR + service + '/' + service + '.py',
-                   '-p', str(port), '-v', str(version)], creationflags=CREATE_NEW_CONSOLE)
-            psutil.Process(pid).terminate()
+            __open_cmd(service, port, version)
+            __close_cmd(pid)
             time.sleep(1)
+
+
+def kill(service):
+    if service in configobj:
+        print('Killing {} service...'.format(service))
+        port = configobj[service]['port']
+        for pid in gather_pids(port):
+            __close_cmd(pid)
+    elif service == 'all':
+        print('Killing all services...')
+        for service_section in configobj:
+            port = configobj[service_section]['port']
+            for pid in gather_pids(port):
+                __close_cmd(pid)
 
 
 if __name__ == '__main__':
