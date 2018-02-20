@@ -42,7 +42,7 @@ def gather_pids(port_to_check):
     pids = []
     for connection in psutil.net_connections('inet'):
         (ip, port) = connection.laddr
-        if ip == '127.0.0.1' and port == port_to_check:
+        if ip == '127.0.0.1' and port == port_to_check and connection.pid != 0:
             pids.append(connection.pid)
     return pids
 
@@ -62,15 +62,17 @@ def upgrade(service):
     if service in config:
         print('Starting upgrade of {} service...'.format(service))
         port = int(config[service]['port'])
+        version = config[service]['version']
         amount_of_instances = check_port(port)
         count = 0
         for pid in gather_pids(port):
             count += 1
             print('Upgrading service with PID {} ({}/{})'.format(pid,
                                                                  count, amount_of_instances))
+            Popen([executable, SERVICES_DIR + service + '/' + service + '.py',
+                   '-p', str(port), '-v', str(version)], creationflags=CREATE_NEW_CONSOLE)
             psutil.Process(pid).terminate()
             time.sleep(1)
-            launch_service(service, config)
 
 
 if __name__ == '__main__':
