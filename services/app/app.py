@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for
 import requests
 import sys
 import argparse
@@ -15,16 +15,16 @@ def index():
 @app.route('/map')
 def map():
     try:
-        map = requests.get('http://127.0.0.1:5001/map').content
+        map = requests.get('http://127.0.0.1:5001/map').text
     except requests.exceptions.ConnectionError:
         return 'Map service unavailable'
-    return map
+    return render_template('layout.html', html=map)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
-        login = requests.get('http://127.0.0.1:5002/login').content
+        login = requests.get('http://127.0.0.1:5002/login').text
     except requests.exceptions.ConnectionError:
         return 'Login service unavailable'
     return login
