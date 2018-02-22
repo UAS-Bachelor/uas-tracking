@@ -1,9 +1,11 @@
 from flask import Flask, render_template, url_for
+from flask_cors import CORS
 import sys
 import argparse
 from os import system
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/map')
