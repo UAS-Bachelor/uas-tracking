@@ -33,7 +33,7 @@ def login():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--port', type=int, default=5000,
-                        help='specity which port to run this service on')
+                        help='specify which port to run this service on')
     parser.add_argument('-v', '--version', type=float, default=0,
                         help='specify which version of the service this is')
     args = parser.parse_args()
