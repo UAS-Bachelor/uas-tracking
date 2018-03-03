@@ -1,6 +1,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
 
-<div id="cesiumContainer"></div>
+<div id="cesiumContainer" class="fullSize"></div>
+<div id="loadingOverlay">
+    <h1>Loading...</h1>
+</div>
+<div id="toolbar">
+    <table class="infoPanel">
+        <tbody>
+            <tr>
+                <td>Click on the 3D window then use the keyboard to change settings.</td>
+            </tr>
+            <tr>
+                <td>Heading: <span id="heading"></span>°</td>
+            </tr>
+            <tr>
+                <td>← to left/→ to right</td>
+            </tr>
+            <tr>
+                <td>Pitch: <span id="pitch"></span>°</td>
+            </tr>
+            <tr>
+                <td>↑ to up/↓ to down</td>
+            </tr>
+            <tr>
+                <td>roll: <span id="roll"></span>°</td>
+            </tr>
+            <tr>
+                <td>← + ⇧ left/→ + ⇧ right</td>
+            </tr>
+            <tr>
+                <td>Speed: <span id="speed"></span>m/s</td>
+            </tr>
+            <tr>
+                <td>↑ + ⇧ to speed up/↓ + ⇧ to speed down</td>
+            </tr>
+            <tr>
+                <td>following aircraft
+                    <input id="fromBehind" type="checkbox">
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+
+
+
+<!--<div id="cesiumContainer"></div>-->
 <input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>
 
 <link rel="stylesheet" href="http://cesiumjs.org/releases/1.42/Build/Cesium/Widgets/widgets.css">
