@@ -144,7 +144,8 @@ viewer.scene.preUpdate.addEventListener(function(scene, time) {
         // Zoom to model
         /*Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, planePrimitive.boundingSphere.center, center);
         hpRange.heading = hpRoll.heading;
-        hpRange.pitch = hpRoll.pitch;*/
+        hpRange.pitch = hpRoll.pitch;
+        camera.lookAt(center, hpRange);*/
         camera.lookAt(position, hpRange);
 
         //viewer.trackedEntity = planePrimitive;
