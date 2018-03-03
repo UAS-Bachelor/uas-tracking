@@ -4,18 +4,19 @@ from util import configobj, open_cmd, close_cmd, check_port, gather_pids
 
 
 def __upgrade_service(service, config):
-    version = configobj[service]['version']
+    host = config['host']
     port = config['port']
+    version = config['version']
     print('Starting upgrade of {} service to version {}...'.format(
         service, version))
-    amount_of_instances = check_port(port)
+    amount_of_instances = check_port(host, port)
 
     count = 0
-    for pid in gather_pids(port):
+    for pid in gather_pids(host, port):
         count += 1
         print('Upgrading service with PID {} ({}/{})'.format(pid,
                                                              count, amount_of_instances))
-        open_cmd(service, port, version)
+        open_cmd(service, host, port, version)
         close_cmd(pid)
         time.sleep(1)
 

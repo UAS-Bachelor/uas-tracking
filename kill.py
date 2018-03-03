@@ -3,8 +3,9 @@ from util import configobj, close_cmd, gather_pids
 
 
 def __kill_service(service, config):
-    port = configobj[service]['port']
-    for pid in gather_pids(port):
+    host = config['host']
+    port = config['port']
+    for pid in gather_pids(host, port):
         close_cmd(pid)
 
 

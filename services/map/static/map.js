@@ -131,5 +131,6 @@ function createModel(url) {
     viewer.trackedEntity = entity;
 }
 
+console.log(document.getElementById('droneModel').value)
 
-createModel('http://localhost:5001/static/models/CesiumDrone.gltf');
+createModel(document.getElementById('droneModel').value);

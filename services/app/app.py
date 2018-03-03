@@ -15,7 +15,7 @@ def index():
 @app.route('/map')
 def map():
     try:
-        map = requests.get('http://127.0.0.1:5001/map').text
+        map = requests.get('http://10.126.29.182:5001/map').text
     except requests.exceptions.ConnectionError:
         return 'Map service unavailable'
     return render_template('layout.html', html=map)
@@ -32,6 +32,8 @@ def login():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-a', '--address', type=str, default='127.0.0.1',
+                        help='specify which host to run this service on')
     parser.add_argument('-p', '--port', type=int, default=5000,
                         help='specify which port to run this service on')
     parser.add_argument('-v', '--version', type=float, default=0,
@@ -40,6 +42,6 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
-    system('title {} service version {} on port {}'.format(
-        args.prog, args.version, args.port))
-    app.run(port=args.port, debug=True)
+    system('title {} service version {} on {}:{}'.format(
+        args.prog, args.version, args.address, args.port))
+    app.run(host=args.address, port=args.port, debug=False)

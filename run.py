@@ -3,6 +3,7 @@ from util import configobj, open_cmd, check_port
 
 
 def __launch_service(service, config):
+    host = config['host']
     port = config['port']
     version = config['version']
     if 'instances' in config:
@@ -10,16 +11,16 @@ def __launch_service(service, config):
     else:
         instances = 1
 
-    amount_of_instances = check_port(port)
+    amount_of_instances = check_port(host, port)
     if amount_of_instances < instances:
         instance_difference = instances - amount_of_instances
-        print("Only {} instances of {} service are running, starting {} more of version {} at port {}".format(
-            amount_of_instances, service, instance_difference, version, port))
+        print("Only {} instances of {} service are running, starting {} more of version {} at {}:{}".format(
+            amount_of_instances, service, instance_difference, version, host, port))
         for i in range(instance_difference):
-            open_cmd(service, port, version)
+            open_cmd(service, host, port, version)
     else:
-        print("{} instances of {} service are already running at port {}".format(
-            amount_of_instances, service, port))
+        print("{} instances of {} service are already running at {}:{}".format(
+            amount_of_instances, service, host, port))
 
 
 def run(service):
