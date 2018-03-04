@@ -15,7 +15,7 @@ def index():
 @app.route('/map')
 def map():
     try:
-        map = requests.get('http://192.168.43.180:5001/map').text
+        map = requests.get('http://192.168.93.1:5001/map').text
     except requests.exceptions.ConnectionError:
         return 'Map service unavailable'
     return render_template('layout.html', html=map)

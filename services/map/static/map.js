@@ -18,7 +18,7 @@ var entityPath = viewer.entities.add({
     path : {
         show : true,
         leadTime : 5,
-        trailTime : 60,
+        trailTime : 5,
         width : 10,
         resolution : 1,
         material : new Cesium.PolylineGlowMaterialProperty({
@@ -28,11 +28,7 @@ var entityPath = viewer.entities.add({
     }
 });
 
-var camera = viewer.camera;/*
-var controller = scene.screenSpaceCameraController;
-var r = 0;
-var center = new Cesium.Cartesian3();
-*/
+
 var hpRoll = new Cesium.HeadingPitchRoll();
 var hpRange = new Cesium.HeadingPitchRange();
 var speed = 1;
@@ -42,31 +38,15 @@ var position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, 20.0);
 var speedVector = new Cesium.Cartesian3();
 var fixedFrameTransform = Cesium.Transforms.localFrameToFixedFrameGenerator('north', 'west');
 
-var planePrimitive = scene.primitives.add(Cesium.Model.fromGltf({
-    url : document.getElementById('droneModel').value,
-    modelMatrix : Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform)
-}));
+var planeEntity = viewer.entities.add({
+    position : position, 
+    //orientation : new Cesium.VelocityOrientationProperty(position),
+    model : {
+        uri : document.getElementById('droneModel').value
+    },
+})
 
-planePrimitive.readyPromise.then(function(model) {
-    // Play and loop all animations at half-speed
-    model.activeAnimations.addAll({
-        speedup : 0.5,
-        loop : Cesium.ModelAnimationLoop.REPEAT
-    });
-
-    viewer.trackedEntity = planePrimitive;
-
-    // Zoom to model
-    /*r = 2.0 * Math.max(model.boundingSphere.radius, camera.frustum.near);
-    controller.minimumZoomDistance = r * 0.5;
-    Cesium.Matrix4.multiplyByPoint(model.modelMatrix, model.boundingSphere.center, center);
-    var heading = Cesium.Math.toRadians(230.0);
-    var pitch = Cesium.Math.toRadians(-20.0);
-    hpRange.heading = heading;
-    hpRange.pitch = pitch;
-    hpRange.range = r * 50.0;
-    camera.lookAt(center, hpRange);*/
-});
+viewer.trackedEntity = planeEntity;
 
 document.addEventListener('keydown', function(e) {
     switch (e.keyCode) {
@@ -134,21 +114,34 @@ var rollSpan = document.getElementById('roll');
 var speedSpan = document.getElementById('speed');
 var fromBehind = document.getElementById('fromBehind');
 
-viewer.scene.preUpdate.addEventListener(function(scene, time) {
-    speedVector = Cesium.Cartesian3.multiplyByScalar(Cesium.Cartesian3.UNIT_X, speed / 10, speedVector);
-    position = Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, speedVector, position);
-    pathPosition.addSample(Cesium.JulianDate.now(), position);
-    Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform, planePrimitive.modelMatrix);
+var height = 20.0
 
+viewer.scene.preUpdate.addEventListener(function(scene, time) {
+
+height += 0.005
+
+    planeEntity.position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, height);
+
+    speedVector = Cesium.Cartesian3.multiplyByScalar(Cesium.Cartesian3.UNIT_Z, speed / 10, speedVector);
+    //position = Cesium.Cartesian3.multiplyByScalar(planeEntity.position, speedVector, position);
+    position.x += speedVector.x
+    position.y += speedVector.y
+    position.z += 1//speedVector.z
+
+    //planeEntity.position = position
+
+        //position = Cesium.Matrix4.multiplyByPoint(planeEntity.modelMatrix, speedVector, position);
+    pathPosition.addSample(Cesium.JulianDate.now(), position);
+    //Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform, planeEntity.position);
+    console.log(position)
     //if (fromBehind.checked) {
         // Zoom to model
         /*Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, planePrimitive.boundingSphere.center, center);
         hpRange.heading = hpRoll.heading;
         hpRange.pitch = hpRoll.pitch;
         camera.lookAt(center, hpRange);*/
-        camera.lookAt(position, hpRange);
+        //camera.lookAt(position, hpRange);
 
-        //viewer.trackedEntity = planePrimitive;
     //}
 });
 
@@ -158,13 +151,3 @@ viewer.scene.preRender.addEventListener(function(scene, time) {
     rollSpan.innerHTML = Cesium.Math.toDegrees(hpRoll.roll).toFixed(1);
     speedSpan.innerHTML = speed.toFixed(1);
 });
-
-
-
-
-
-//position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, 20.0);
-
-//console.log(document.getElementById('droneModel').value)
-
-//createModel(document.getElementById('droneModel').value);
