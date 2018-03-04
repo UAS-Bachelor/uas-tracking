@@ -116,7 +116,6 @@ function createModel(url) {
         orientation : orientation,
         model : {
             uri : url,
-            minimumPixelSize : 128,
             maximumScale : 20000
         }, 
         properties: {
