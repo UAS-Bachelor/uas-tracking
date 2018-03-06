@@ -103,7 +103,7 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
 function createModel(url) {
     viewer.entities.removeAll();
 
-    position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, 20.0);
+    position = Cesium.Cartesian3.fromDegrees(10.329182, 55.473886, 20.0);
     var heading = Cesium.Math.toRadians(-90);
     var pitch = 0;
     var roll = 0;
@@ -119,8 +119,8 @@ function createModel(url) {
             maximumScale : 20000
         }, 
         properties: {
-            lon: 10.432013,
-            lat: 55.367383, 
+            lon: 10.329182,
+            lat: 55.473886, 
             height: 20.0, 
             heading: Cesium.Math.toRadians(-90), 
             roll: 0, 
