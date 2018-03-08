@@ -17,6 +17,13 @@ LOG_TEST_DATA = [
         'lon': 10.43000,
         'alt': 49.75,
     },
+    {
+        'aid': 911,
+        'lat': 55.38000,
+        'lon': 10.43000,
+        'alt': 49.75,
+    },
 ]
 
 send_log_entry(LOG_TEST_DATA[0])
+send_log_entry(LOG_TEST_DATA[1])

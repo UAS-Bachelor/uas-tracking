@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, json
 import requests
 import sys
 import argparse
@@ -33,10 +33,14 @@ def map_2d():
 @app.route('/list')
 def list():
     try:
-        drone_list = requests.get('http://192.168.93.1:5004/list').text
+        drone_list = json.loads(requests.get('http://192.168.93.1:5005/list').text)
+        names = ""
+        for name in drone_list:
+            names += name + "\r\n"
+        #drone_list = requests.get('http://192.168.93.1:5005/list').text
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
-    return render_template('layout.html', html=drone_list)
+    return names
 
 
 if __name__ == '__main__':
