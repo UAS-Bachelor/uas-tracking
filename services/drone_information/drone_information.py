@@ -1,10 +1,52 @@
 from flask import Flask, render_template, url_for, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 import requests
 import sys
 import argparse
+from configobj import ConfigObj
 from os import system
 
+__services_config = 'cfg/dbconfig.ini'
+configobj = ConfigObj(__services_config)
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + '/' + configobj['database']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class Drone(db.Model):
+    time_stamp = db.Column(db.String(255))
+    time = db.Column(db.BigInteger(), primary_key=True)
+    id = db.Column(db.String(20), primary_key=True)
+    name = db.Column(db.String(20))
+    lat = db.Column(db.Float)
+    lon = db.Column(db.Float)
+    alt = db.Column(db.Float)
+    acc = db.Column(db.Float)
+    fix = db.Column(db.SmallInteger)
+    lnk = db.Column(db.SmallInteger)
+    eng = db.Column(db.SmallInteger)
+    sim = db.Column(db.SmallInteger)
+
+    def __init__(self, time_stamp, time, id, name, lat, lon, alt, acc, fix, lnk, eng, sim):
+        self.time_stamp = time_stamp
+        self.time = time
+        self.id = id
+        self.name = name
+        self.lat = lat
+        self.lon = lon
+        self.alt = alt
+        self.acc = acc
+        self.fix = fix
+        self.lnk = lnk
+        self.eng = eng
+        self.sim = sim
+
+
+drone = Drone('ts', 1, 'id', 'name', 55, 10, 20, 15, 1, 2, 8, 9)
+db.session.add(drone)
+db.session.commit()
 
 
 def get_drone_info():
