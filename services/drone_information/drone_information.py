@@ -10,7 +10,7 @@ __services_config = 'cfg/dbconfig.ini'
 configobj = ConfigObj(__services_config)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + '/' + configobj['database']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + '/' + configobj['database']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -44,7 +44,7 @@ class Drone(db.Model):
         self.sim = sim
 
 
-drone = Drone('ts', 1, 'id', 'name', 55, 10, 20, 15, 1, 2, 8, 9)
+drone = Drone('ts', 1, 'id', 'name', 55, 10, 20, 15, 1, 2, 100, 1)
 db.session.add(drone)
 db.session.commit()
 
