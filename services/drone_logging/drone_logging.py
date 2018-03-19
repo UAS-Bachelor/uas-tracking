@@ -43,7 +43,7 @@ def get_drone_info():
 def store_row_drone_info(drone_dict):
     placeholder_values = ', '.join(['%s'] * len(drone_dict))
     columns = ', '.join(drone_dict.keys())
-    sql = "INSERT INTO %s ( %s ) VALUES ( %s )" % (
+    sql = "INSERT IGNORE INTO %s ( %s ) VALUES ( %s )" % (
         'drone', columns, placeholder_values)
     cursor.execute(sql, drone_dict.values())
 
