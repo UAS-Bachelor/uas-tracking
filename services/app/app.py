@@ -15,32 +15,45 @@ def index():
 @app.route('/map3d')
 def map_3d():
     try:
-        map = requests.get('http://10.126.29.182:5001/map').text
+        map3 = requests.get('http://192.168.93.1:5001/map').text
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
-    return render_template('layout.html', html=map)
+    return render_template('layout.html', html=map3)
 
 
+# called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
 @app.route('/map2d')
 def map_2d():
+    '''id = request.args.get('id')
+    start_time = request.args.get('start')
+    end_time = request.args.get('end')'''
     try:
-        map = requests.get('http://192.168.93.1:5004/map').text
+        map2 = requests.get('http://192.168.93.1:5004/map').text
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
-    return render_template('layout.html', html=map)
+    return render_template('layout.html', html=map2)
+
+
+@app.route('/map2d/<id>/<start_time>/<end_time>')
+def map_2d_with_params(id, start_time, end_time):
+    try:
+        map2 = requests.get('http://192.168.93.1:5004/map').text
+    except requests.exceptions.ConnectionError:
+        return '2D Map service unavailable'
+    return render_template('layout.html', html=map2)
 
 
 @app.route('/list')
-def list():
+def list_drones():
     try:
-        drone_list = json.loads(requests.get('http://192.168.93.1:5005/list').text)
-        names = ""
-        for name in drone_list:
-            names += name + "\r\n"
-        #drone_list = requests.get('http://192.168.93.1:5005/list').text
+        drone_list = json.loads(requests.get('http://192.168.93.1:5005/list').text)# skal også hente tids-intervaller for ruten
+        #names = ""
+        #for name in drone_list:
+            #names += name + '\r\n'
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
-    return names
+    #return names
+    return render_template('list.html', names=drone_list)
 
 
 if __name__ == '__main__':

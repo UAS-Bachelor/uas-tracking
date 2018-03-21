@@ -43,10 +43,10 @@ class Drone(db.Model):
         self.eng = eng
         self.sim = sim
 
-
+'''
 drone = Drone('ts', 1, 'id', 'name', 55, 10, 20, 15, 1, 2, 100, 1)
 db.session.add(drone)
-db.session.commit()
+db.session.commit()'''
 
 
 def get_drone_info():
@@ -72,7 +72,7 @@ def get_drone_info():
     return list_of_drone_dicts
 
 @app.route('/list')
-def list():
+def list_drones():
     drone_names = [drone_data['name'] for drone_data in get_drone_info()]
     print(drone_names)
     return jsonify(drone_names)

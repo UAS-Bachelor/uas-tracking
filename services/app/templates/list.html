@@ -2,6 +2,14 @@
 
 {% block body %}
 
+<ul>
+    {% for name in names %}
+        <li>
+            <a href='/map2d/{{ name }}'>{{ name }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
 <a href="/map3d">3D Map</a>
 <a href="/map2d">2D Map</a>
 <a href="/list">List</a>
