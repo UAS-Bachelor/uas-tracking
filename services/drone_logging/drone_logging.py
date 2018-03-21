@@ -10,11 +10,11 @@ dbconfig = config['db']
 
 droneurl = config['droneurl']
 
-db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
+'''db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
                      user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
-cursor = db.cursor()
+cursor = db.cursor()'''
 
-previous_result = [None]
+previous_result = [{}]
 
 
 def get_drone_info():
@@ -45,7 +45,7 @@ def store_row_drone_info(drone_dict):
     columns = ', '.join(drone_dict.keys())
     sql = "INSERT IGNORE INTO %s ( %s ) VALUES ( %s )" % (
         'drone', columns, placeholder_values)
-    cursor.execute(sql, drone_dict.values())
+    #cursor.execute(sql, drone_dict.values())
 
 
 def store_drone_info(drone_list):
@@ -56,9 +56,25 @@ def store_drone_info(drone_list):
 def get_and_store_drone_info():
     result = get_drone_info()
     global previous_result
+    new_drones = []
+    gone_drones = []
     pairs = zip(result, previous_result)
-    if any(x != y for x, y in pairs):
+
+    if all(not d for d in previous_result):
+        print('list contains empty dictionaries')
+
+    if not previous_result or any(x != y for x, y in pairs):
         store_drone_info(result)
+        for x in result:
+            if not any(y['id'] == x['id'] for y in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
+                new_drones.append(x)
+                print('hi2')
+
+        for i in previous_result:
+            if not any(j['id'] == i['id'] for j in result): #Finds missing IDs, which are not in the new results (routes_end)
+                gone_drones.append(i)
+                print('y')
+
     previous_result = result
 
 
