@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from models import *
 import requests
 import sys
 import argparse
@@ -10,48 +10,13 @@ __services_config = 'cfg/dbconfig.ini'
 configobj = ConfigObj(__services_config)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + '/' + configobj['database']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + ':' + configobj['port'] + '/' + configobj['database']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-
-class Drone(db.Model):
-    time_stamp = db.Column(db.String(255))
-    time = db.Column(db.BigInteger(), primary_key=True)
-    id = db.Column(db.String(20), primary_key=True)
-    name = db.Column(db.String(20))
-    lat = db.Column(db.Float)
-    lon = db.Column(db.Float)
-    alt = db.Column(db.Float)
-    acc = db.Column(db.Float)
-    fix = db.Column(db.SmallInteger)
-    lnk = db.Column(db.SmallInteger)
-    eng = db.Column(db.SmallInteger)
-    sim = db.Column(db.SmallInteger)
-
-    def __init__(self, time_stamp, time, id, name, lat, lon, alt, acc, fix, lnk, eng, sim):
-        self.time_stamp = time_stamp
-        self.time = time
-        self.id = id
-        self.name = name
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
-        self.acc = acc
-        self.fix = fix
-        self.lnk = lnk
-        self.eng = eng
-        self.sim = sim
-
-'''
-drone = Drone('ts', 1, 'id', 'name', 55, 10, 20, 15, 1, 2, 100, 1)
-db.session.add(drone)
-db.session.commit()'''
-
+db.init_app(app)
 
 #SELECT * FROM routes_end
 #routes_end, for så får vi de ruter der ER færdige
-def get_drone_info():
+'''def get_drone_info():
     list_of_drone_dicts = []
     drone_info = requests.get('https://droneid.dk/bsc2018/droneid.php').text.strip('\n')
     if drone_info:
@@ -71,13 +36,23 @@ def get_drone_info():
                 'eng': data[10], 
                 'sim': data[11]
             })
-    return list_of_drone_dicts
+    return list_of_drone_dicts'''
 
 @app.route('/list')
 def list_drones():
-    drone_names = [drone_data['name'] for drone_data in get_drone_info()]
-    print(drone_names)
-    return jsonify(drone_names)
+    list_of_drone_dicts = []
+    #drone = db.session.query(Drone.lon).filter_by(id='501').filter(Drone.time >= 1521712566, Drone.time <= 1521712581).all()
+    #drone = db.session.query(Route_end.id, Route_end.end_time).all()
+    #userList = users.query.join(friendships, users.id==friendships.user_id).add_columns(users.userId, users.name, users.email, friends.userId, friendId).filter(users.id == friendships.friend_id).filter(friendships.user_id == userID).paginate(page, 1, False)
+    #drone_routes = Route_end.query.join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
+    
+    drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
+    
+    for route in drone_routes_results:
+        list_of_drone_dicts.append(
+            dict(zip(route.keys(), route))
+        )
+    return jsonify(list_of_drone_dicts)
 
 
 if __name__ == '__main__':

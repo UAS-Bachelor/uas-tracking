@@ -1,6 +1,11 @@
-from drone_information import db
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 class Drone(db.Model):
+
+    __tablename__ = "drone"
+
     time_stamp = db.Column(db.String(255))
     time = db.Column(db.BigInteger(), primary_key=True)
     id = db.Column(db.String(20), primary_key=True)
@@ -27,3 +32,27 @@ class Drone(db.Model):
         self.lnk = lnk
         self.eng = eng
         self.sim = sim
+
+
+class Route_start(db.Model):
+
+    __tablename__ = "routes_start"
+
+    start_time = db.Column(db.BigInteger(), primary_key=True)
+    id = db.Column(db.String(20), primary_key=True)
+
+    def __init__(self, start_time, id):
+        self.start_time = start_time
+        self.id = id
+
+
+class Route_end(db.Model):
+
+    __tablename__ = "routes_end"
+
+    end_time = db.Column(db.BigInteger(), primary_key=True)
+    id = db.Column(db.String(20), primary_key=True)
+
+    def __init__(self, end_time, id):
+        self.end_time = end_time
+        self.id = id

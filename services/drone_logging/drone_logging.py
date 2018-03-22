@@ -10,9 +10,9 @@ dbconfig = config['db']
 
 droneurl = config['droneurl']
 
-'''db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
+db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
                      user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
-cursor = db.cursor()'''
+cursor = db.cursor()
 
 previous_result = []
 
@@ -40,17 +40,17 @@ def get_drone_info():
     return list_of_drone_dicts
 
 
-def store_row_drone_info(drone_dict):
+def store_row(table, drone_dict):
     placeholder_values = ', '.join(['%s'] * len(drone_dict))
     columns = ', '.join(drone_dict.keys())
     sql = "INSERT IGNORE INTO %s ( %s ) VALUES ( %s )" % (
-        'drone', columns, placeholder_values)
-    #cursor.execute(sql, drone_dict.values())
+        table, columns, placeholder_values)
+    cursor.execute(sql, drone_dict.values())
 
 
-def store_drone_info(drone_list):
+def store(table, drone_list):
     for drone_dict in drone_list:
-        store_row_drone_info(drone_dict)
+        store_row(table, drone_dict)
 
 
 def get_and_store_drone_info():
@@ -61,16 +61,24 @@ def get_and_store_drone_info():
     drone_pairs = zip(result, previous_result)
 
     if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
-        store_drone_info(result)
+        store('drone', result)
         for new_drone in result:
             if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
-                new_drones.append(new_drone)
+                new_drones.append({
+                    'id': new_drone['id'], 
+                    'start_time': new_drone['time']
+                })
                 print('New drone: {}'.format(new_drone['id']))
+        store('routes_start', new_drones)
 
         for old_drone in previous_result:
             if not any(new_drone['id'] == old_drone['id'] for new_drone in result): #Finds missing IDs, which are not in the new results (routes_end)
-                gone_drones.append(old_drone)
+                gone_drones.append({
+                    'id': old_drone['id'], 
+                    'end_time': old_drone['time']
+                })
                 print('Gone drone: {}'.format(old_drone['id']))
+        store('routes_end', gone_drones)
 
     previous_result = result
 

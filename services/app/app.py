@@ -28,7 +28,7 @@ def map_2d():
     start_time = request.args.get('start')
     end_time = request.args.get('end')'''
     try:
-        map2 = requests.get('http://192.168.93.1:5004/map').text
+        map2 = requests.get('http://127.0.0.1:5004/map').text
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2)
@@ -37,7 +37,7 @@ def map_2d():
 @app.route('/map2d/<id>/<start_time>/<end_time>')
 def map_2d_with_params(id, start_time, end_time):
     try:
-        map2 = requests.get('http://192.168.93.1:5004/map').text
+        map2 = requests.get('http://127.0.0.1:5004/map/' + id + '/' + start_time + '/' + end_time).text
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2)
@@ -46,14 +46,18 @@ def map_2d_with_params(id, start_time, end_time):
 @app.route('/list')
 def list_drones():
     try:
-        drone_list = json.loads(requests.get('http://192.168.93.1:5005/list').text)# skal også hente tids-intervaller for ruten
+        drone_list = json.loads(requests.get('http://127.0.0.1:5005/list').text)# skal også hente tids-intervaller for ruten
+        #drone_list = requests.get('http://127.0.0.1:5005/list').text
+        print(drone_list)
+        for d in drone_list:
+            print(d['id'])
         #names = ""
         #for name in drone_list:
             #names += name + '\r\n'
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     #return names
-    return render_template('list.html', names=drone_list)
+    return render_template('list.html', drones=drone_list)
 
 
 if __name__ == '__main__':
@@ -70,4 +74,4 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=False)
+    app.run(host=args.address, port=args.port, debug=True)
