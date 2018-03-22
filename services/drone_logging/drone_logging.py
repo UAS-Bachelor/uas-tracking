@@ -14,7 +14,7 @@ droneurl = config['droneurl']
                      user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
 cursor = db.cursor()'''
 
-previous_result = [{}]
+previous_result = []
 
 
 def get_drone_info():
@@ -56,24 +56,21 @@ def store_drone_info(drone_list):
 def get_and_store_drone_info():
     result = get_drone_info()
     global previous_result
-    new_drones = []
+    new_drones = [] #De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
     gone_drones = []
-    pairs = zip(result, previous_result)
+    drone_pairs = zip(result, previous_result)
 
-    if all(not d for d in previous_result):
-        print('list contains empty dictionaries')
-
-    if not previous_result or any(x != y for x, y in pairs):
+    if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
         store_drone_info(result)
-        for x in result:
-            if not any(y['id'] == x['id'] for y in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
-                new_drones.append(x)
-                print('hi2')
+        for new_drone in result:
+            if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
+                new_drones.append(new_drone)
+                print('New drone: {}'.format(new_drone['id']))
 
-        for i in previous_result:
-            if not any(j['id'] == i['id'] for j in result): #Finds missing IDs, which are not in the new results (routes_end)
-                gone_drones.append(i)
-                print('y')
+        for old_drone in previous_result:
+            if not any(new_drone['id'] == old_drone['id'] for new_drone in result): #Finds missing IDs, which are not in the new results (routes_end)
+                gone_drones.append(old_drone)
+                print('Gone drone: {}'.format(old_drone['id']))
 
     previous_result = result
 

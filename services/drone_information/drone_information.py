@@ -49,6 +49,8 @@ db.session.add(drone)
 db.session.commit()'''
 
 
+#SELECT * FROM routes_end
+#routes_end, for så får vi de ruter der ER færdige
 def get_drone_info():
     list_of_drone_dicts = []
     drone_info = requests.get('https://droneid.dk/bsc2018/droneid.php').text.strip('\n')
