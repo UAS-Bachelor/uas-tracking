@@ -4,7 +4,7 @@ db = SQLAlchemy()
 
 class Drone(db.Model):
 
-    __tablename__ = "drone"
+    __tablename__ = "drones"
 
     time_stamp = db.Column(db.String(255))
     time = db.Column(db.BigInteger(), primary_key=True)

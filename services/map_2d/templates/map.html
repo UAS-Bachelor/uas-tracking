@@ -1,7 +1,8 @@
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+<script>
+    var drone_routes = {{ drone_route_list | tojson }};
+</script>
 
 <div id="map" class="map"></div>
-<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>
 
 <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
 <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>

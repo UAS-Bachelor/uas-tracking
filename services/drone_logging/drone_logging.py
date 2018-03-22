@@ -61,7 +61,7 @@ def get_and_store_drone_info():
     drone_pairs = zip(result, previous_result)
 
     if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
-        store('drone', result)
+        store('drones', result)
         for new_drone in result:
             if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
                 new_drones.append({

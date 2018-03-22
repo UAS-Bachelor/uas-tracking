@@ -11,6 +11,8 @@ configobj = ConfigObj(__services_config)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + ':' + configobj['port'] + '/' + configobj['database']
+app.config['SQLALCHEMY_POOL_SIZE'] = 100
+app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
@@ -40,7 +42,6 @@ db.init_app(app)
 
 @app.route('/list')
 def list_drones():
-    list_of_drone_dicts = []
     #drone = db.session.query(Drone.lon).filter_by(id='501').filter(Drone.time >= 1521712566, Drone.time <= 1521712581).all()
     #drone = db.session.query(Route_end.id, Route_end.end_time).all()
     #userList = users.query.join(friendships, users.id==friendships.user_id).add_columns(users.userId, users.name, users.email, friends.userId, friendId).filter(users.id == friendships.friend_id).filter(friendships.user_id == userID).paginate(page, 1, False)
@@ -48,11 +49,25 @@ def list_drones():
     
     drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
     
-    for route in drone_routes_results:
-        list_of_drone_dicts.append(
-            dict(zip(route.keys(), route))
-        )
+    list_of_drone_dicts = result_to_list_of_dicts(drone_routes_results)
     return jsonify(list_of_drone_dicts)
+
+
+@app.route('/<id>/<start_time>/<end_time>')
+def route_with_params(id, start_time, end_time):
+    drone_routes_results = db.session.query(Drone.id, Drone.time, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all()
+
+    list_of_drone_dicts = result_to_list_of_dicts(drone_routes_results)
+    return jsonify(list_of_drone_dicts)
+
+
+def result_to_list_of_dicts(results):
+    list_of_dicts = []
+    for result in results:
+        list_of_dicts.append(
+            dict(zip(result.keys(), result))
+        )
+    return list_of_dicts
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, json
 import requests
 import sys
 import argparse
@@ -7,14 +7,18 @@ from os import system
 app = Flask(__name__)
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-@app.route('/map')
+@app.route('/map2d')
 def map():
     return render_template('map.html')
+
+
+@app.route('/map2d/<id>/<start_time>/<end_time>')
+def map_2d_with_params(id, start_time, end_time):
+    try:
+        drone_route_list = json.loads(requests.get('http://127.0.0.1:5005/' + id + '/' + start_time + '/' + end_time).text)
+    except requests.exceptions.ConnectionError:
+        return '2D Map service unavailable'
+    return render_template('map.html', drone_route_list=drone_route_list)
 
 
 if __name__ == '__main__':

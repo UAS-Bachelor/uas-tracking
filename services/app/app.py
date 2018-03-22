@@ -28,7 +28,7 @@ def map_2d():
     start_time = request.args.get('start')
     end_time = request.args.get('end')'''
     try:
-        map2 = requests.get('http://127.0.0.1:5004/map').text
+        map2 = requests.get('http://127.0.0.1:5004/map2d').text
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2)
@@ -37,7 +37,7 @@ def map_2d():
 @app.route('/map2d/<id>/<start_time>/<end_time>')
 def map_2d_with_params(id, start_time, end_time):
     try:
-        map2 = requests.get('http://127.0.0.1:5004/map/' + id + '/' + start_time + '/' + end_time).text
+        map2 = requests.get('http://127.0.0.1:5004/map2d/' + id + '/' + start_time + '/' + end_time).text
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2)
