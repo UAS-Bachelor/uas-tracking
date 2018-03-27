@@ -56,3 +56,16 @@ class Route_end(db.Model):
     def __init__(self, end_time, id):
         self.end_time = end_time
         self.id = id
+
+
+class Route(db.Model):
+
+    __tablename__ = "routes"
+
+    id = db.Column(db.String(20), primary_key=True)
+    start_time = db.Column(db.BigInteger(), primary_key=True)
+    end_time = db.Column(db.BigInteger(), primary_key=True)
+
+    def __init__(self, end_time, id):
+        self.end_time = end_time
+        self.id = id
