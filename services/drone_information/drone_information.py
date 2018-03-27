@@ -47,7 +47,10 @@ def list_drones():
     #userList = users.query.join(friendships, users.id==friendships.user_id).add_columns(users.userId, users.name, users.email, friends.userId, friendId).filter(users.id == friendships.friend_id).filter(friendships.user_id == userID).paginate(page, 1, False)
     #drone_routes = Route_end.query.join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
     
-    drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
+    #drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
+    drone_routes_results = db.session.query(Route.id, Route.start_time, Route.end_time).filter(Route.end_time != None).all()
+
+    print(drone_routes_results)
     
     list_of_drone_dicts = result_to_list_of_dicts(drone_routes_results)
     return jsonify(list_of_drone_dicts)
