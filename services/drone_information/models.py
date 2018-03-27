@@ -62,10 +62,13 @@ class Route(db.Model):
 
     __tablename__ = "routes"
 
-    id = db.Column(db.String(20), primary_key=True)
-    start_time = db.Column(db.BigInteger(), primary_key=True)
-    end_time = db.Column(db.BigInteger(), primary_key=True)
+    route_id = db.Column(db.Integer, primary_key=True)
+    drone_id = db.Column(db.String(20))
+    start_time = db.Column(db.BigInteger())
+    end_time = db.Column(db.BigInteger())
 
-    def __init__(self, end_time, id):
+    def __init__(self, route_id, drone_id, start_time, end_time):
+        self.route_id = route_id
+        self.drone_id = drone_id
+        self.start_time = start_time
         self.end_time = end_time
-        self.id = id
