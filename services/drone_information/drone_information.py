@@ -3,6 +3,7 @@ from models import *
 import requests
 import sys
 import argparse
+import time
 from configobj import ConfigObj
 from os import system
 
@@ -48,11 +49,13 @@ def list_drones():
     #drone_routes = Route_end.query.join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
     
     #drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
-    drone_routes_results = db.session.query(Route.id, Route.start_time, Route.end_time).filter(Route.end_time != None).all()
-
-    print(drone_routes_results)
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id.label('id'), Route.start_time, Route.end_time).filter(Route.end_time != None).all())
     
-    list_of_drone_dicts = result_to_list_of_dicts(drone_routes_results)
+    for drone_dict in list_of_drone_dicts:
+        drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
+        drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
+        drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
+        print(drone_dict['end_time'] - drone_dict['start_time'])
     return jsonify(list_of_drone_dicts)
 
 
@@ -71,6 +74,15 @@ def result_to_list_of_dicts(results):
             dict(zip(result.keys(), result))
         )
     return list_of_dicts
+
+
+def epoch_to_datetime(epoch):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
+
+
+def epoch_to_time(epoch):
+    print(epoch)
+    return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
 if __name__ == '__main__':
