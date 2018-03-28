@@ -1,0 +1,16 @@
+.tooltip {
+    position: relative;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    opacity: 1;
+    white-space: nowrap;
+    font-size: 10pt;
+    font-family: sans-serif
+}
+
+@media screen and (max-width: 640px) {
+    .tooltip {
+        font-size: 13pt;
+    }
+}
