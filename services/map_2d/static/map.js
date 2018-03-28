@@ -23,7 +23,7 @@ if(
      window.matchMedia('only screen and (max-width: 640px)').matches
     )
   ){
-   lineWidth = 12;
+   lineWidth = 10;
 }
 
 
