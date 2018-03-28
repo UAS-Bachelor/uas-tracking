@@ -8,11 +8,13 @@ __config_file = 'cfg/config.json'
 config = json.load(open(__config_file))
 dbconfig = config['db']
 
-droneurl = config['droneurl']
-
 db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
                      user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
 cursor = db.cursor()
+
+drones_table = dbconfig['drones_table']
+routes_table = dbconfig['routes_table']
+droneurl = config['droneurl']
 
 previous_result = []
 
@@ -77,11 +79,10 @@ def get_and_store_drone_info():
     new_drones = []  # De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
     gone_drones_time = []
     gone_drones_id = []
-    drone_pairs = zip(result, previous_result)
 
     # if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
 
-    store('drones', result)
+    store(drones_table, result)
 
     #for hver drone i result, for hver item i dronen's item (id=922, time=15..., lat=55), hvis det id og value IKKE findes i previous_result, så har vi en ny drone
     '''for new_drone in result:
@@ -99,7 +100,7 @@ def get_and_store_drone_info():
                 'start_time': new_drone['time']
             })
             print('New drone: {}'.format(new_drone['id']))
-    store('routes', new_drones)
+    store(routes_table, new_drones)
     
     for old_drone in previous_result:
         # Finds missing IDs, which are not in the new results (routes_end)
@@ -111,7 +112,7 @@ def get_and_store_drone_info():
                 'drone_id': old_drone['id']
             })
             print('Gone drone: {}'.format(old_drone['id']))
-    update('routes', gone_drones_time, gone_drones_id)
+    update(routes_table, gone_drones_time, gone_drones_id)
 
     previous_result = result
 

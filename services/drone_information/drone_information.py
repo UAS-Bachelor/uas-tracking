@@ -61,9 +61,8 @@ def list_drones():
 
 @app.route('/<id>/<start_time>/<end_time>')
 def route_with_params(id, start_time, end_time):
-    drone_routes_results = db.session.query(Drone.id, Drone.time, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all()
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
 
-    list_of_drone_dicts = result_to_list_of_dicts(drone_routes_results)
     return jsonify(list_of_drone_dicts)
 
 

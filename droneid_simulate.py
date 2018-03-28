@@ -74,8 +74,8 @@ LOG_TEST_DATA = [
 ]
 
 for i in range(10):
-    send_log_entry(LOG_TEST_DATA[i])
     print('Sending {}'.format(i))
+    send_log_entry(LOG_TEST_DATA[i])
     time.sleep(15)
 
 #send_log_entry(LOG_TEST_DATA[0])
