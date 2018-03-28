@@ -80,7 +80,6 @@ def epoch_to_datetime(epoch):
 
 
 def epoch_to_time(epoch):
-    print(epoch)
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 

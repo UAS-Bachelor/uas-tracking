@@ -45,7 +45,7 @@ var styles = [
         }), 
         zIndex: 0
     }), 
-    new ol.style.Style({
+    new ol.style.Style({ //pointStyle
         image: new ol.style.Circle({
             radius: (lineWidth / 2), 
             fill: new ol.style.Fill({
@@ -91,9 +91,8 @@ var vector = new ol.layer.Vector({
 map.addLayer(vector)
 
 
-console.log(window.screen.availWidth)
-console.log(window.screen.availHeight)
 
+//Tooltip - whole class needs to be cleaned up
 
 var tooltip = document.getElementById('tooltip');
 var overlay = new ol.Overlay({
@@ -117,6 +116,3 @@ function displayTooltip(evt) {
 
 map.on('pointermove', displayTooltip);
 
-
-
-//console.log($('#my-data').data());
