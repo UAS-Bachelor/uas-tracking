@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--address', type=str, default='127.0.0.1',
                         help='specify which host to run this service on')
-    parser.add_argument('-p', '--port', type=int, default=5001,
+    parser.add_argument('-p', '--port', type=int, default=5003,
                         help='specify which port to run this service on')
     parser.add_argument('-v', '--version', type=float, default=0,
                         help='specify which version of the service this is')
