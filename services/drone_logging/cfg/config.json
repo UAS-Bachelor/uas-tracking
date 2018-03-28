@@ -1,10 +1,12 @@
-{
+ {
 	"db": {
 		"host": "heltner.net", 
 	    "port": 3306, 
 	    "database": "xbugtpgn_drone_data", 
 	    "user": "xbugtpgn_admin", 
-	    "password": "9_Ak@!Bh8QTd"
+	    "password": "9_Ak@!Bh8QTd", 
+	    "drones_table": "drones", 
+	    "routes_table": "routes"
     },
     "droneurl": "https://droneid.dk/bsc2018/droneid.php"
 }

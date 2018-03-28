@@ -8,11 +8,13 @@ __config_file = 'cfg/config.json'
 config = json.load(open(__config_file))
 dbconfig = config['db']
 
-droneurl = config['droneurl']
-
 db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
                      user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
 cursor = db.cursor()
+
+drones_table = dbconfig['drones_table']
+routes_table = dbconfig['routes_table']
+droneurl = config['droneurl']
 
 previous_result = []
 
@@ -43,9 +45,22 @@ def get_drone_info():
 def store_row(table, drone_dict):
     placeholder_values = ', '.join(['%s'] * len(drone_dict))
     columns = ', '.join(drone_dict.keys())
-    sql = "INSERT IGNORE INTO %s ( %s ) VALUES ( %s )" % (
-        table, columns, placeholder_values)
+    sql = 'INSERT IGNORE INTO {} ( {} ) VALUES ( {} )'.format(
+        table, columns, placeholder_values
+    )
     cursor.execute(sql, drone_dict.values())
+
+
+# example usage update_row('routes', {'end_time': '1594329'}, {'id': '914'})
+def update_row(table, set_dict, where_dict):
+    set_column = __flatten_dict(', ', set_dict)
+    where_column = __flatten_dict(' AND ', where_dict)
+    sql = 'UPDATE {} SET {} WHERE route_id=(SELECT * FROM (SELECT route_id FROM routes WHERE end_time IS NULL AND {} ORDER BY route_id ASC LIMIT 1) AS a)'.format(table, set_column, where_column)
+    cursor.execute(sql)
+
+
+def __flatten_dict(join_string, dict_to_flat):
+    return join_string.join('{!s}={!s}'.format(key, val) for (key, val) in dict_to_flat.items())
 
 
 def store(table, drone_list):
@@ -53,32 +68,51 @@ def store(table, drone_list):
         store_row(table, drone_dict)
 
 
+def update(table, set_list, where_list):
+    for set_dict, where_dict in zip(set_list, where_list):
+        update_row(table, set_dict, where_dict)
+
+
 def get_and_store_drone_info():
     result = get_drone_info()
     global previous_result
-    new_drones = [] #De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
-    gone_drones = []
-    drone_pairs = zip(result, previous_result)
+    new_drones = []  # De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
+    gone_drones_time = []
+    gone_drones_id = []
 
-    if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
-        store('drones', result)
-        for new_drone in result:
-            if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result): #Finds new IDs, which weren't in the previous result (routes_start)
-                new_drones.append({
-                    'id': new_drone['id'], 
-                    'start_time': new_drone['time']
-                })
-                print('New drone: {}'.format(new_drone['id']))
-        store('routes_start', new_drones)
+    # if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
 
-        for old_drone in previous_result:
-            if not any(new_drone['id'] == old_drone['id'] for new_drone in result): #Finds missing IDs, which are not in the new results (routes_end)
-                gone_drones.append({
-                    'id': old_drone['id'], 
-                    'end_time': old_drone['time']
-                })
-                print('Gone drone: {}'.format(old_drone['id']))
-        store('routes_end', gone_drones)
+    store(drones_table, result)
+
+    #for hver drone i result, for hver item i dronen's item (id=922, time=15..., lat=55), hvis det id og value IKKE findes i previous_result, så har vi en ny drone
+    '''for new_drone in result:
+
+        for key, value in new_drone.items():
+            if key not in previous_result:#skal være den enkelte drone, hvilket previous_result er en liste af
+                print(key + ' not in previous result')
+                print(previous_result)'''
+        
+    for new_drone in result:
+        # Finds new IDs, which weren't in the previous result (routes_start)
+        if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result):
+            new_drones.append({
+                'drone_id': new_drone['id'],
+                'start_time': new_drone['time']
+            })
+            print('New drone: {}'.format(new_drone['id']))
+    store(routes_table, new_drones)
+    
+    for old_drone in previous_result:
+        # Finds missing IDs, which are not in the new results (routes_end)
+        if not any(new_drone['id'] == old_drone['id'] for new_drone in result):
+            gone_drones_time.append({
+                'end_time': old_drone['time']
+            })
+            gone_drones_id.append({
+                'drone_id': old_drone['id']
+            })
+            print('Gone drone: {}'.format(old_drone['id']))
+    update(routes_table, gone_drones_time, gone_drones_id)
 
     previous_result = result
 
