@@ -35,7 +35,8 @@ def map_2d():
     end_time = request.args.get('end')'''
     try:
         cfg = configobj['map_2d']
-        map2d = requests.get('http://{}:{}/map2d'.format(cfg['host'], cfg['port'])).text
+        #map2d = requests.get('http://{}:{}/map2d'.format(cfg['host'], cfg['port'])).text
+        map2d = __get_url(cfg)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2d)
@@ -45,7 +46,8 @@ def map_2d():
 def map_2d_with_params(id, start_time, end_time):
     try:
         cfg = configobj['map_2d']
-        map2d = requests.get('http://{}:{}/map2d/{}/{}/{}'.format(cfg['host'], cfg['port'], id, start_time, end_time)).text
+        #map2d = requests.get('http://{}:{}/map2d/{}/{}/{}'.format(cfg['host'], cfg['port'], id, start_time, end_time)).text
+        map2d = __get_url(cfg)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2d)
@@ -55,10 +57,17 @@ def map_2d_with_params(id, start_time, end_time):
 def list_drones():
     try:
         cfg = configobj['drone_information']
-        drone_list = json.loads(requests.get('http://{}:{}/list'.format(cfg['host'], cfg['port'])).text)
+        drone_list = json.loads(__get_url(cfg))
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     return render_template('list.html', drones=drone_list)
+
+
+def __get_url(cfg):
+    if(request.remote_addr == '127.0.0.1'):
+        return requests.get('http://127.0.0.1:{}{}'.format(cfg['port'], request.path)).text
+    else:
+        return requests.get('http://{}:{}{}'.format(cfg['host'], cfg['port'], request.path)).text
 
 
 if __name__ == '__main__':
