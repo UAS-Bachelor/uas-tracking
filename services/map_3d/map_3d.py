@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-@app.route('/map')
+@app.route('/map3d')
 def index():
     return render_template('map.html')
 

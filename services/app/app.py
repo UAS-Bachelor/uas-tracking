@@ -20,8 +20,7 @@ def index():
 def map_3d():
     try:
         cfg = configobj['map_3d']
-        #map3 = requests.get('http://192.168.93.1:5001/map').text
-        map3d = requests.get('http://{}:{}/map'.format(cfg['host'], cfg['port'])).text
+        map3d = __get_url(cfg)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
     return render_template('layout.html', html=map3d)
@@ -35,7 +34,6 @@ def map_2d():
     end_time = request.args.get('end')'''
     try:
         cfg = configobj['map_2d']
-        #map2d = requests.get('http://{}:{}/map2d'.format(cfg['host'], cfg['port'])).text
         map2d = __get_url(cfg)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
@@ -46,7 +44,6 @@ def map_2d():
 def map_2d_with_params(id, start_time, end_time):
     try:
         cfg = configobj['map_2d']
-        #map2d = requests.get('http://{}:{}/map2d/{}/{}/{}'.format(cfg['host'], cfg['port'], id, start_time, end_time)).text
         map2d = __get_url(cfg)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
@@ -84,5 +81,4 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    #app.run(host=args.address, port=args.port, debug=True)
     app.run(host=args.address, port=args.port, debug=False)
