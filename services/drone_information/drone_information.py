@@ -55,7 +55,6 @@ def list_drones():
         drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
         drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
         drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-        print(drone_dict['end_time'] - drone_dict['start_time'])
     return jsonify(list_of_drone_dicts)
 
 
