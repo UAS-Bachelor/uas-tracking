@@ -17,13 +17,15 @@ for (var i = 0; i < droneRoutes.length; i++) {
 //var coords = [[10.3, 55.2], [10.4, 55.5], [10.3, 55.9]];
 
 var lineWidth = 7;
+var hitTolerance = 2;
 if (
     (screen.width <= 640) ||
     (window.matchMedia &&
         window.matchMedia('only screen and (max-width: 640px)').matches
     )
 ) {
-    lineWidth = 10;
+    lineWidth = 9;
+    hitTolerance = 10;
 }
 
 
@@ -47,13 +49,13 @@ var styles = [
     }),
     new ol.style.Style({ //pointStyle
         image: new ol.style.Circle({
-            radius: (lineWidth / 2),
+            radius: (lineWidth / 3),
             fill: new ol.style.Fill({
                 color: '#f5f5f5'
             }),
             stroke: new ol.style.Stroke({
                 color: '#2865a2',
-                width: (lineWidth / 3)
+                width: (lineWidth / 4)
             })
         }),
         zIndex: 2
@@ -62,34 +64,47 @@ var styles = [
 
 var startTime = droneRoutes[0]['time_stamp'];
 var endTime = droneRoutes[droneRoutes.length - 1]['time_stamp'];
-var routeFeatures = [
+var routeFeatures = [ // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoutes[][]
     new ol.Feature({
         geometry: lineString,
-        html: '<b>Rute</b><br>' + 
-                '<b>Start:</b> ' + startTime + '<br>' + 
-                '<b>Slut:</b> ' + endTime + '<br>' + 
-                '<b>Varighed:</b> ' + routeDuration
+        html: '<b>Rute</b><br>' +
+            '<b>Start:</b> ' + startTime + '<br>' +
+            '<b>Slut:</b> ' + endTime + '<br>' +
+            '<b>Varighed:</b> ' + routeDuration
     })
 ];
 
 var pointFeatures = [];
 
-var geometry = routeFeatures[0].getGeometry();
-var i = 0;
-geometry.forEachSegment(function (start, end) {
-    var droneRoute = droneRoutes[i];
+for (var i = 0; i < routeFeatures.length; i++) { // can handle multiple routes
+    var geometry = routeFeatures[i].getGeometry();
+    var j = 0;
+    geometry.forEachSegment(function (start, end) {
+        pointFeatures.push(new ol.Feature({
+            geometry: new ol.geom.Point(start),
+            html: createHtmlForPointTooltip(droneRoutes[j])
+        }));
+
+        j++;
+
+        if (j == droneRoutes.length - 1) { //add end point
+            pointFeatures.push(new ol.Feature({
+                geometry: new ol.geom.Point(end),
+                html: createHtmlForPointTooltip(droneRoutes[j])
+            }));
+        }
+    });
+}
+
+function createHtmlForPointTooltip(droneRoute) {
     var lat = droneRoute['lat'];
     var lon = droneRoute['lon'];
     var time = droneRoute['time_stamp'];
-    pointFeatures.push(new ol.Feature({
-        geometry: new ol.geom.Point(start),
-        html: '<b>Punkt</b><br>' + 
-                '<b>Latitude:</b> ' + lat + '<br>' + 
-                '<b>Longitude:</b> ' + lon + '<br>' + 
-                '<b>Tid:</b> ' + time
-    }));
-    i++;
-});
+    return '<b>Punkt</b><br>' +
+        '<b>Latitude:</b> ' + lat + '<br>' +
+        '<b>Longitude:</b> ' + lon + '<br>' +
+        '<b>Tid:</b> ' + time
+}
 
 var source = new ol.source.Vector({
     features: routeFeatures.concat(pointFeatures)
@@ -113,17 +128,24 @@ var overlay = new ol.Overlay({
 });
 map.addOverlay(overlay);
 
-function displayTooltip(evt) {
-    var pixel = evt.pixel;
+function displayTooltip(event) {
+    var pixel = event.pixel;
     var feature = map.forEachFeatureAtPixel(pixel, function (feature) {
         return feature;
-    });
+    }, {
+            hitTolerance: 3
+        });
     tooltip.style.display = feature ? '' : 'none';
     if (feature) {
-        overlay.setPosition(evt.coordinate);
+        overlay.setPosition(event.coordinate);
         tooltip.innerHTML = feature.get('html');
     }
 };
 
-map.on('pointermove', displayTooltip);
+map.on('pointermove', function (event) {
+    if (event.dragging) {
+        return;
+    }
+    displayTooltip(event);
+});
 
