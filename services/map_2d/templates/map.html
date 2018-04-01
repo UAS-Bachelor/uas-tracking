@@ -1,6 +1,8 @@
 <script>
-    var droneRoutes = {{ drone_route_list | tojson }};
-    var routeDuration = '{{ route_duration }}';
+    {% if drone_route_list is defined %}
+        var droneRoutes = {{ drone_route_list | tojson }};
+        var routeDuration = '{{ route_duration }}';
+    {% endif %}
 </script>
 
 <div id="map" class="map">

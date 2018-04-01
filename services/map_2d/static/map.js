@@ -137,7 +137,7 @@ function displayTooltip(event) {
     }, {
             hitTolerance: 3
         });
-    tooltip.style.display = feature ? '' : 'none';
+    tooltip.style.display = feature ? 'inline-block' : 'none';
     if (feature) {
         overlay.setPosition(event.coordinate);
         tooltip.innerHTML = feature.get('html');

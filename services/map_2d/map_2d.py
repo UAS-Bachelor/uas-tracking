@@ -2,7 +2,6 @@ from flask import Flask, render_template, url_for, request, json
 import requests
 import sys
 from configobj import ConfigObj
-from scipy import interpolate
 import argparse
 import time
 import os

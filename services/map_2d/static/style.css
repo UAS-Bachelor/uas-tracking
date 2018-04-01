@@ -6,8 +6,9 @@
 
 .tooltip {
     position: relative;
+    display: none;
     padding: 5px;
-    background: rgba(0, 0, 0, 0.7);
+    background: #000000b3;
     color: white;
     opacity: 1;
     border-radius: 7px;
