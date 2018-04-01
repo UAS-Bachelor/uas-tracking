@@ -12,61 +12,61 @@ def send_log_entry(log):
 
 LOG_TEST_DATA = [
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.37000,
         'lon': 10.43000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.38000,
         'lon': 10.43000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.39000,
         'lon': 10.44000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.40000,
         'lon': 10.45000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.41000,
         'lon': 10.46000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.41000,
         'lon': 10.47000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.41000,
         'lon': 10.48000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.42000,
         'lon': 10.48000,
         'alt': 49.75,
     },
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.43000,
         'lon': 10.48000,
         'alt': 49.75,
     }, 
     {
-        'aid': 910,
+        'aid': 911,
         'lat': 55.44000,
         'lon': 10.48000,
         'alt': 49.75,
@@ -76,7 +76,7 @@ LOG_TEST_DATA = [
 for i in range(10):
     print('Sending {}'.format(i))
     send_log_entry(LOG_TEST_DATA[i])
-    time.sleep(15)
+    time.sleep(5)
 
 #send_log_entry(LOG_TEST_DATA[0])
 #send_log_entry(LOG_TEST_DATA[1])
