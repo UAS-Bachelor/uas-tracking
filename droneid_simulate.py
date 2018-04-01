@@ -7,7 +7,7 @@ def send_log_entry(log):
     r = requests.post("https://droneid.dk/bsc2018/droneid_log.php", data={
                       'aid': log['aid'], 'lat': log['lat'], 'lon': log['lon'], 'alt': log['alt']})
     print(r.status_code, r.reason)
-    print(r.text)
+    #print(r.text)
 
 
 LOG_TEST_DATA = [

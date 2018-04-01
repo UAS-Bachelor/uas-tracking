@@ -62,9 +62,11 @@ var styles = [
     })
 ];
 
+var routeFeatures = []
+
 var startTime = droneRoutes[0]['time_stamp'];
 var endTime = droneRoutes[droneRoutes.length - 1]['time_stamp'];
-var routeFeatures = [ // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoutes[][]
+routeFeatures.push( // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoutes[][]
     new ol.Feature({
         geometry: lineString,
         html: '<b>Rute</b><br>' +
@@ -72,7 +74,7 @@ var routeFeatures = [ // can NOT handle multiple routes right now - would have t
             '<b>Slut:</b> ' + endTime + '<br>' +
             '<b>Varighed:</b> ' + routeDuration
     })
-];
+);
 
 var pointFeatures = [];
 
@@ -106,11 +108,11 @@ function createHtmlForPointTooltip(droneRoute) {
         '<b>Tid:</b> ' + time
 }
 
-var source = new ol.source.Vector({
+var vectorSource = new ol.source.Vector({
     features: routeFeatures.concat(pointFeatures)
 });
 var vector = new ol.layer.Vector({
-    source: source,
+    source: vectorSource,
     style: styles
 });
 

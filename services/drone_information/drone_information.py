@@ -4,6 +4,7 @@ import requests
 import sys
 import argparse
 import time
+from scipy import interpolate
 from configobj import ConfigObj
 import os
 
@@ -61,8 +62,35 @@ def list_drones():
 @app.route('/<id>/<start_time>/<end_time>')
 def route_with_params(id, start_time, end_time):
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
-
+    list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, 2)
     return jsonify(list_of_drone_dicts)
+
+
+def spline_interpolate(drone_route_list, interval):
+    interpolated_result = []
+    drone = drone_route_list[0]
+    time = [drone_route['time'] for drone_route in drone_route_list]
+    lat = [drone_route['lat'] for drone_route in drone_route_list]
+    lon = [drone_route['lon'] for drone_route in drone_route_list]
+    counter = time[0]
+    end_time = time[-1]
+    #tck = interpolate.splrep([0, 1, 2, 3], [0, 50, 100, 200])
+    lat_tck = interpolate.splrep(time, lat)
+    lon_tck = interpolate.splrep(time, lon)
+
+    while counter < end_time:
+        interpolated_lat = interpolate.splev(counter, lat_tck).tolist()
+        interpolated_lon = interpolate.splev(counter, lon_tck).tolist()
+
+        interpolated_result.append({
+            'time_stamp': epoch_to_time(counter),
+            'time': counter,
+            'id': drone['id'],
+            'lat': interpolated_lat,
+            'lon': interpolated_lon
+        })
+        counter += interval
+    return interpolated_result
 
 
 def result_to_list_of_dicts(results):

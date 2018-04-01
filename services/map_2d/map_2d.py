@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, request, json
 import requests
 import sys
 from configobj import ConfigObj
+from scipy import interpolate
 import argparse
 import time
 import os
@@ -23,6 +24,7 @@ def map_2d_with_params(id, start_time, end_time):
         cfg = configobj['drone_information']
         request.path = '/{}/{}/{}'.format(id, start_time, end_time)
         drone_route_list = json.loads(__get_url(cfg))
+        #drone_route_list = spline_interpolate(drone_route_list, 2)
         route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
