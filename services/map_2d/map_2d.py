@@ -55,4 +55,4 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=True)
+    app.run(host=args.address, port=args.port, debug=True, threaded=True)
