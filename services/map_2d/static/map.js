@@ -167,8 +167,10 @@ function createHtmlForRouteTooltip() {
 
 
 initMap();
-initToolTip();
-createRoute();
-createPointsOnRoute();
-createStyles();
-addRouteAndPointsToMap();
+if (droneRoutes) {
+    initToolTip();
+    createRoute();
+    createPointsOnRoute();
+    createStyles();
+    addRouteAndPointsToMap();
+}
