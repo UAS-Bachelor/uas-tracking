@@ -1,18 +1,20 @@
 from flask import Flask, render_template, url_for, request, jsonify
 from models import *
 import requests
+import json
 import sys
 import argparse
 import time
 from scipy import interpolate
-from configobj import ConfigObj
 import os
 
-__services_config = os.path.realpath(__file__) + '/../cfg/dbconfig.ini'
-configobj = ConfigObj(__services_config)
+__config_file = os.path.realpath(__file__) + '/../cfg/config.json'
+config = json.load(open(__config_file))
+db_config = config['db']
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://' + configobj['user'] + ':' + configobj['password'] + '@' + configobj['host'] + ':' + configobj['port'] + '/' + configobj['database']
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{}:{}@{}:{}/{}'.format(db_config['user'], db_config['password'], db_config['host'], db_config['port'], db_config['database'])
 app.config['SQLALCHEMY_POOL_SIZE'] = 100
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

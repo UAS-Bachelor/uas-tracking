@@ -1,5 +1,5 @@
 import argparse
-from util import configobj, close_cmd, gather_pids
+from util import config, close_cmd, gather_pids
 
 
 def __kill_service(service, config):
@@ -10,13 +10,13 @@ def __kill_service(service, config):
 
 
 def kill(service):
-    if service in configobj:
+    if service in config:
         print('Killing {} service...'.format(service))
-        __kill_service(service, configobj[service])
+        __kill_service(service, config[service])
     elif service == 'all':
         print('Killing all services...')
-        for service_section in configobj:
-            __kill_service(service_section, configobj[service_section])
+        for service_section in config:
+            __kill_service(service_section, config[service_section])
 
 
 if __name__ == '__main__':
