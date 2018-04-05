@@ -1,11 +1,11 @@
-from configobj import ConfigObj
+import json
 from sys import executable
 from subprocess import Popen, CREATE_NEW_CONSOLE
 import psutil
 
 __services_dir = 'services/'
-__services_config = 'services.ini'
-configobj = ConfigObj(__services_config)
+__services_config_file = 'services.json'
+config = json.load(open(__services_config_file))
 
 
 def __get_path(service):

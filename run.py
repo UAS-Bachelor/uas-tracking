@@ -1,5 +1,5 @@
 import argparse
-from util import configobj, open_cmd, check_port
+from util import config, open_cmd, check_port
 
 
 def __launch_service(service, config):
@@ -25,13 +25,13 @@ def __launch_service(service, config):
 
 
 def run(service):
-    if service in configobj:
+    if service in config:
         print('Starting {} service...'.format(service))
-        __launch_service(service, configobj[service])
+        __launch_service(service, config[service])
     elif service == 'all':
         print('Starting all services...')
-        for service_section in configobj:
-            __launch_service(service_section, configobj[service_section])
+        for service_section in config:
+            __launch_service(service_section, config[service_section])
 
 
 if __name__ == '__main__':

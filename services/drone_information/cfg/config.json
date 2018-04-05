@@ -1,0 +1,10 @@
+ {
+	"db": {
+		"host": "heltner.net", 
+	    "port": 3306, 
+	    "database": "xbugtpgn_drone_data", 
+	    "user": "xbugtpgn_admin", 
+	    "password": "9_Ak@!Bh8QTd"
+    },
+    "interpolation_interval": 2
+}

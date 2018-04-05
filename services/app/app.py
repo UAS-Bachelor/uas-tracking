@@ -1,14 +1,14 @@
-from flask import Flask, render_template, url_for, request, json
+from flask import Flask, render_template, url_for, request
+import json
 import requests
-from configobj import ConfigObj
 import sys
 import argparse
 import os
 
 app = Flask(__name__)
 
-__services_config = os.path.realpath(__file__) + '/../../../services.ini'
-configobj = ConfigObj(__services_config)
+__services_config_file = os.path.realpath(__file__) + '/../../../services.json'
+config = json.load(open(__services_config_file))
 
 
 @app.route('/')
@@ -19,8 +19,8 @@ def index():
 @app.route('/map3d')
 def map_3d():
     try:
-        cfg = configobj['map_3d']
-        map3d = __get_url(cfg)
+        route_config = config['map_3d']
+        map3d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
     return render_template('layout.html', html=map3d)
@@ -33,8 +33,8 @@ def map_2d():
     start_time = request.args.get('start')
     end_time = request.args.get('end')'''
     try:
-        cfg = configobj['map_2d']
-        map2d = __get_url(cfg)
+        route_config = config['map_2d']
+        map2d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2d)
@@ -43,8 +43,8 @@ def map_2d():
 @app.route('/map2d/<id>/<start_time>/<end_time>')
 def map_2d_with_params(id, start_time, end_time):
     try:
-        cfg = configobj['map_2d']
-        map2d = __get_url(cfg)
+        route_config = config['map_2d']
+        map2d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map2d)
@@ -53,18 +53,18 @@ def map_2d_with_params(id, start_time, end_time):
 @app.route('/list')
 def list_drones():
     try:
-        cfg = configobj['drone_information']
-        drone_list = json.loads(__get_url(cfg))
+        route_config = config['drone_information']
+        drone_list = json.loads(__get_url(route_config))
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     return render_template('list.html', drones=drone_list)
 
 
-def __get_url(cfg):
+def __get_url(route_config):
     if(request.remote_addr == '127.0.0.1'):
-        return requests.get('http://127.0.0.1:{}{}'.format(cfg['port'], request.path)).text
+        return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
     else:
-        return requests.get('http://{}:{}{}'.format(cfg['host'], cfg['port'], request.path)).text
+        return requests.get('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)).text
 
 
 if __name__ == '__main__':

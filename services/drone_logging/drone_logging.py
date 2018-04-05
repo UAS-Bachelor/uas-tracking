@@ -6,14 +6,14 @@ import MySQLdb
 
 __config_file = 'cfg/config.json'
 config = json.load(open(__config_file))
-dbconfig = config['db']
+db_config = config['db']
 
-db = MySQLdb.connect(host=dbconfig['host'], port=dbconfig['port'],
-                     user=dbconfig['user'], password=dbconfig['password'], db=dbconfig['database'])
+db = MySQLdb.connect(host=db_config['host'], port=db_config['port'],
+                     user=db_config['user'], password=db_config['password'], db=db_config['database'])
 cursor = db.cursor()
 
-drones_table = dbconfig['drones_table']
-routes_table = dbconfig['routes_table']
+drones_table = db_config['drones_table']
+routes_table = db_config['routes_table']
 droneurl = config['droneurl']
 
 previous_result = []
