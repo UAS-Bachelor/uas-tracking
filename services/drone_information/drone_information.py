@@ -4,10 +4,11 @@ import requests
 import sys
 import argparse
 import time
+from scipy import interpolate
 from configobj import ConfigObj
-from os import system
+import os
 
-__services_config = 'cfg/dbconfig.ini'
+__services_config = os.path.realpath(__file__) + '/../cfg/dbconfig.ini'
 configobj = ConfigObj(__services_config)
 
 app = Flask(__name__)
@@ -16,6 +17,8 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 100
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+interpolation_interval = 2
 
 #SELECT * FROM routes_end
 #routes_end, for så får vi de ruter der ER færdige
@@ -55,15 +58,41 @@ def list_drones():
         drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
         drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
         drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-        print(drone_dict['end_time'] - drone_dict['start_time'])
     return jsonify(list_of_drone_dicts)
 
 
 @app.route('/<id>/<start_time>/<end_time>')
 def route_with_params(id, start_time, end_time):
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
-
+    if len(list_of_drone_dicts) > 3:
+        list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
     return jsonify(list_of_drone_dicts)
+
+
+def spline_interpolate(drone_route_list, interval):
+    interpolated_result = []
+    drone = drone_route_list[0]
+    time = [drone_route['time'] for drone_route in drone_route_list]
+    lat = [drone_route['lat'] for drone_route in drone_route_list]
+    lon = [drone_route['lon'] for drone_route in drone_route_list]
+    counter = time[0]
+    end_time = time[-1]
+    lat_tck = interpolate.splrep(time, lat) #cubic spline interpolation requires >3 data points
+    lon_tck = interpolate.splrep(time, lon)
+
+    while counter <= end_time:
+        interpolated_lat = interpolate.splev(counter, lat_tck).tolist()
+        interpolated_lon = interpolate.splev(counter, lon_tck).tolist()
+
+        interpolated_result.append({
+            'time_stamp': epoch_to_time(counter),
+            'time': counter,
+            'id': drone['id'],
+            'lat': interpolated_lat,
+            'lon': interpolated_lon
+        })
+        counter += interval
+    return interpolated_result
 
 
 def result_to_list_of_dicts(results):
@@ -80,7 +109,6 @@ def epoch_to_datetime(epoch):
 
 
 def epoch_to_time(epoch):
-    print(epoch)
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
@@ -88,7 +116,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--address', type=str, default='127.0.0.1',
                         help='specify which host to run this service on')
-    parser.add_argument('-p', '--port', type=int, default=5005,
+    parser.add_argument('-p', '--port', type=int, default=5001,
                         help='specify which port to run this service on')
     parser.add_argument('-v', '--version', type=float, default=0,
                         help='specify which version of the service this is')
@@ -96,6 +124,6 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
-    system('title {} service version {} on {}:{}'.format(
+    os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=True)
+    app.run(host=args.address, port=args.port, debug=True, threaded=True)

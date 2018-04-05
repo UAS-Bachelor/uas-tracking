@@ -1,0 +1,30 @@
+.map {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+}
+
+.tooltip {
+    position: relative;
+    display: none;
+    padding: 5px;
+    background: #000000b3;
+    color: white;
+    opacity: 1;
+    border-radius: 7px;
+    border-right-width: 3px;
+    border-right-style: solid;
+    border-right-color: #00b3fd;
+    border-bottom-width: 3px;
+    border-bottom-style: solid;
+    border-bottom-color: #00b3fd;
+    white-space: nowrap;
+    font-size: 10pt;
+    font-family: sans-serif
+}
+
+@media screen and (max-width: 640px) {
+    .tooltip {
+        font-size: 13pt;
+    }
+}

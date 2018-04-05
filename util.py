@@ -25,7 +25,8 @@ def check_port(host, port_to_check):
     amount_of_instances = 0
     for connection in psutil.net_connections('inet'):
         (ip, port) = connection.laddr
-        if ip == str(host) and port == int(port_to_check):
+        #if ip == str(host) and port == int(port_to_check):
+        if port == int(port_to_check):
             amount_of_instances += 1
     return amount_of_instances
 
@@ -34,6 +35,7 @@ def gather_pids(host, port_to_check):
     pids = []
     for connection in psutil.net_connections('inet'):
         (ip, port) = connection.laddr
-        if ip == str(host) and port == int(port_to_check) and connection.pid != 0:
+        #if ip == str(host) and port == int(port_to_check) and connection.pid != 0:
+        if port == int(port_to_check) and connection.pid != 0:
             pids.append(connection.pid)
     return pids

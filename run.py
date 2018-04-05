@@ -3,7 +3,8 @@ from util import configobj, open_cmd, check_port
 
 
 def __launch_service(service, config):
-    host = config['host']
+    #host = config['host']
+    host = '0.0.0.0'
     port = config['port']
     version = config['version']
     if 'instances' in config:

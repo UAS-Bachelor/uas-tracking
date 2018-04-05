@@ -79,50 +79,54 @@ def get_and_store_drone_info():
     new_drones = []  # De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
     gone_drones_time = []
     gone_drones_id = []
+    drone_pairs = zip(result, previous_result)
 
-    # if not previous_result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
+    print('prev {}'.format(previous_result))
+    print('result {}'.format(result))
 
-    store(drones_table, result)
+    if not previous_result or not result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
+        store(drones_table, result)
+        print('Storing...')
 
-    #for hver drone i result, for hver item i dronen's item (id=922, time=15..., lat=55), hvis det id og value IKKE findes i previous_result, så har vi en ny drone
-    '''for new_drone in result:
+        #for hver drone i result, for hver item i dronen's item (id=922, time=15..., lat=55), hvis det id og value IKKE findes i previous_result, så har vi en ny drone
+        '''for new_drone in result:
 
-        for key, value in new_drone.items():
-            if key not in previous_result:#skal være den enkelte drone, hvilket previous_result er en liste af
-                print(key + ' not in previous result')
-                print(previous_result)'''
+            for key, value in new_drone.items():
+                if key not in previous_result:#skal være den enkelte drone, hvilket previous_result er en liste af
+                    print(key + ' not in previous result')
+                    print(previous_result)'''
+            
+        for new_drone in result:
+            # Finds new IDs, which weren't in the previous result (routes_start)
+            if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result):
+                new_drones.append({
+                    'drone_id': new_drone['id'],
+                    'start_time': new_drone['time']
+                })
+                print('New drone: {}'.format(new_drone['id']))
+        store(routes_table, new_drones)
         
-    for new_drone in result:
-        # Finds new IDs, which weren't in the previous result (routes_start)
-        if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result):
-            new_drones.append({
-                'drone_id': new_drone['id'],
-                'start_time': new_drone['time']
-            })
-            print('New drone: {}'.format(new_drone['id']))
-    store(routes_table, new_drones)
-    
-    for old_drone in previous_result:
-        # Finds missing IDs, which are not in the new results (routes_end)
-        if not any(new_drone['id'] == old_drone['id'] for new_drone in result):
-            gone_drones_time.append({
-                'end_time': old_drone['time']
-            })
-            gone_drones_id.append({
-                'drone_id': old_drone['id']
-            })
-            print('Gone drone: {}'.format(old_drone['id']))
-    update(routes_table, gone_drones_time, gone_drones_id)
+        for old_drone in previous_result:
+            # Finds missing IDs, which are not in the new results (routes_end)
+            if not any(new_drone['id'] == old_drone['id'] for new_drone in result):
+                gone_drones_time.append({
+                    'end_time': old_drone['time']
+                })
+                gone_drones_id.append({
+                    'drone_id': old_drone['id']
+                })
+                print('Gone drone: {}'.format(old_drone['id']))
+        update(routes_table, gone_drones_time, gone_drones_id)
 
     previous_result = result
 
 
 if __name__ == '__main__':
-    print('Monitor droneid and log drone positions to drone_information database')
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--delay', type=int, default=15,
+    parser.add_argument('-d', '--delay', type=int, default=2,
                         help='time (in seconds) between each log')
     args = parser.parse_args()
+    print('Monitor droneid and log drone positions to drone_information database (delay={})'.format(args.delay))
     while True:
         get_and_store_drone_info()
         time.sleep(args.delay)
