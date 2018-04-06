@@ -6,6 +6,7 @@ var lineWidth = 7;
 
 
 function initMap() {
+    Cesium.BingMapsApi.defaultKey = 'AlP_7a7Bu5IKn_jRniYtal7yLOFyLfCG8X-tSLiE56287FLtKqX7nko0IQmtogg5';
     viewer = new Cesium.Viewer('cesiumContainer', {
         infoBox: false,
         selectionIndicator: false,
@@ -81,15 +82,15 @@ function computeFlightCoordinates() {
 
 
 function initDropdown() {
-    $('#dropdownMenu').html("Viewing drone")
-    $('#viewDrone').click(clickViewDrone)
-    $('#viewSide').click(clickViewSide)
+    $('#dropdownMenu').html("Viewing drone");
+    $('#viewDrone').click(clickViewDrone);
+    $('#viewSide').click(clickViewSide);
     $('#viewTopDown').click(clickViewTopDown);
 }
 
 function clickViewDrone() {
     viewDrone();
-    $('#dropdownMenu').html("Viewing drone")
+    $('#dropdownMenu').html("Viewing drone");
     $('#viewSide').removeClass('active');
     $('#viewTopDown').removeClass('active');
     $('#viewDrone').addClass('active');
@@ -97,7 +98,7 @@ function clickViewDrone() {
 
 function clickViewSide() {
     viewSide();
-    $('#dropdownMenu').html("Viewing side")
+    $('#dropdownMenu').html("Viewing side");
     $('#viewDrone').removeClass('active');
     $('#viewTopDown').removeClass('active');
     $('#viewSide').addClass('active');
@@ -105,7 +106,7 @@ function clickViewSide() {
 
 function clickViewTopDown() {
     viewTopDown();
-    $('#dropdownMenu').html("Viewing top down")
+    $('#dropdownMenu').html("Viewing top down");
     $('#viewDrone').removeClass('active');
     $('#viewSide').removeClass('active');
     $('#viewTopDown').addClass('active');
@@ -131,7 +132,7 @@ function hermitePolynomialInterpolation() {
     entity.position.setInterpolationOptions({
         interpolationDegree: 5,
         interpolationAlgorithm: Cesium.HermitePolynomialApproximation
-    })
+    });
 }
 
 
