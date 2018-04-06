@@ -22,6 +22,16 @@ db.init_app(app)
 
 interpolation_interval = 2
 
+
+@app.route('/')
+def index():
+    func_list = {}
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            func_list[rule.rule] = app.view_functions[rule.endpoint].__doc__
+    return jsonify(func_list)
+
+
 #SELECT * FROM routes_end
 #routes_end, for så får vi de ruter der ER færdige
 '''def get_drone_info():

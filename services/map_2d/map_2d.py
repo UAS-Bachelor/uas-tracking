@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, json
+from flask import Flask, render_template, url_for, request, jsonify
 import requests
 import sys
 import json
@@ -10,6 +10,15 @@ app = Flask(__name__)
 
 __services_config_file = os.path.realpath(__file__) + '/../../../services.json'
 config = json.load(open(__services_config_file))
+
+
+@app.route('/')
+def index():
+    func_list = {}
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            func_list[rule.rule] = app.view_functions[rule.endpoint].__doc__
+    return jsonify(func_list)
 
 
 @app.route('/map2d')
