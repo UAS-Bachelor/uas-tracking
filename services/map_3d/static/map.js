@@ -1,135 +1,145 @@
-/*var viewer = new Cesium.Viewer('cesiumContainer');
-
-var position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, 20.0)
-
-var heading = Cesium.Math.toRadians(135);
-var pitch = 0; //side til side
-var roll = 0; //frem og tilbage
-var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
-var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
+var viewer;
+var entity;
+var start;
+var stop;
+var lineWidth = 7;
 
 
-var redBox = viewer.entities.add({
-    name : 'Red box with black outline',
-    position: position,
-    orientation: orientation, 
-    box : {
-        dimensions : new Cesium.Cartesian3(50.0, 50.0, 40.0),
-        material : Cesium.Color.RED.withAlpha(0.5),
-        outline : true,
-        outlineColor : Cesium.Color.BLACK
-    }
-});
+function initMap() {
+    Cesium.BingMapsApi.defaultKey = 'AlP_7a7Bu5IKn_jRniYtal7yLOFyLfCG8X-tSLiE56287FLtKqX7nko0IQmtogg5';
+    viewer = new Cesium.Viewer('cesiumContainer', {
+        infoBox: false,
+        selectionIndicator: false,
+        shouldAnimate: true
+        //timeline: false, 
+        //navigationHelpButton: false
+    });
+    //Enable depth testing so things behind the terrain disappear.
+    //viewer.scene.globe.depthTestAgainstTerrain = true;
+}
 
-viewer.zoomTo(viewer.entities);
-*/
+function initTime() {
+    let routeStartTime = droneRoute[0]['time'];
+    let routeEndTime = droneRoute[droneRoute.length - 1]['time'];
 
-var keys = {};
+    start = Cesium.JulianDate.fromDate(new Date(routeStartTime * 1000)); // * 1000 to go from seconds to milliseconds, since Date takes milliseconds
+    stop = Cesium.JulianDate.fromDate(new Date(routeEndTime * 1000));
 
-$(document).keydown(function (e) {
-    keys[e.which] = true;
-    
-    move();
-});
+    viewer.clock.startTime = start.clone();
+    viewer.clock.stopTime = stop.clone();
+    viewer.clock.currentTime = start.clone();
+    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+    viewer.clock.multiplier = 1;
 
-$(document).keyup(function (e) {
-    delete keys[e.which];
-    
-    move();
-});
+    viewer.timeline.zoomTo(start, stop);
+}
 
-function move() {
-    for (var e in keys) {
-        if (!keys.hasOwnProperty(e)) continue;
-        
-        console.log(e)
-        switch(e) {
-            case '87'://w
-                viewer.trackedEntity.properties.lat._value = viewer.trackedEntity.properties.lat._value + 0.000005
-                break;
-            case '83'://s
-                viewer.trackedEntity.properties.lat._value = viewer.trackedEntity.properties.lat._value - 0.000005
-                break;
-            case '65'://a
-                viewer.trackedEntity.properties.lon._value = viewer.trackedEntity.properties.lon._value - 0.000005
-                break;
-            case '68'://d
-                viewer.trackedEntity.properties.lon._value = viewer.trackedEntity.properties.lon._value + 0.000005
-                break;
-            case '32'://space
-                viewer.trackedEntity.properties.height._value = viewer.trackedEntity.properties.height._value + 0.2
-                break;
-            case '88'://x
-                viewer.trackedEntity.properties.height._value = viewer.trackedEntity.properties.height._value - 0.2
-                break;
-            case '38'://op
-                viewer.trackedEntity.properties.pitch._value -= 0.05
-                break;
-            case '40'://ned
-                viewer.trackedEntity.properties.pitch._value += 0.05
-                break;
-            case '37'://venstre
-                viewer.trackedEntity.properties.roll._value -= 0.05
-                break;
-            case '39'://højre
-                viewer.trackedEntity.properties.roll._value += 0.05
-                break;
+function createDrone() {
+    let position = computeFlightCoordinates();
+    entity = viewer.entities.add({
+        availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+            start: start,
+            stop: stop
+        })]),
+        position: position,
+        orientation: new Cesium.VelocityOrientationProperty(position),
+        model: {
+            uri: droneModel,
+            minimumPixelSize: 32
+        },
+        path: {
+            resolution: 1,
+            material: new Cesium.PolylineOutlineMaterialProperty({
+                color: Cesium.Color.fromCssColorString('#00b3fd'),
+                outlineColor: Cesium.Color.fromCssColorString('#2865a2'),
+                outlineWidth: (lineWidth / 3)
+            }),
+            width: lineWidth
         }
-        
-    }
-    var newPos = Cesium.Cartesian3.fromDegrees(
-            viewer.trackedEntity.properties.lon._value, 
-            viewer.trackedEntity.properties.lat._value,
-            viewer.trackedEntity.properties.height._value
-        )
-    viewer.trackedEntity.position = newPos;
+    });
+}
 
-    var heading = viewer.trackedEntity.properties.heading._value;
-    var pitch = viewer.trackedEntity.properties.pitch._value;
-    var roll = viewer.trackedEntity.properties.roll._value;
-    var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
-    var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
-    viewer.trackedEntity.orientation = orientation;
+function computeFlightCoordinates() {
+    var positionProperty = new Cesium.SampledPositionProperty();
+    for (let i = 0; i < droneRoute.length; i++) {
+        let droneRoutePoint = droneRoute[i];
+        let time = Cesium.JulianDate.fromDate(new Date(droneRoutePoint['time'] * 1000));
+        let position = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'], droneRoutePoint['lat'], droneRoutePoint['alt']);
+        positionProperty.addSample(time, position);
+
+        viewer.entities.add({
+            position: position,
+            point: {
+                pixelSize: (lineWidth / 1.5),
+                color: Cesium.Color.fromCssColorString('#f5f5f5'),
+                outlineColor: Cesium.Color.fromCssColorString('#2865a2'),
+                outlineWidth: (lineWidth / 3)
+            }
+        });
+    }
+    return positionProperty;
 }
 
 
-var viewer = new Cesium.Viewer('cesiumContainer', {
-    infoBox : false,
-    selectionIndicator : false,
-    shadows : true,
-    shouldAnimate : true
-});
+function initDropdown() {
+    $('#dropdownMenu').html("Viewing drone");
+    $('#viewDrone').click(clickViewDrone);
+    $('#viewSide').click(clickViewSide);
+    $('#viewTopDown').click(clickViewTopDown);
+}
 
-function createModel(url) {
-    viewer.entities.removeAll();
+function clickViewDrone() {
+    viewDrone();
+    $('#dropdownMenu').html("Viewing drone");
+    $('#viewSide').removeClass('active');
+    $('#viewTopDown').removeClass('active');
+    $('#viewDrone').addClass('active');
+}
 
-    position = Cesium.Cartesian3.fromDegrees(10.329182, 55.473886, 20.0);
-    var heading = Cesium.Math.toRadians(-90);
-    var pitch = 0;
-    var roll = 0;
-    var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
-    var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
+function clickViewSide() {
+    viewSide();
+    $('#dropdownMenu').html("Viewing side");
+    $('#viewDrone').removeClass('active');
+    $('#viewTopDown').removeClass('active');
+    $('#viewSide').addClass('active');
+}
 
-    var entity = viewer.entities.add({
-        name : url,
-        position : position,
-        orientation : orientation,
-        model : {
-            uri : url,
-            maximumScale : 20000
-        }, 
-        properties: {
-            lon: 10.329182,
-            lat: 55.473886, 
-            height: 20.0, 
-            heading: Cesium.Math.toRadians(-90), 
-            roll: 0, 
-            pitch: 0
-        }
-    });
+function clickViewTopDown() {
+    viewTopDown();
+    $('#dropdownMenu').html("Viewing top down");
+    $('#viewDrone').removeClass('active');
+    $('#viewSide').removeClass('active');
+    $('#viewTopDown').addClass('active');
+}
+
+function viewTopDown() {
+    viewer.trackedEntity = undefined;
+    viewer.zoomTo(viewer.entities);//, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90)));
+}
+
+function viewSide() {
+    viewer.trackedEntity = undefined;
+    viewer.zoomTo(viewer.entities, new Cesium.HeadingPitchRange(Cesium.Math.toRadians(-90), Cesium.Math.toRadians(-15), 7500));
+}
+
+function viewDrone() {
     viewer.trackedEntity = entity;
 }
 
-console.log(document.getElementById('droneModel').value)
 
-createModel(document.getElementById('droneModel').value);
+
+function hermitePolynomialInterpolation() {
+    entity.position.setInterpolationOptions({
+        interpolationDegree: 5,
+        interpolationAlgorithm: Cesium.HermitePolynomialApproximation
+    });
+}
+
+
+initMap();
+initTime();
+createDrone();
+initDropdown();
+
+clickViewTopDown();
+hermitePolynomialInterpolation();

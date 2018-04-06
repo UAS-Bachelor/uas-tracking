@@ -1,8 +1,8 @@
 <script>
-    var droneRoutes;
+    var droneRoute;
     var routeDuration;
     {% if drone_route_list is defined %}
-        droneRoutes = {{ drone_route_list | tojson }};
+        droneRoute = {{ drone_route_list | tojson }};
         routeDuration = '{{ route_duration }}';
     {% endif %}
 </script>

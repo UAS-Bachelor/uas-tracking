@@ -1,7 +1,30 @@
-<div id="cesiumContainer"></div>
-<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>
+<script>
+    var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
+    var droneRoute;
+    {% if drone_route_list is defined %}
+        droneRoute = {{ drone_route_list | tojson }};
+    {% endif %}
+</script>
 
+
+
+<div id="cesiumContainer" class="map"></div>
+<div class="dropdown">
+    <button type ="button" id="dropdownMenu" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+        Options
+    </button>
+    <div class="dropdown-menu">
+        <a id="viewDrone" class="dropdown-item">View drone</a>
+        <a id="viewSide" class="dropdown-item">View side</a>
+        <a id="viewTopDown" class="dropdown-item">View top down</a>
+    </div>
+</div>
+<!--<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>-->
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css', _external=True) }}">
 <link rel="stylesheet" href="http://cesiumjs.org/releases/1.42/Build/Cesium/Widgets/widgets.css">
 <script src="http://cesiumjs.org/releases/1.42/Build/Cesium/Cesium.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script src="{{ url_for('static', filename='map.js', _external=True) }}"></script>

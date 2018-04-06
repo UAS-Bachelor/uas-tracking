@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, json
+from flask import Flask, render_template, url_for, request, jsonify
 import requests
 import sys
 import json
@@ -12,6 +12,15 @@ __services_config_file = os.path.realpath(__file__) + '/../../../services.json'
 config = json.load(open(__services_config_file))
 
 
+@app.route('/')
+def index():
+    func_list = {}
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            func_list[rule.rule] = app.view_functions[rule.endpoint].__doc__
+    return jsonify(func_list)
+
+
 @app.route('/map2d')
 def map():
     return render_template('map.html')
@@ -21,7 +30,7 @@ def map():
 def map_2d_with_params(id, start_time, end_time):
     try:
         route_config = config['drone_information']
-        request.path = '/{}/{}/{}'.format(id, start_time, end_time)
+        request.path = '/{}/{}/{}/interpolated'.format(id, start_time, end_time)
         drone_route_list = json.loads(__get_url(route_config))
         #drone_route_list = spline_interpolate(drone_route_list, 2)
         route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
