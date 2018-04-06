@@ -24,7 +24,6 @@ def index():
 
 @app.route('/map3d')
 def map_3d():
-    '''Test'''
     print(app.url_map)
     return render_template('map.html')
 
@@ -35,11 +34,9 @@ def map_3d_with_params(id, start_time, end_time):
         route_config = config['drone_information']
         request.path = '/{}/{}/{}'.format(id, start_time, end_time)
         drone_route_list = json.loads(__get_url(route_config))
-        #drone_route_list = spline_interpolate(drone_route_list, 2)
-        route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
-    return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration)
+    return render_template('map.html', drone_route_list=drone_route_list)
 
 
 

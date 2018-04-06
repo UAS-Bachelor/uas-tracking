@@ -14,15 +14,19 @@ viewer.scene.globe.depthTestAgainstTerrain = true;
 Cesium.Math.setRandomNumberSeed(3);
 
 //Set bounds of our simulation time
-var start = Cesium.JulianDate.fromDate(new Date(2015, 2, 25, 16));
-var stop = Cesium.JulianDate.addSeconds(start, 360, new Cesium.JulianDate());
+//var start = Cesium.JulianDate.fromDate(new Date(2015, 2, 25, 16));
+var routeStartTime = droneRoutes[0]['time'];
+var start = Cesium.JulianDate.fromDate(new Date(routeStartTime * 1000)); // * 1000 to go from seconds to milliseconds, since Date takes milliseconds
+//var stop = Cesium.JulianDate.addSeconds(start, 360, new Cesium.JulianDate());
+var routeEndTime = droneRoutes[droneRoutes.length - 1]['time'];
+var stop = Cesium.JulianDate.fromDate(new Date(routeEndTime * 1000));
 
 //Make sure viewer is at the desired time.
 viewer.clock.startTime = start.clone();
 viewer.clock.stopTime = stop.clone();
 viewer.clock.currentTime = start.clone();
 viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; //Loop at the end
-viewer.clock.multiplier = 10;
+viewer.clock.multiplier = 1;
 
 //Set timeline to simulation bounds
 viewer.timeline.zoomTo(start, stop);
@@ -51,11 +55,30 @@ function computeCirclularFlight(lon, lat, radius) {
 }
 
 function computeFlightCoordinates() {
-    
+    var positionProperty = new Cesium.SampledPositionProperty();
+    for (let i = 0; i < droneRoutes.length; i++) {
+        let droneRoute = droneRoutes[i];
+        let time = Cesium.JulianDate.fromDate(new Date(droneRoute['time'] * 1000));
+        let position = Cesium.Cartesian3.fromDegrees(droneRoute['lon'], droneRoute['lat'], 20.0);
+        positionProperty.addSample(time, position);
+
+        //Also create a point for each sample we generate.
+        viewer.entities.add({
+            position: position,
+            point: {
+                pixelSize: 8,
+                color: Cesium.Color.TRANSPARENT,
+                outlineColor: Cesium.Color.YELLOW,
+                outlineWidth: 3
+            }
+        });
+    }
+    return positionProperty;
 }
 
 //Compute the entity position property.
-var position = computeCirclularFlight(-112.110693, 36.0994841, 0.03);
+//var position = computeCirclularFlight(-112.110693, 36.0994841, 0.03);
+var position = computeFlightCoordinates();
 
 //Actually create the entity
 var entity = viewer.entities.add({
@@ -92,7 +115,7 @@ var entity = viewer.entities.add({
 //Add button to view the path from the top down
 function viewTopDown() {
     viewer.trackedEntity = undefined;
-    viewer.zoomTo(viewer.entities, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90)));
+    viewer.zoomTo(viewer.entities);//, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90)));
 }
 
 //Add button to view the path from the side
@@ -126,7 +149,7 @@ function hermitePolynomialInterpolation() {
     })
 }
 
-viewAircraft();
+viewTopDown();
 lagrangePolynomialInterpolation();
 
 
@@ -161,6 +184,7 @@ function createModel(url) {
 }
 
 console.log(droneModel)
+console.log(droneRoutes)
 
 //createModel(document.getElementById('droneModel').value);
 

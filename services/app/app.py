@@ -26,6 +26,16 @@ def map_3d():
     return render_template('layout.html', html=map3d)
 
 
+@app.route('/map3d/<id>/<start_time>/<end_time>')
+def map_3d_with_params(id, start_time, end_time):
+    try:
+        route_config = config['map_3d']
+        map3d = __get_url(route_config)
+    except requests.exceptions.ConnectionError:
+        return '3D Map service unavailable'
+    return render_template('layout.html', html=map3d)
+
+
 # called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
 @app.route('/map2d')
 def map_2d():
