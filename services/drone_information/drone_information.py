@@ -75,13 +75,13 @@ def list_drones():
 
 @app.route('/<id>/<start_time>/<end_time>')
 def route_with_params(id, start_time, end_time):
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
     return jsonify(list_of_drone_dicts)
 
 
 @app.route('/<id>/<start_time>/<end_time>/interpolated')
 def route_with_params_interpolated(id, start_time, end_time):
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
     if len(list_of_drone_dicts) > 3:
         list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
     return jsonify(list_of_drone_dicts)

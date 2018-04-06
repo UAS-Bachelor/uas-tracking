@@ -63,7 +63,7 @@ function computeFlightCoordinates() {
     for (let i = 0; i < droneRoutes.length; i++) {
         let droneRoute = droneRoutes[i];
         let time = Cesium.JulianDate.fromDate(new Date(droneRoute['time'] * 1000));
-        let position = Cesium.Cartesian3.fromDegrees(droneRoute['lon'], droneRoute['lat'], 20.0);
+        let position = Cesium.Cartesian3.fromDegrees(droneRoute['lon'], droneRoute['lat'], droneRoute['alt']);
         positionProperty.addSample(time, position);
 
         viewer.entities.add({
