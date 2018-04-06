@@ -1,8 +1,8 @@
 <script>
     var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
-    var droneRoutes;
+    var droneRoute;
     {% if drone_route_list is defined %}
-        droneRoutes = {{ drone_route_list | tojson }};
+        droneRoute = {{ drone_route_list | tojson }};
     {% endif %}
 </script>
 

@@ -66,15 +66,15 @@ function displayTooltip(event) {
 
 function createRoute() {
     coordinates = []
-    for (let i = 0; i < droneRoutes.length; i++) {
-        coordinates.push([droneRoutes[i]['lon'], droneRoutes[i]['lat']]);
+    for (let i = 0; i < droneRoute.length; i++) {
+        coordinates.push([droneRoute[i]['lon'], droneRoute[i]['lat']]);
     }
 
     routeLine = new ol.geom.LineString(coordinates);
     routeLine.transform('EPSG:4326', 'EPSG:3857');
 
     routeFeatures = []
-    routeFeatures.push( // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoutes[][]
+    routeFeatures.push( // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoute[][]
         new ol.Feature({
             geometry: routeLine,
             html: createHtmlForRouteTooltip()
@@ -98,7 +98,7 @@ function createPointsOnRoute() {
 function addPointFeature(coordinates, index) {
     pointFeatures.push(new ol.Feature({
         geometry: new ol.geom.Point(coordinates),
-        html: createHtmlForPointTooltip(droneRoutes[index])
+        html: createHtmlForPointTooltip(droneRoute[index])
     }));
 }
 
@@ -146,10 +146,10 @@ function addRouteAndPointsToMap() {
     map.addLayer(vector);
 }
 
-function createHtmlForPointTooltip(droneRoute) {
-    var lat = droneRoute['lat'];
-    var lon = droneRoute['lon'];
-    var time = droneRoute['time_stamp'];
+function createHtmlForPointTooltip(droneRoutePoint) {
+    var lat = droneRoutePoint['lat'];
+    var lon = droneRoutePoint['lon'];
+    var time = droneRoutePoint['time_stamp'];
     return '<b>Punkt</b><br>' +
         '<b>Latitude:</b> ' + lat + '<br>' +
         '<b>Longitude:</b> ' + lon + '<br>' +
@@ -157,8 +157,8 @@ function createHtmlForPointTooltip(droneRoute) {
 }
 
 function createHtmlForRouteTooltip() {
-    let startTime = droneRoutes[0]['time_stamp'];
-    let endTime = droneRoutes[droneRoutes.length - 1]['time_stamp'];
+    let startTime = droneRoute[0]['time_stamp'];
+    let endTime = droneRoute[droneRoute.length - 1]['time_stamp'];
     return '<b>Rute</b><br>' +
         '<b>Start:</b> ' + startTime + '<br>' +
         '<b>Slut:</b> ' + endTime + '<br>' +
@@ -167,7 +167,7 @@ function createHtmlForRouteTooltip() {
 
 
 initMap();
-if (droneRoutes) {
+if (droneRoute) {
     initToolTip();
     createRoute();
     createPointsOnRoute();

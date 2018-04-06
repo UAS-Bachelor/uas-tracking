@@ -18,8 +18,8 @@ function initMap() {
 }
 
 function initTime() {
-    let routeStartTime = droneRoutes[0]['time'];
-    let routeEndTime = droneRoutes[droneRoutes.length - 1]['time'];
+    let routeStartTime = droneRoute[0]['time'];
+    let routeEndTime = droneRoute[droneRoute.length - 1]['time'];
 
     start = Cesium.JulianDate.fromDate(new Date(routeStartTime * 1000)); // * 1000 to go from seconds to milliseconds, since Date takes milliseconds
     stop = Cesium.JulianDate.fromDate(new Date(routeEndTime * 1000));
@@ -60,10 +60,10 @@ function createDrone() {
 
 function computeFlightCoordinates() {
     var positionProperty = new Cesium.SampledPositionProperty();
-    for (let i = 0; i < droneRoutes.length; i++) {
-        let droneRoute = droneRoutes[i];
-        let time = Cesium.JulianDate.fromDate(new Date(droneRoute['time'] * 1000));
-        let position = Cesium.Cartesian3.fromDegrees(droneRoute['lon'], droneRoute['lat'], droneRoute['alt']);
+    for (let i = 0; i < droneRoute.length; i++) {
+        let droneRoutePoint = droneRoute[i];
+        let time = Cesium.JulianDate.fromDate(new Date(droneRoutePoint['time'] * 1000));
+        let position = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'], droneRoutePoint['lat'], droneRoutePoint['alt']);
         positionProperty.addSample(time, position);
 
         viewer.entities.add({
