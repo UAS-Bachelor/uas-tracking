@@ -1,104 +1,134 @@
-/*var viewer = new Cesium.Viewer('cesiumContainer');
+var viewer = new Cesium.Viewer('cesiumContainer', {
+    infoBox: false, //Disable InfoBox widget
+    selectionIndicator: false, //Disable selection indicator
+    shouldAnimate: true // Enable animations
+});
 
-var position = Cesium.Cartesian3.fromDegrees(10.432013, 55.367383, 20.0)
+//Enable lighting based on sun/moon positions
+viewer.scene.globe.enableLighting = true;
 
-var heading = Cesium.Math.toRadians(135);
-var pitch = 0; //side til side
-var roll = 0; //frem og tilbage
-var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
-var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
+//Enable depth testing so things behind the terrain disappear.
+viewer.scene.globe.depthTestAgainstTerrain = true;
 
+//Set the random number seed for consistent results.
+Cesium.Math.setRandomNumberSeed(3);
 
-var redBox = viewer.entities.add({
-    name : 'Red box with black outline',
-    position: position,
-    orientation: orientation, 
-    box : {
-        dimensions : new Cesium.Cartesian3(50.0, 50.0, 40.0),
-        material : Cesium.Color.RED.withAlpha(0.5),
-        outline : true,
-        outlineColor : Cesium.Color.BLACK
+//Set bounds of our simulation time
+var start = Cesium.JulianDate.fromDate(new Date(2015, 2, 25, 16));
+var stop = Cesium.JulianDate.addSeconds(start, 360, new Cesium.JulianDate());
+
+//Make sure viewer is at the desired time.
+viewer.clock.startTime = start.clone();
+viewer.clock.stopTime = stop.clone();
+viewer.clock.currentTime = start.clone();
+viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; //Loop at the end
+viewer.clock.multiplier = 10;
+
+//Set timeline to simulation bounds
+viewer.timeline.zoomTo(start, stop);
+
+//Generate a random circular pattern with varying heights.
+function computeCirclularFlight(lon, lat, radius) {
+    var property = new Cesium.SampledPositionProperty();
+    for (var i = 0; i <= 360; i += 45) {
+        var radians = Cesium.Math.toRadians(i);
+        var time = Cesium.JulianDate.addSeconds(start, i, new Cesium.JulianDate());
+        var position = Cesium.Cartesian3.fromDegrees(lon + (radius * 1.5 * Math.cos(radians)), lat + (radius * Math.sin(radians)), Cesium.Math.nextRandomNumber() * 500 + 1750);
+        property.addSample(time, position);
+
+        //Also create a point for each sample we generate.
+        viewer.entities.add({
+            position: position,
+            point: {
+                pixelSize: 8,
+                color: Cesium.Color.TRANSPARENT,
+                outlineColor: Cesium.Color.YELLOW,
+                outlineWidth: 3
+            }
+        });
     }
-});
-
-viewer.zoomTo(viewer.entities);
-*/
-
-var keys = {};
-
-$(document).keydown(function (e) {
-    keys[e.which] = true;
-    
-    move();
-});
-
-$(document).keyup(function (e) {
-    delete keys[e.which];
-    
-    move();
-});
-
-function move() {
-    for (var e in keys) {
-        if (!keys.hasOwnProperty(e)) continue;
-        
-        console.log(e)
-        switch(e) {
-            case '87'://w
-                viewer.trackedEntity.properties.lat._value = viewer.trackedEntity.properties.lat._value + 0.000005
-                break;
-            case '83'://s
-                viewer.trackedEntity.properties.lat._value = viewer.trackedEntity.properties.lat._value - 0.000005
-                break;
-            case '65'://a
-                viewer.trackedEntity.properties.lon._value = viewer.trackedEntity.properties.lon._value - 0.000005
-                break;
-            case '68'://d
-                viewer.trackedEntity.properties.lon._value = viewer.trackedEntity.properties.lon._value + 0.000005
-                break;
-            case '32'://space
-                viewer.trackedEntity.properties.height._value = viewer.trackedEntity.properties.height._value + 0.2
-                break;
-            case '88'://x
-                viewer.trackedEntity.properties.height._value = viewer.trackedEntity.properties.height._value - 0.2
-                break;
-            case '38'://op
-                viewer.trackedEntity.properties.pitch._value -= 0.05
-                break;
-            case '40'://ned
-                viewer.trackedEntity.properties.pitch._value += 0.05
-                break;
-            case '37'://venstre
-                viewer.trackedEntity.properties.roll._value -= 0.05
-                break;
-            case '39'://højre
-                viewer.trackedEntity.properties.roll._value += 0.05
-                break;
-        }
-        
-    }
-    var newPos = Cesium.Cartesian3.fromDegrees(
-            viewer.trackedEntity.properties.lon._value, 
-            viewer.trackedEntity.properties.lat._value,
-            viewer.trackedEntity.properties.height._value
-        )
-    viewer.trackedEntity.position = newPos;
-
-    var heading = viewer.trackedEntity.properties.heading._value;
-    var pitch = viewer.trackedEntity.properties.pitch._value;
-    var roll = viewer.trackedEntity.properties.roll._value;
-    var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
-    var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
-    viewer.trackedEntity.orientation = orientation;
+    return property;
 }
 
+function computeFlightCoordinates() {
+    
+}
 
-var viewer = new Cesium.Viewer('cesiumContainer', {
-    infoBox : false,
-    selectionIndicator : false,
-    shadows : true,
-    shouldAnimate : true
+//Compute the entity position property.
+var position = computeCirclularFlight(-112.110693, 36.0994841, 0.03);
+
+//Actually create the entity
+var entity = viewer.entities.add({
+
+    //Set the entity availability to the same interval as the simulation time.
+    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+        start: start,
+        stop: stop
+    })]),
+
+    //Use our computed positions
+    position: position,
+
+    //Automatically compute orientation based on position movement.
+    orientation: new Cesium.VelocityOrientationProperty(position),
+
+    //Load the Cesium plane model to represent the entity
+    model: {
+        uri: droneModel,
+        minimumPixelSize: 64
+    },
+
+    //Show the path as a pink line sampled in 1 second increments.
+    path: {
+        resolution: 1,
+        material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.1,
+            color: Cesium.Color.YELLOW
+        }),
+        width: 10
+    }
 });
+
+//Add button to view the path from the top down
+function viewTopDown() {
+    viewer.trackedEntity = undefined;
+    viewer.zoomTo(viewer.entities, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90)));
+}
+
+//Add button to view the path from the side
+function viewSide() {
+    viewer.trackedEntity = undefined;
+    viewer.zoomTo(viewer.entities, new Cesium.HeadingPitchRange(Cesium.Math.toRadians(-90), Cesium.Math.toRadians(-15), 7500));
+}
+
+//Add button to track the entity as it moves
+function viewAircraft() {
+    viewer.trackedEntity = entity;
+}
+
+//Add a combo box for selecting each interpolation mode.
+function linearInterpolation() {
+    entity.position.setInterpolationOptions({
+        interpolationDegree: 1,
+        interpolationAlgorithm: Cesium.LinearApproximation
+    })
+}
+function lagrangePolynomialInterpolation() {
+    entity.position.setInterpolationOptions({
+        interpolationDegree: 5,
+        interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
+    })
+}
+function hermitePolynomialInterpolation() {
+    entity.position.setInterpolationOptions({
+        interpolationDegree: 2,
+        interpolationAlgorithm: Cesium.HermitePolynomialApproximation
+    })
+}
+
+viewAircraft();
+lagrangePolynomialInterpolation();
+
 
 function createModel(url) {
     viewer.entities.removeAll();
@@ -111,25 +141,26 @@ function createModel(url) {
     var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
 
     var entity = viewer.entities.add({
-        name : url,
-        position : position,
-        orientation : orientation,
-        model : {
-            uri : url,
-            maximumScale : 20000
-        }, 
+        name: url,
+        position: position,
+        orientation: orientation,
+        model: {
+            uri: url,
+            maximumScale: 20000
+        },
         properties: {
             lon: 10.329182,
-            lat: 55.473886, 
-            height: 20.0, 
-            heading: Cesium.Math.toRadians(-90), 
-            roll: 0, 
+            lat: 55.473886,
+            height: 20.0,
+            heading: Cesium.Math.toRadians(-90),
+            roll: 0,
             pitch: 0
         }
     });
     viewer.trackedEntity = entity;
 }
 
-console.log(document.getElementById('droneModel').value)
+console.log(droneModel)
 
-createModel(document.getElementById('droneModel').value);
+//createModel(document.getElementById('droneModel').value);
+

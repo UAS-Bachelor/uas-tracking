@@ -1,5 +1,9 @@
+<script>
+    var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
+</script>
+
 <div id="cesiumContainer"></div>
-<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>
+<!--<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>-->
 
 <link rel="stylesheet" href="http://cesiumjs.org/releases/1.42/Build/Cesium/Widgets/widgets.css">
 <script src="http://cesiumjs.org/releases/1.42/Build/Cesium/Cesium.js"></script>
