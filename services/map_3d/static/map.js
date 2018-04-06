@@ -4,8 +4,7 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     shouldAnimate: true // Enable animations
 });
 
-//Enable lighting based on sun/moon positions
-viewer.scene.globe.enableLighting = true;
+
 
 //Enable depth testing so things behind the terrain disappear.
 viewer.scene.globe.depthTestAgainstTerrain = true;
@@ -30,6 +29,8 @@ viewer.clock.multiplier = 1;
 
 //Set timeline to simulation bounds
 viewer.timeline.zoomTo(start, stop);
+
+var lineWidth = 7;
 
 //Generate a random circular pattern with varying heights.
 function computeCirclularFlight(lon, lat, radius) {
@@ -66,10 +67,10 @@ function computeFlightCoordinates() {
         viewer.entities.add({
             position: position,
             point: {
-                pixelSize: 8,
-                color: Cesium.Color.TRANSPARENT,
-                outlineColor: Cesium.Color.YELLOW,
-                outlineWidth: 3
+                pixelSize: (lineWidth / 1.5), 
+                color: Cesium.Color.fromCssColorString('#f5f5f5'), 
+                outlineColor: Cesium.Color.fromCssColorString('#2865a2'), 
+                outlineWidth: (lineWidth / 3)
             }
         });
     }
@@ -98,17 +99,18 @@ var entity = viewer.entities.add({
     //Load the Cesium plane model to represent the entity
     model: {
         uri: droneModel,
-        minimumPixelSize: 64
+        minimumPixelSize: 32
     },
 
     //Show the path as a pink line sampled in 1 second increments.
     path: {
         resolution: 1,
-        material: new Cesium.PolylineGlowMaterialProperty({
-            glowPower: 0.1,
-            color: Cesium.Color.YELLOW
+        material: new Cesium.PolylineOutlineMaterialProperty({
+            color: Cesium.Color.fromCssColorString('#00b3fd'), 
+            outlineColor: Cesium.Color.fromCssColorString('#2865a2'), 
+            outlineWidth: (lineWidth / 3)
         }),
-        width: 10
+        width: lineWidth
     }
 });
 
@@ -149,7 +151,25 @@ function hermitePolynomialInterpolation() {
     })
 }
 
-viewTopDown();
+$('#dropdownMenu').html("Viewing drone")
+$('#viewDrone').click(clickViewDrone)
+$('#viewTopdown').click(clickViewTopdown);
+
+function clickViewDrone() {
+    viewAircraft();
+    $('#dropdownMenu').html("Viewing drone")
+    $('#viewTopdown').removeClass('active');
+    $('#viewDrone').addClass('active');
+}
+
+function clickViewTopdown() {
+    viewTopDown();
+    $('#dropdownMenu').html("Viewing top down")
+    $('#viewDrone').removeClass('active');
+    $('#viewTopdown').addClass('active');
+}
+
+clickViewDrone();
 lagrangePolynomialInterpolation();
 
 
