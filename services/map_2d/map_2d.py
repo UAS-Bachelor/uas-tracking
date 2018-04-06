@@ -30,7 +30,7 @@ def map():
 def map_2d_with_params(id, start_time, end_time):
     try:
         route_config = config['drone_information']
-        request.path = '/{}/{}/{}'.format(id, start_time, end_time)
+        request.path = '/{}/{}/{}/interpolated'.format(id, start_time, end_time)
         drone_route_list = json.loads(__get_url(route_config))
         #drone_route_list = spline_interpolate(drone_route_list, 2)
         route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
