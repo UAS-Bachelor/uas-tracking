@@ -5,7 +5,9 @@
 <ul>
     {% for drone in drones %}
         <li>
-            <a href='/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>{{ drone.id }}</a> fra {{ drone.start_time_stamp }} til {{ drone.end_time_stamp }}, varighed: {{ drone.duration}}
+            {{ drone.id }} fløj fra {{ drone.start_time_stamp }} til {{ drone.end_time_stamp }}, varighed: {{ drone.duration}}
+            (<a href='/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>2D</a>)
+            (<a href='/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>3D</a>)
         </li>
     {% endfor %}
 </ul>

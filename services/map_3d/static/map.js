@@ -129,7 +129,7 @@ function viewDrone() {
 
 function hermitePolynomialInterpolation() {
     entity.position.setInterpolationOptions({
-        interpolationDegree: 2,
+        interpolationDegree: 5,
         interpolationAlgorithm: Cesium.HermitePolynomialApproximation
     })
 }
@@ -139,5 +139,6 @@ initMap();
 initTime();
 createDrone();
 initDropdown();
-clickViewDrone();
+
+clickViewTopDown();
 hermitePolynomialInterpolation();
