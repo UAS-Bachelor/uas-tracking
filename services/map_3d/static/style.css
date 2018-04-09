@@ -14,4 +14,12 @@ html, body, .map {
 
 .dropdown-item {
     cursor: pointer;
+    border-left-style: solid;
+    border-left-width: 4px;
+    border-left-color: white;
+}
+
+.dropdown-item:hover {
+    color: #2865a2 !important;
+    border-left-color: #2865a2;
 }
