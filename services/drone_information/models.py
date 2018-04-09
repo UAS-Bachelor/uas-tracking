@@ -34,30 +34,6 @@ class Drone(db.Model):
         self.sim = sim
 
 
-class Route_start(db.Model):
-
-    __tablename__ = "routes_start"
-
-    start_time = db.Column(db.BigInteger(), primary_key=True)
-    id = db.Column(db.String(20), primary_key=True)
-
-    def __init__(self, start_time, id):
-        self.start_time = start_time
-        self.id = id
-
-
-class Route_end(db.Model):
-
-    __tablename__ = "routes_end"
-
-    end_time = db.Column(db.BigInteger(), primary_key=True)
-    id = db.Column(db.String(20), primary_key=True)
-
-    def __init__(self, end_time, id):
-        self.end_time = end_time
-        self.id = id
-
-
 class Route(db.Model):
 
     __tablename__ = "routes"
