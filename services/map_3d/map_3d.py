@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-__services_config_file = os.path.realpath(__file__) + '/../../../services.json'
+__services_config_file = os.path.realpath(__file__) + '/../../../cfg/services.json'
 config = json.load(open(__services_config_file))
 
 

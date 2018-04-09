@@ -4,7 +4,7 @@ from subprocess import Popen, CREATE_NEW_CONSOLE
 import psutil
 
 __services_dir = 'services/'
-__services_config_file = 'services.json'
+__services_config_file = 'cfg/services.json'
 config = json.load(open(__services_config_file))
 
 
