@@ -1,29 +1,39 @@
 {% extends 'layout.html' %} {% block body %}
-<h2>Ruter</h2>
 
-<table class="table table-responsive table-hover">
-    <thead>
-        <tr>
-            <th scope="col">DroneID</th>
-            <th scope="col">Start</th>
-            <th scope="col">Slut</th>
-            <th scope="col">Varighed</th>
-            <th scope="col">Links</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for drone in drones %}
-        <tr>
-            <th scope="row">{{ drone.id }}</th>
-            <td>{{ drone.start_time_stamp }}</td>
-            <td>{{ drone.end_time_stamp }}</td>
-            <td>{{ drone.duration }}</td>
-            <td>(<a href="/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}">2D</a>)
-                (<a href='/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>3D</a>)
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="jumbotron text-center">
+    <h2>Ruter</h2>
+</div>
+
+<div class="container table-responsive">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">DroneID</th>
+                    <th scope="col">Start tidspunkt</th>
+                    <th scope="col">Slut tidspunkt</th>
+                    <th scope="col">Varighed</th>
+                    <th scope="col">Kort typer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drone in drones %}
+                <tr>
+                    <th scope="row">{{ drone.id }}</th>
+                    <td>{{ drone.start_time_stamp }}</td>
+                    <td>{{ drone.end_time_stamp }}</td>
+                    <td>{{ drone.duration }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time }}" class="btn btn-outline-secondary" role="button">2D</a>
+                            <a href="/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time }}" class="btn btn-outline-info" role="button">3D</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock %}
