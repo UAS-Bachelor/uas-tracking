@@ -123,7 +123,7 @@ def result_to_list_of_dicts(results):
 
 
 def epoch_to_datetime(epoch):
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
+    return time.strftime('%d %b %Y, %H:%M:%S', time.localtime(epoch))
 
 
 def epoch_to_time(epoch):
