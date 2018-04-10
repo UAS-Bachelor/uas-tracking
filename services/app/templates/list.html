@@ -1,15 +1,29 @@
-{% extends 'layout.html' %}
-
-{% block body %}
+{% extends 'layout.html' %} {% block body %}
 <h2>Ruter</h2>
-<ul>
-    {% for drone in drones %}
-        <li>
-            {{ drone.id }} fløj fra {{ drone.start_time_stamp }} til {{ drone.end_time_stamp }}, varighed: {{ drone.duration}}
-            (<a href='/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>2D</a>)
-            (<a href='/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>3D</a>)
-        </li>
-    {% endfor %}
-</ul>
+
+<table class="table table-responsive table-hover">
+    <thead>
+        <tr>
+            <th scope="col">DroneID</th>
+            <th scope="col">Start</th>
+            <th scope="col">Slut</th>
+            <th scope="col">Varighed</th>
+            <th scope="col">Links</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for drone in drones %}
+        <tr>
+            <th scope="row">{{ drone.id }}</th>
+            <td>{{ drone.start_time_stamp }}</td>
+            <td>{{ drone.end_time_stamp }}</td>
+            <td>{{ drone.duration }}</td>
+            <td>(<a href="/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}">2D</a>)
+                (<a href='/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time}}'>3D</a>)
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}
