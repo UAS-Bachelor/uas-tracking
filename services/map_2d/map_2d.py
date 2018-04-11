@@ -23,11 +23,13 @@ def index():
 
 @app.route('/map2d')
 def map():
+    '''Returns a 2D map'''
     return render_template('map.html')
 
 
 @app.route('/map2d/<id>/<start_time>/<end_time>')
 def map_2d_with_params(id, start_time, end_time):
+    '''Returns a 2D map with a route drawn on it, that corresponds to the provided id, start time and end time'''
     try:
         route_config = config['drone_information']
         request.path = '/{}/{}/{}/interpolated'.format(id, start_time, end_time)

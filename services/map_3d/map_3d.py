@@ -24,12 +24,14 @@ def index():
 
 @app.route('/map3d')
 def map_3d():
+    '''Returns a 3D map'''
     print(app.url_map)
     return render_template('map.html')
 
 
 @app.route('/map3d/<id>/<start_time>/<end_time>')
 def map_3d_with_params(id, start_time, end_time):
+    '''Returns a 3D map with a route drawn on it, that corresponds to the provided id, start time and end time'''
     try:
         route_config = config['drone_information']
         request.path = '/{}/{}/{}'.format(id, start_time, end_time)

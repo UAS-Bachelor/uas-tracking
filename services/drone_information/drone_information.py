@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-interpolation_interval = 2
+interpolation_interval = config['interpolation_interval']
 
 
 @app.route('/')
@@ -58,6 +58,7 @@ def index():
 
 @app.route('/list')
 def list_drones():
+    '''Returns a list of all drone routes'''
     #drone = db.session.query(Drone.lon).filter_by(id='501').filter(Drone.time >= 1521712566, Drone.time <= 1521712581).all()
     #drone = db.session.query(Route_end.id, Route_end.end_time).all()
     #userList = users.query.join(friendships, users.id==friendships.user_id).add_columns(users.userId, users.name, users.email, friends.userId, friendId).filter(users.id == friendships.friend_id).filter(friendships.user_id == userID).paginate(page, 1, False)
@@ -75,12 +76,14 @@ def list_drones():
 
 @app.route('/<id>/<start_time>/<end_time>')
 def route_with_params(id, start_time, end_time):
+    '''Returns list of coordinates and drone information, for the route that corresponds to the provided id, start time and end time'''
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
     return jsonify(list_of_drone_dicts)
 
 
 @app.route('/<id>/<start_time>/<end_time>/interpolated')
 def route_with_params_interpolated(id, start_time, end_time):
+    '''Returns list of interpolated (2 seconds) coordinates and drone information, for the route that corresponds to the provided id, start time and end time. Interpolation requires more than 3 coordinates.'''
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
     if len(list_of_drone_dicts) > 3:
         list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
