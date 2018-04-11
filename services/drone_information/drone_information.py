@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, jsonify
-from models import Drone, Route
+from models import db, Drone, Route
 from interpolator import spline_interpolate
 from time_util import epoch_to_datetime, epoch_to_time
 import requests
