@@ -25,7 +25,6 @@ def index():
 @app.route('/map3d')
 def map_3d():
     '''Returns a 3D map'''
-    print(app.url_map)
     return render_template('map.html')
 
 
