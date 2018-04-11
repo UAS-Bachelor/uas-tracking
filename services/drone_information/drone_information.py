@@ -1,11 +1,11 @@
 from flask import Flask, render_template, url_for, request, jsonify
-from models import *
+from models import Drone, Route
+from interpolator import spline_interpolate
+from time_util import epoch_to_datetime, epoch_to_time
 import requests
 import json
 import sys
 import argparse
-import time
-from scipy import interpolate
 import os
 
 __config_file = os.path.realpath(__file__) + '/../cfg/config.json'
@@ -90,32 +90,6 @@ def route_with_params_interpolated(id, start_time, end_time):
     return jsonify(list_of_drone_dicts)
 
 
-def spline_interpolate(drone_route_list, interval):
-    interpolated_result = []
-    drone = drone_route_list[0]
-    time = [drone_route['time'] for drone_route in drone_route_list]
-    lat = [drone_route['lat'] for drone_route in drone_route_list]
-    lon = [drone_route['lon'] for drone_route in drone_route_list]
-    counter = time[0]
-    end_time = time[-1]
-    lat_tck = interpolate.splrep(time, lat) #cubic spline interpolation requires >3 data points
-    lon_tck = interpolate.splrep(time, lon)
-
-    while counter <= end_time:
-        interpolated_lat = interpolate.splev(counter, lat_tck).tolist()
-        interpolated_lon = interpolate.splev(counter, lon_tck).tolist()
-
-        interpolated_result.append({
-            'time_stamp': epoch_to_time(counter),
-            'time': counter,
-            'id': drone['id'],
-            'lat': interpolated_lat,
-            'lon': interpolated_lon
-        })
-        counter += interval
-    return interpolated_result
-
-
 def result_to_list_of_dicts(results):
     list_of_dicts = []
     for result in results:
@@ -123,14 +97,6 @@ def result_to_list_of_dicts(results):
             dict(zip(result.keys(), result))
         )
     return list_of_dicts
-
-
-def epoch_to_datetime(epoch):
-    return time.strftime('%d %b %Y, %H:%M:%S', time.localtime(epoch))
-
-
-def epoch_to_time(epoch):
-    return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
 if __name__ == '__main__':
