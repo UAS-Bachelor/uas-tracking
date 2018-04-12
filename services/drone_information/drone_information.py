@@ -32,40 +32,10 @@ def index():
     return jsonify(func_list)
 
 
-#SELECT * FROM routes_end
-#routes_end, for så får vi de ruter der ER færdige
-'''def get_drone_info():
-    list_of_drone_dicts = []
-    drone_info = requests.get('https://droneid.dk/bsc2018/droneid.php').text.strip('\n')
-    if drone_info:
-        for row in drone_info.splitlines():
-            data = row.split(',')
-            list_of_drone_dicts.append({
-                'time_stamp': data[0],
-                'time': data[1], 
-                'id': data[2], 
-                'name': data[3], 
-                'lat': data[4],
-                'lon': data[5], 
-                'alt': data[6], 
-                'acc': data[7], 
-                'fix': data[8], 
-                'lnk': data[9], 
-                'eng': data[10], 
-                'sim': data[11]
-            })
-    return list_of_drone_dicts'''
-
-@app.route('/list')
-def list_drones():
+@app.route('/routes')
+def get_drone_routes_list():
     '''Returns a list of all drone routes'''
-    #drone = db.session.query(Drone.lon).filter_by(id='501').filter(Drone.time >= 1521712566, Drone.time <= 1521712581).all()
-    #drone = db.session.query(Route_end.id, Route_end.end_time).all()
-    #userList = users.query.join(friendships, users.id==friendships.user_id).add_columns(users.userId, users.name, users.email, friends.userId, friendId).filter(users.id == friendships.friend_id).filter(friendships.user_id == userID).paginate(page, 1, False)
-    #drone_routes = Route_end.query.join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
-    
-    #drone_routes_results = db.session.query(Route_end.id, Route_end.end_time).join(Route_start, Route_end.id==Route_start.id).add_columns(Route_start.start_time).all()
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id.label('id'), Route.start_time, Route.end_time).filter(Route.end_time != None).all())
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
     
     for drone_dict in list_of_drone_dicts:
         drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
@@ -74,17 +44,21 @@ def list_drones():
     return jsonify(list_of_drone_dicts)
 
 
-@app.route('/<id>/<start_time>/<end_time>')
-def route_with_params(id, start_time, end_time):
-    '''Returns list of coordinates and drone information, for the route that corresponds to the provided id, start time and end time'''
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
+@app.route('/routes/<routeid>')
+def get_route_by_routeid(routeid):
+    '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
+    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
     return jsonify(list_of_drone_dicts)
 
 
-@app.route('/<id>/<start_time>/<end_time>/interpolated')
-def route_with_params_interpolated(id, start_time, end_time):
-    '''Returns list of interpolated (2 seconds) coordinates and drone information, for the route that corresponds to the provided id, start time and end time. Interpolation requires more than 3 coordinates.'''
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == id, Drone.time >= start_time, Drone.time <= end_time).all())
+@app.route('/routes/<routeid>/interpolated')
+def get_route_by_routeid_interpolated(routeid):
+    '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
+    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
     if len(list_of_drone_dicts) > 3:
         list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
     return jsonify(list_of_drone_dicts)

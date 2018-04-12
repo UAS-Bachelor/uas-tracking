@@ -60,7 +60,7 @@ def map_2d_with_params(id, start_time, end_time):
     return render_template('layout.html', html=map2d)
 
 
-@app.route('/list')
+@app.route('/routes')
 def list_drones():
     try:
         route_config = config['drone_information']
