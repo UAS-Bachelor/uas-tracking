@@ -30,7 +30,7 @@ function initTime() {
     viewer.clock.currentTime = start.clone();
     viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
     viewer.clock.multiplier = 1;
-
+    
     viewer.timeline.zoomTo(start, stop);
 }
 
@@ -137,9 +137,11 @@ function hermitePolynomialInterpolation() {
 
 
 initMap();
-initTime();
-createDrone();
-initDropdown();
+if (Object.keys(droneRoute[0]).length !== 0) {
+    initTime();
+    createDrone();
+    initDropdown();
 
-clickViewTopDown();
-hermitePolynomialInterpolation();
+    clickViewTopDown();
+    hermitePolynomialInterpolation();
+}

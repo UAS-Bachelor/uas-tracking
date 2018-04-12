@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, redirect
 import json
 import requests
 import sys
@@ -6,6 +6,7 @@ import argparse
 import os
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
 __services_config_file = os.path.realpath(__file__) + '/../../../cfg/services.json'
 config = json.load(open(__services_config_file))
@@ -13,21 +14,22 @@ config = json.load(open(__services_config_file))
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect('/routes')
+    #return render_template('index.html')
 
 
 @app.route('/map3d')
-def map_3d():
+def get_3d_map():
     try:
         route_config = config['map_3d']
-        map3d = __get_url(route_config)
+        map_3d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
-    return render_template('layout.html', html=map3d)
+    return render_template('layout.html', html=map_3d)
 
 
-@app.route('/map3d/<id>/<start_time>/<end_time>')
-def map_3d_with_params(id, start_time, end_time):
+@app.route('/routes/<routeid>/3d')
+def get_3d_map_by_routeid(routeid):
     try:
         route_config = config['map_3d']
         map3d = __get_url(route_config)
@@ -38,36 +40,36 @@ def map_3d_with_params(id, start_time, end_time):
 
 # called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
 @app.route('/map2d')
-def map_2d():
+def get_2d_map():
     '''id = request.args.get('id')
     start_time = request.args.get('start')
     end_time = request.args.get('end')'''
     try:
         route_config = config['map_2d']
-        map2d = __get_url(route_config)
+        map_2d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
-    return render_template('layout.html', html=map2d)
+    return render_template('layout.html', html=map_2d)
 
 
-@app.route('/map2d/<id>/<start_time>/<end_time>')
-def map_2d_with_params(id, start_time, end_time):
+@app.route('/routes/<routeid>/2d')
+def get_2d_map_by_routeid(routeid):
     try:
         route_config = config['map_2d']
-        map2d = __get_url(route_config)
+        map_2d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
-    return render_template('layout.html', html=map2d)
+    return render_template('layout.html', html=map_2d)
 
 
-@app.route('/list')
-def list_drones():
+@app.route('/routes')
+def get_drone_routes_list():
     try:
         route_config = config['drone_information']
-        drone_list = json.loads(__get_url(route_config))
+        drone_routes_list = json.loads(__get_url(route_config))
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
-    return render_template('list.html', drones=drone_list)
+    return render_template('route_list.html', drones=drone_routes_list)
 
 
 def __get_url(route_config):

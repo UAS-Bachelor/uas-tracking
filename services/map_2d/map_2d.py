@@ -7,6 +7,7 @@ import time
 import os
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
 __services_config_file = os.path.realpath(__file__) + '/../../../cfg/services.json'
 config = json.load(open(__services_config_file))
@@ -22,20 +23,21 @@ def index():
 
 
 @app.route('/map2d')
-def map():
+def get_2d_map():
     '''Returns a 2D map'''
     return render_template('map.html')
 
 
-@app.route('/map2d/<id>/<start_time>/<end_time>')
-def map_2d_with_params(id, start_time, end_time):
-    '''Returns a 2D map with a route drawn on it, that corresponds to the provided id, start time and end time'''
+@app.route('/routes/<routeid>/2d')
+def get_2d_map_by_routeid(routeid):
+    '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
     try:
         route_config = config['drone_information']
-        request.path = '/{}/{}/{}/interpolated'.format(id, start_time, end_time)
+        request.path = '/routes/{}/interpolated'.format(routeid)
         drone_route_list = json.loads(__get_url(route_config))
-        #drone_route_list = spline_interpolate(drone_route_list, 2)
-        route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
+        route_duration = -1
+        if all(route for route in drone_route_list):
+            route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration)
