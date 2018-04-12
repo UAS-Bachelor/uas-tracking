@@ -167,7 +167,7 @@ function createHtmlForRouteTooltip() {
 
 
 initMap();
-if (droneRoute) {
+if (Object.keys(droneRoute[0]).length !== 0) {
     initToolTip();
     createRoute();
     createPointsOnRoute();
