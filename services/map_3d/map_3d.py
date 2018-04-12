@@ -7,6 +7,7 @@ import argparse
 import os
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 CORS(app)
 
 __services_config_file = os.path.realpath(__file__) + '/../../../cfg/services.json'
@@ -23,22 +24,21 @@ def index():
 
 
 @app.route('/map3d')
-def map_3d():
+def get_3d_map():
     '''Returns a 3D map'''
     return render_template('map.html')
 
 
-@app.route('/map3d/<id>/<start_time>/<end_time>')
-def map_3d_with_params(id, start_time, end_time):
-    '''Returns a 3D map with a route drawn on it, that corresponds to the provided id, start time and end time'''
+@app.route('/routes/<routeid>/3d')
+def get_3d_map_by_routeid(routeid):
+    '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
     try:
         route_config = config['drone_information']
-        request.path = '/{}/{}/{}'.format(id, start_time, end_time)
+        request.path = '/routes/{}'.format(routeid)
         drone_route_list = json.loads(__get_url(route_config))
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     return render_template('map.html', drone_route_list=drone_route_list)
-
 
 
 def __get_url(route_config):
