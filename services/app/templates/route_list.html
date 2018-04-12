@@ -19,14 +19,14 @@
             <tbody>
                 {% for drone in drones %}
                 <tr>
-                    <th scope="row">{{ drone.id }}</th>
+                    <th scope="row">{{ drone.drone_id }}</th>
                     <td>{{ drone.start_time_stamp }}</td>
                     <td>{{ drone.end_time_stamp }}</td>
                     <td>{{ drone.duration }}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
-                            <a href="/map2d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time }}" class="btn btn-outline-secondary" role="button">2D</a>
-                            <a href="/map3d/{{ drone.id }}/{{ drone.start_time }}/{{ drone.end_time }}" class="btn btn-outline-info" role="button">3D</a>
+                            <a href="/routes/{{ drone.route_id }}/2d" class="btn btn-outline-secondary" role="button">2D</a>
+                            <a href="/routes/{{ drone.route_id }}/3d" class="btn btn-outline-info" role="button">3D</a>
                         </div>
                     </td>
                 </tr>
