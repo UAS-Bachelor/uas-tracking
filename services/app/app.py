@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, redirect
 import json
 import requests
 import sys
@@ -14,7 +14,8 @@ config = json.load(open(__services_config_file))
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect('/routes')
+    #return render_template('index.html')
 
 
 @app.route('/map3d')
