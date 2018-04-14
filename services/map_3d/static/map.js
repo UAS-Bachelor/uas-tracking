@@ -30,7 +30,7 @@ function initTime() {
     viewer.clock.currentTime = start.clone();
     viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
     viewer.clock.multiplier = 1;
-    
+
     viewer.timeline.zoomTo(start, stop);
 }
 
@@ -94,6 +94,27 @@ function clickViewDrone() {
     $('#viewSide').removeClass('active');
     $('#viewTopDown').removeClass('active');
     $('#viewDrone').addClass('active');
+
+    let routeEndTime = droneRoute[droneRoute.length - 1]['time'];
+
+
+
+    var newStop = Cesium.JulianDate.fromDate(new Date((routeEndTime * 1000) + 60 * 1000 * 5));
+    viewer.clock.stopTime = newStop.clone();
+
+    viewer.timeline.zoomTo(start, newStop);
+
+    entity.availability = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+        start: entity.availability.start,
+        stop: newStop
+    })]);
+
+    let droneRoutePoint = droneRoute[droneRoute.length - 1];
+
+    let time = Cesium.JulianDate.fromDate(new Date(droneRoutePoint['time'] + 60 * 1000));
+    let position = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'] + 0.5, droneRoutePoint['lat'] + 0.5, droneRoutePoint['alt'] + 200);
+
+    entity.position.addSample(time, position);
 }
 
 function clickViewSide() {
