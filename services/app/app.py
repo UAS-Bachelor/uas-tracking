@@ -32,10 +32,10 @@ def get_3d_map():
 def get_3d_map_by_routeid(routeid):
     try:
         route_config = config['map_3d']
-        map3d = __get_url(route_config)
+        map_3d = __get_url(route_config)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
-    return render_template('layout.html', html=map3d)
+    return render_template('layout.html', html=map_3d)
 
 
 # called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
