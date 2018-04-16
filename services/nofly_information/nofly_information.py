@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, Response, send_from_directory, url_for, redirect
+from flask_cors import CORS
 import requests
 import json
 import argparse
@@ -7,6 +8,7 @@ import os
 
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/zones')
