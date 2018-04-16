@@ -34,20 +34,39 @@ def index():
 
 
 @app.route('/routes', methods = ['GET', 'POST'])
-def get_drone_routes_list():
+def routes():
     '''Returns a list of all drone routes'''
     if request.method == 'GET':
-        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
-        
-        for drone_dict in list_of_drone_dicts:
-            drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
-            drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
-            drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-        return jsonify(list_of_drone_dicts)
+        return get_drone_routes_list()
+
     if request.method == 'POST':
-        print(request.form)
-        print(request.form['aid'])
-        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+        return post_drone_route()
+
+
+def get_drone_routes_list():
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
+    for drone_dict in list_of_drone_dicts:
+        drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
+        drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
+        drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
+    return jsonify(list_of_drone_dicts)
+
+
+def post_drone_route():
+    print(request.get_json(force=True))
+    received_route = request.get_json(force=True)
+    for received_point in received_route:
+        print(received_point)
+        drone_point = Drone(received_point)
+        #db.session.add(drone_point)
+        #db.session.commit()
+        print(drone_point.lon)
+        print(drone_point.lng)
+    first_point = received_route[0]
+    last_point = received_route[-1]
+    route = Route(drone_id=first_point.id, start_time=first_point.time, end_time=last_point.time)
+    #print(request.form['aid'])
+    return ''
 
 
 @app.route('/routes/<routeid>')
