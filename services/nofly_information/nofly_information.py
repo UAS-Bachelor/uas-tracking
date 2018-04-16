@@ -11,7 +11,6 @@ app = Flask(__name__)
 
 @app.route('/zones')
 def get_nofly_zones_list():
- #   return send_from_directory(app.static_folder, 'drone_nofly_dk.kml', mimetype='text/kml') 
     return redirect(url_for('static', filename='drone_nofly_dk.kml', _external=True))
 
 if __name__ == '__main__':
