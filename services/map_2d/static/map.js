@@ -37,7 +37,7 @@ function initMap() {
 function displayNoFlightZones(){
     var vector = new ol.layer.Vector({
         source: new ol.source.Vector({
-          url: 'https://droneid.dk/borger/drone_nofly_dk.kml',
+          url: '',
           format: new ol.format.KML()
         })
       });
