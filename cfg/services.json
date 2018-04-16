@@ -19,7 +19,7 @@
 		"port": 5003, 
 		"version": "1.0"
 	},
-	"nofly_zones": {
+	"nofly_information": {
 		"host":"80.210.70.60",
 		"port": 5004,
 		"version":"1.0"
