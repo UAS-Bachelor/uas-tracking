@@ -19,19 +19,9 @@ class Drone(db.Model):
     eng = db.Column(db.SmallInteger)
     sim = db.Column(db.SmallInteger)
 
-    def __init__(self, time_stamp, time, id, name, lat, lon, alt, acc, fix, lnk, eng, sim):
-        self.time_stamp = time_stamp
-        self.time = time
-        self.id = id
-        self.name = name
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
-        self.acc = acc
-        self.fix = fix
-        self.lnk = lnk
-        self.eng = eng
-        self.sim = sim
+    def __init__(self, dictionary):
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
 
 
 class Route(db.Model):
@@ -43,8 +33,3 @@ class Route(db.Model):
     start_time = db.Column(db.BigInteger())
     end_time = db.Column(db.BigInteger())
 
-    def __init__(self, route_id, drone_id, start_time, end_time):
-        self.route_id = route_id
-        self.drone_id = drone_id
-        self.start_time = start_time
-        self.end_time = end_time
