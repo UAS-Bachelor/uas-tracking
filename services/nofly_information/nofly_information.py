@@ -1,7 +1,5 @@
-from flask import Flask, request, jsonify, Response, send_from_directory, url_for, redirect
+from flask import Flask, url_for, redirect
 from flask_cors import CORS
-import requests
-import json
 import argparse
 import sys
 import os
