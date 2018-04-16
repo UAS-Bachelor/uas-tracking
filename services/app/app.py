@@ -14,7 +14,7 @@ config = json.load(open(__services_config_file))
 
 @app.route('/')
 def index():
-    return redirect('/routes')
+    return redirect('/map2d')
     #return render_template('index.html')
 
 
