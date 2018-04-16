@@ -29,7 +29,6 @@ def get_2d_map():
         route_config = config['nofly_information']
         request.path = '/zones'
         kml_url = __get_url_string(route_config)
-        print(kml_url)
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
     return render_template('map.html', kml_url=kml_url)
