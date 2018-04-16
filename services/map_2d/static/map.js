@@ -34,6 +34,16 @@ function initMap() {
     }));
 }
 
+function displayNoFlightZones(){
+    var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          url: 'https://droneid.dk/borger/drone_nofly_dk.kml',
+          format: new ol.format.KML()
+        })
+      });
+      
+}
+
 function initToolTip() {
     tooltipContainer = document.getElementById('tooltip');
     tooltipOverlay = new ol.Overlay({
@@ -167,6 +177,7 @@ function createHtmlForRouteTooltip() {
 
 
 initMap();
+displayNoFlightZones();
 if (Object.keys(droneRoute[0]).length !== 0) {
     initToolTip();
     createRoute();
