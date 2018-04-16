@@ -10,6 +10,9 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def index():
+   return redirect('/zones')
 
 @app.route('/zones')
 def get_nofly_zones_list():
