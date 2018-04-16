@@ -74,8 +74,16 @@ LOG_TEST_DATA = [
 ]
 
 def a(log):
-    r = requests.post("http://127.0.0.1:5001/routes", data={
-                      'aid': log['aid'], 'lat': log['lat'], 'lon': log['lon'], 'alt': log['alt']})
+    #print(requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)
+    r = requests.post("http://127.0.0.1:5001/routes", data=
+                      requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)
+    '''r = requests.post("http://127.0.0.1:5001/routes", json=
+                    {
+                      'aid': log['aid'], 
+                      'lat': log['lat'], 
+                      'lon': log['lon'], 
+                      'alt': log['alt']
+                    })'''
     print(r.status_code, r.reason)
 
 
