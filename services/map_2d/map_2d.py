@@ -25,7 +25,14 @@ def index():
 @app.route('/map2d')
 def get_2d_map():
     '''Returns a 2D map'''
-    return render_template('map.html')
+    try:
+        route_config = config['nofly_information']
+        request.path = '/zones'
+        kml_url = __get_url_string(route_config)
+        print(kml_url)
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable'
+    return render_template('map.html', kml_url=kml_url)
 
 
 @app.route('/routes/<routeid>/2d')
@@ -45,6 +52,13 @@ def get_2d_map_by_routeid(routeid):
 
 def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
+
+
+def __get_url_string(route_config):
+    if(request.remote_addr == '127.0.0.1'):
+        return 'http://127.0.0.1:{}{}'.format(route_config['port'], request.path)
+    else:
+        return 'http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)
 
 
 def __get_url(route_config):

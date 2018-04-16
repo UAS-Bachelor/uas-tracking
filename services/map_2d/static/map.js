@@ -37,7 +37,7 @@ function initMap() {
 function displayNoFlightZones(){
     var vector = new ol.layer.Vector({
         source: new ol.source.Vector({
-          url: 'http://localhost:5004/static/drone_nofly_dk.kml',
+          url: kmlUrl,
           format: new ol.format.KML()
         })
       });

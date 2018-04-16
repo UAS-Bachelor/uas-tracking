@@ -1,9 +1,13 @@
 <script>
     var droneRoute;
     var routeDuration;
+    var kmlUrl;
     {% if drone_route_list is defined %}
         droneRoute = {{ drone_route_list | tojson }};
         routeDuration = '{{ route_duration }}';
+    {% endif %}
+    {% if kml_url is defined %}
+        kmlUrl = '{{ kml_url }}';
     {% endif %}
 </script>
 
