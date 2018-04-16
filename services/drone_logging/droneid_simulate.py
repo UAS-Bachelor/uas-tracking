@@ -73,10 +73,18 @@ LOG_TEST_DATA = [
     }
 ]
 
-for i in range(10):
-    print('Sending {}'.format(i))
-    send_log_entry(LOG_TEST_DATA[i])
-    time.sleep(5)
+def a(log):
+    r = requests.post("http://127.0.0.1:5001/routes", data={
+                      'aid': log['aid'], 'lat': log['lat'], 'lon': log['lon'], 'alt': log['alt']})
+    print(r.status_code, r.reason)
+
+
+a(LOG_TEST_DATA[0])
+
+#for i in range(10):
+#    print('Sending {}'.format(i))
+#    send_log_entry(LOG_TEST_DATA[i])
+#    time.sleep(5)
 
 #send_log_entry(LOG_TEST_DATA[0])
 #send_log_entry(LOG_TEST_DATA[1])

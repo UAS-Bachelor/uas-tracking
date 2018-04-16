@@ -33,16 +33,21 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/routes')
+@app.route('/routes', methods = ['GET', 'POST'])
 def get_drone_routes_list():
     '''Returns a list of all drone routes'''
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
-    
-    for drone_dict in list_of_drone_dicts:
-        drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
-        drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
-        drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-    return jsonify(list_of_drone_dicts)
+    if request.method == 'GET':
+        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
+        
+        for drone_dict in list_of_drone_dicts:
+            drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
+            drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
+            drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
+        return jsonify(list_of_drone_dicts)
+    if request.method == 'POST':
+        print(request.form)
+        print(request.form['aid'])
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 @app.route('/routes/<routeid>')
