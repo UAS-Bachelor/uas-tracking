@@ -41,7 +41,7 @@ function displayNoFlightZones(){
           format: new ol.format.KML()
         })
       });
-      
+      map.addLayer(vector);
 }
 
 function initToolTip() {
