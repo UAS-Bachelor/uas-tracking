@@ -72,6 +72,15 @@ def get_drone_routes_list():
     return render_template('route_list.html', drones=drone_routes_list)
 
 
+@app.route('/zones')
+def get_nofly_zones_list():
+    try:
+        route_config = config['nofly_zones']
+        nofly_zones_list = json.loads(__get_url(route_config))
+    except requests.exceptions.ConnectionError:
+            return 'No fly zones information service unavailable'
+    return nofly_zones_list
+
 def __get_url(route_config):
     if(request.remote_addr == '127.0.0.1'):
         return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
