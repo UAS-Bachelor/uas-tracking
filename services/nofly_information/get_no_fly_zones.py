@@ -19,6 +19,7 @@ from urllib.request import urlopen, URLError, HTTPError
 import time # wait
 import datetime # datetime.now
 import sys # exit (use quit() when you only want to terminate spawning script, not all)
+import os
 print('Import done')
 
 print_raw_response = False
@@ -81,7 +82,8 @@ if __name__ == '__main__':
 				now = datetime.datetime.now()
 				# Save to file with proper naming
 				print('Attempting to write file')
-				file_name = 'static/drone_nofly_dk.kml'
+				dirname = os.path.dirname(__file__)
+				file_name = (dirname + '/' if dirname else '') + 'static/drone_nofly_dk.kml'
 				file = open(file_name, 'w')
 				file.write(result)
 				file.close()

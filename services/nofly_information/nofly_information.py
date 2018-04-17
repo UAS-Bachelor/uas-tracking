@@ -88,16 +88,18 @@ def point_in_polygon(x, y, z, polygon):
 
 def load_file():
     kml_file = kml.KML()
-    kml_file.from_string(open('static/drone_nofly_dk.kml').read())
+    dirname = os.path.dirname(__file__)
+    kml_file.from_string(open((dirname + '/' if dirname else '') + 'static/drone_nofly_dk.kml').read())
     global features
     features = list(list(kml_file.features())[0].features())
 
 
 def download_file():
+    dirname = os.path.dirname(__file__)
     if __is_windows():
-        Popen([executable, 'get_no_fly_zones.py'])
+        Popen([executable, (dirname + '/' if dirname else '') + 'get_no_fly_zones.py'])
     else:
-        call('python3 get_no_fly_zones.py &', shell=True)
+        call('python3 ' + (dirname + '/' if dirname else '') + 'get_no_fly_zones.py &', shell=True)
 
 
 if __name__ == '__main__':

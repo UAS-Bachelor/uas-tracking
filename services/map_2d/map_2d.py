@@ -9,7 +9,8 @@ import os
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-__services_config_file = os.path.dirname(__file__) + '/../../cfg/services.json'
+dirname = os.path.dirname(__file__)
+__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
 config = json.load(open(__services_config_file))
 
 
@@ -46,7 +47,14 @@ def get_2d_map_by_routeid(routeid):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
-    return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration)
+
+    try:
+        route_config = config['nofly_information']
+        request.path = '/zones'
+        kml_url = __get_url_string(route_config)
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable'
+    return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
 
 
 def epoch_to_time(epoch):

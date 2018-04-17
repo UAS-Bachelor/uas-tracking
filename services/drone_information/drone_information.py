@@ -8,7 +8,8 @@ import sys
 import argparse
 import os
 
-__config_file = os.path.dirname(__file__) + '/cfg/config.json'
+dirname = os.path.dirname(__file__)
+__config_file = (dirname + '/' if dirname else '') + 'cfg/config.json'
 config = json.load(open(__config_file))
 db_config = config['db']
 
