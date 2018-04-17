@@ -17,10 +17,6 @@ __services_config_file = 'cfg/services.json'
 config = json.load(open(__services_config_file))
 
 
-def __is_windows():
-    return platform.system() == 'Windows'
-
-
 def __get_path(service):
     return __services_dir + service + '/' + service + '.py'
 
