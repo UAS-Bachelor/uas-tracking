@@ -69,7 +69,7 @@ if __name__ == '__main__':
 				result = '%s %s' % (e.reason)
 			else:
 				print('No errors encountered during download, attempting to read result')
-				result = response.read()
+				result = response.read().decode('utf-8')
 
 			if result == '400' or result == 400:
 				print('Bad request, terminating')
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 				now = datetime.datetime.now()
 				# Save to file with proper naming
 				print('Attempting to write file')
-				file_name = 'KmlUasZones_%d-%02d-%02d-%02d-%02d.kml' % (now.year, now.month, now.day, now.hour, now.minute)
+				file_name = 'static/drone_nofly_dk.kml'
 				file = open(file_name, 'w')
 				file.write(result)
 				file.close()

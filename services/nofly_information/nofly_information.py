@@ -6,6 +6,16 @@ import argparse
 import sys
 import os
 import datetime
+import platform
+
+def __is_windows():
+    return platform.system() == 'Windows'
+
+if __is_windows():
+    from sys import executable
+    from subprocess import Popen
+else:
+    from subprocess import call
 
 
 app = Flask(__name__)
@@ -39,70 +49,55 @@ def get_conflicts():
 def drone_in_zone():
     x = 14.939
     y = 55.029
+    z = 1
     start = datetime.datetime.now()
     i = 0
     for f in features:
         try:
-            inside = point_in_polygon(x, y, f.geometry.exterior.coords)
+            inside = point_in_polygon(x, y, z, f.geometry.exterior.coords)
         except AttributeError:
             print('Found multipoly')
             for geom in f.geometry.geoms:
                 print('looping through polygons in multipoly')
-                inside = point_in_polygon(x, y, geom.exterior.coords)
-        
-        #print(type(f.geometry))
-        if type(f) == MultiPolygon:
-            print('HI')
-            #print(type(f.geometry))
-            #print(type(f.geometry.geoms[0]))
-        #inside = point_in_polygon(x, y, f.geometry.exterior.coords)
+                inside = point_in_polygon(x, y, z, geom.exterior.coords)
         i = i + 1
-
-
-    
+        if inside:
+            break
     print('Done, took {}'.format(datetime.datetime.now() - start))
-    #for f in f2:
-    #    f.geometry'''
+    print('index: {}'.format(i))
 
 
-def point_in_polygon(x, y, polygon):
+def point_in_polygon(x, y, z, polygon):
     n = len(polygon)
     inside = False
     p1x, p1y, p1z = polygon[0]
 
-    for i in range(n+1):
+    for i in range(n + 1):
         p2x, p2y, p2z = polygon[i % n]
         if y > min(p1y, p2y):
             if y <= max(p1y, p2y):
                 if x <= max(p1x, p2x):
-                    if p1y != p2y:
-                        xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                    if p1x == p2x or x <= xints:
-                        inside = not inside
-        p1x, p1y = p2x, p2y
+                    if z <= max(p1z, p2z):
+                        if p1y != p2y:
+                            xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                        if p1x == p2x or x <= xints:
+                            inside = not inside
+        p1x, p1y, p1z = p2x, p2y, p2z
     return inside
 
 
-
-
-#check()
-
-
-
-
-'''polygon = [(0, 10), (10, 10), (10, 0), (0, 0)]
-
-point_x = 11
-point_y = 5
-
-# Call the function with the points and the polygon
-print(point_in_polygon(point_x, point_y, polygon))'''
-
 def load_file():
     kml_file = kml.KML()
-    kml_file.from_string(open('static/drone_nofly_dk.kml', encoding='utf-8').read())
+    kml_file.from_string(open('static/drone_nofly_dk.kml').read())
     global features
     features = list(list(kml_file.features())[0].features())
+
+
+def download_file():
+    if __is_windows():
+        Popen([executable, 'get_no_fly_zones.py'])
+    else:
+        call('python3 get_no_fly_zones.py &', shell=True)
 
 
 if __name__ == '__main__':
@@ -119,5 +114,6 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
+    download_file()
     load_file()
     app.run(host=args.address, port=args.port, debug=True, threaded=True)

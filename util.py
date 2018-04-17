@@ -1,5 +1,4 @@
 import platform
-from sys import executable
 import json
 import psutil
 
@@ -7,6 +6,7 @@ def __is_windows():
     return platform.system() == 'Windows'
 
 if __is_windows():
+    from sys import executable
     from subprocess import Popen, CREATE_NEW_CONSOLE
 else:
     from subprocess import call
@@ -15,10 +15,6 @@ else:
 __services_dir = 'services/'
 __services_config_file = 'cfg/services.json'
 config = json.load(open(__services_config_file))
-
-
-def __is_windows():
-    return platform.system() == 'Windows'
 
 
 def __get_path(service):
