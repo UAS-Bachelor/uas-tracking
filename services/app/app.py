@@ -8,7 +8,8 @@ import os
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-__services_config_file = os.path.dirname(__file__) + '/../../cfg/services.json'
+dirname = os.path.dirname(__file__)
+__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
 config = json.load(open(__services_config_file))
 
 
@@ -70,7 +71,6 @@ def get_drone_routes_list():
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
     return render_template('route_list.html', drones=drone_routes_list)
-
 
 def __get_url(route_config):
     if(request.remote_addr == '127.0.0.1'):
