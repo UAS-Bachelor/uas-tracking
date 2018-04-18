@@ -73,10 +73,34 @@ LOG_TEST_DATA = [
     }
 ]
 
-for i in range(10):
-    print('Sending {}'.format(i))
-    send_log_entry(LOG_TEST_DATA[i])
-    time.sleep(5)
+def test_drone_information_post(log):
+    #print(requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)
+    '''r = requests.post("http://127.0.0.1:5001/routes", data=
+                      requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)'''
+    r = requests.post("http://127.0.0.1:5000/routes", json=
+                    [{
+                      'aid': log['aid'], 
+                      'lat': log['lat'], 
+                      'lon': log['lon'], 
+                      'alt': log['alt'], 
+                      'time': 1524059622
+                    }, 
+                    {
+                      'aid': log['aid'], 
+                      'lat': log['lat'], 
+                      'lon': log['lon'], 
+                      'alt': log['alt'], 
+                      'time': 1524059628
+                    }])
+    print(r.status_code, r.reason)
+
+
+test_drone_information_post(LOG_TEST_DATA[1])
+
+#for i in range(10):
+#    print('Sending {}'.format(i))
+#    send_log_entry(LOG_TEST_DATA[i])
+#    time.sleep(5)
 
 #send_log_entry(LOG_TEST_DATA[0])
 #send_log_entry(LOG_TEST_DATA[1])
