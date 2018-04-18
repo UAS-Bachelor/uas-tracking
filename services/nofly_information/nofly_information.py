@@ -7,15 +7,7 @@ import sys
 import os
 import datetime
 import platform
-
-def __is_windows():
-    return platform.system() == 'Windows'
-
-if __is_windows():
-    from sys import executable
-    from subprocess import Popen
-else:
-    from subprocess import call
+from get_no_fly_zones import download
 
 
 app = Flask(__name__)
@@ -94,12 +86,15 @@ def load_file():
     features = list(list(kml_file.features())[0].features())
 
 
-def download_file():
-    dirname = os.path.dirname(__file__)
-    if __is_windows():
-        Popen([executable, (dirname + '/' if dirname else '') + 'get_no_fly_zones.py'])
-    else:
-        call('python3 ' + (dirname + '/' if dirname else '') + 'get_no_fly_zones.py &', shell=True)
+def prepare_file():
+    try:
+        print('Attempting to read KML file')
+        load_file()
+    except FileNotFoundError:
+        print('KML file not found, attempting to download')
+        download()
+        load_file()
+    print('KML file read')
 
 
 if __name__ == '__main__':
@@ -116,6 +111,5 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    download_file()
-    load_file()
+    prepare_file()
     app.run(host=args.address, port=args.port, debug=True, threaded=True)

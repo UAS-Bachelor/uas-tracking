@@ -24,7 +24,7 @@ print('Import done')
 
 print_raw_response = False
 
-if __name__ == '__main__':
+def download():
 	# # Get Access Token
 	get_token_url = "https://www.droneluftrum.dk/oauth/token?grant_type=client_credentials"
 	required_auth = HTTPBasicAuth('NaviairDroneWeb','NaviairDroneWeb')
@@ -88,3 +88,7 @@ if __name__ == '__main__':
 				file.write(result)
 				file.close()
 				print('File written: %s' % file_name)
+
+
+if __name__ == '__main__':
+	download()
