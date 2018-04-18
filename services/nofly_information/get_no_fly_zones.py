@@ -58,16 +58,16 @@ def download():
 
 			# # Get no-fly zones
 			# Parse URL - NOTE added an extra '%' to escape '%20', could have been replaced with the corresponding ' ' (space)
-			url = 'https://www.droneluftrum.dk//api/uaszones/exportKmlUasZones?Authorization=%s%%20%s' % (token_type, access_token)
-			#print 'Trying URL: %s' % url
+			url = 'https://www.droneluftrum.dk//api/uaszones/exportKmlUasZones?Authorization={}%20{}'.format(token_type, access_token)
+			#print('Trying URL: {}'.format(url))
 			print('Attempting to download')
 
 			try:
 				response = urlopen(url)
 			except HTTPError as e:
-				result = '%s' % (e.code)
+				result = '{}'.format(e.code)
 			except URLError as e:
-				result = '%s %s' % (e.reason)
+				result = '{}'.format(e.reason)
 			else:
 				print('No errors encountered during download, attempting to read result')
 				result = response.read().decode('utf-8')
@@ -90,7 +90,7 @@ def download():
 				file = open(file_name, 'w')
 				file.write(result)
 				file.close()
-				print('File written: %s' % file_name)
+				print('File written: {}'.format(file_name))
 
 
 if __name__ == '__main__':
