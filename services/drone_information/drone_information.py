@@ -53,18 +53,26 @@ def get_drone_routes_list():
 
 
 def post_drone_route():
-    print(request.get_json(force=True))
     received_route = request.get_json(force=True)
+    print(received_route)
+
+
     for received_point in received_route:
         print(received_point)
+        if 'id' not in received_point:
+            print('no id')
+            received_point['id'] = 910
         drone_point = Drone(received_point)
-        #db.session.add(drone_point)
+        db.session.merge(drone_point)
         #db.session.commit()
         print(drone_point.lon)
-        print(drone_point.lng)
+    print('hi')
+    print(received_route[0])
     first_point = received_route[0]
     last_point = received_route[-1]
-    route = Route(drone_id=first_point.id, start_time=first_point.time, end_time=last_point.time)
+    route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
+    db.session.merge(route)
+    db.session.commit()
     #print(request.form['aid'])
     return ''
 

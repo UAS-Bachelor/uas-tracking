@@ -20,8 +20,11 @@ class Drone(db.Model):
     sim = db.Column(db.SmallInteger)
 
     def __init__(self, dictionary):
+        print('INITTING')
         for key in dictionary:
             setattr(self, key, dictionary[key])
+        if not self.time_stamp:
+            print('øvski')
 
 
 class Route(db.Model):
