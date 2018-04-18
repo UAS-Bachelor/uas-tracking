@@ -73,11 +73,11 @@ LOG_TEST_DATA = [
     }
 ]
 
-def a(log):
+def test_drone_information_post(log):
     #print(requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)
     '''r = requests.post("http://127.0.0.1:5001/routes", data=
                       requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)'''
-    r = requests.post("http://127.0.0.1:5001/routes", json=
+    r = requests.post("http://127.0.0.1:5000/routes", json=
                     [{
                       'aid': log['aid'], 
                       'lat': log['lat'], 
@@ -95,7 +95,7 @@ def a(log):
     print(r.status_code, r.reason)
 
 
-a(LOG_TEST_DATA[0])
+test_drone_information_post(LOG_TEST_DATA[1])
 
 #for i in range(10):
 #    print('Sending {}'.format(i))

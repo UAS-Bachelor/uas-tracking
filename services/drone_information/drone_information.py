@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, request, jsonify
 from models import db, Drone, Route
 from interpolator import spline_interpolate
-from time_util import epoch_to_datetime, epoch_to_time
+import time_util
 import requests
 import json
 import sys
@@ -46,34 +46,35 @@ def routes():
 def get_drone_routes_list():
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
     for drone_dict in list_of_drone_dicts:
-        drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
-        drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
-        drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
+        drone_dict['start_time_stamp'] = time_util.epoch_to_datetime(drone_dict['start_time'])
+        drone_dict['end_time_stamp'] = time_util.epoch_to_datetime(drone_dict['end_time'])
+        drone_dict['duration'] = time_util.epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
     return jsonify(list_of_drone_dicts)
 
 
 def post_drone_route():
+    print(request.json)
     received_route = request.get_json(force=True)
     print(received_route)
-
-
+    
     for received_point in received_route:
-        print(received_point)
+        if 'aid' in received_point:
+            received_point['id'] = received_point.pop('aid')
         if 'id' not in received_point:
-            print('no id')
             received_point['id'] = 910
+        if 'time_stamp' not in received_point:
+            received_point['time_stamp'] = time_util.epoch_to_datetime_with_dashes(received_point['time'])
+        if 'name' not in received_point:
+            received_point['name'] = '{0:06d}'.format(received_point['id'])
+        if 'sim' not in received_point:
+            received_point['sim'] = 1
         drone_point = Drone(received_point)
         db.session.merge(drone_point)
-        #db.session.commit()
-        print(drone_point.lon)
-    print('hi')
-    print(received_route[0])
     first_point = received_route[0]
     last_point = received_route[-1]
     route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
     db.session.merge(route)
     db.session.commit()
-    #print(request.form['aid'])
     return ''
 
 

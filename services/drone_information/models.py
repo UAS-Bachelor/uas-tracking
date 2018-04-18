@@ -10,21 +10,18 @@ class Drone(db.Model):
     time = db.Column(db.BigInteger(), primary_key=True)
     id = db.Column(db.String(20), primary_key=True)
     name = db.Column(db.String(20))
-    lat = db.Column(db.Float)
-    lon = db.Column(db.Float)
-    alt = db.Column(db.Float)
-    acc = db.Column(db.Float)
-    fix = db.Column(db.SmallInteger)
-    lnk = db.Column(db.SmallInteger)
-    eng = db.Column(db.SmallInteger)
+    lat = db.Column(db.Float, default=0)
+    lon = db.Column(db.Float, default=0)
+    alt = db.Column(db.Float, default=0)
+    acc = db.Column(db.Float, default=0)
+    fix = db.Column(db.SmallInteger, default=0)
+    lnk = db.Column(db.SmallInteger, default=0)
+    eng = db.Column(db.SmallInteger, default=0)
     sim = db.Column(db.SmallInteger)
 
     def __init__(self, dictionary):
-        print('INITTING')
         for key in dictionary:
             setattr(self, key, dictionary[key])
-        if not self.time_stamp:
-            print('øvski')
 
 
 class Route(db.Model):
