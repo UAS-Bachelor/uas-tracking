@@ -80,8 +80,12 @@ def point_in_polygon(x, y, z, polygon):
 
 def load_file():
     kml_file = kml.KML()
+    
     dirname = os.path.dirname(__file__)
-    kml_file.from_string(open((dirname + '/' if dirname else '') + 'static/drone_nofly_dk.kml').read())
+    directory = (dirname + '/' if dirname else '') + 'static/'
+    file_name = os.path.join(directory, 'drone_nofly_dk.kml')
+
+    kml_file.from_string(open(file_name, 'rb').read())
     global features
     features = list(list(kml_file.features())[0].features())
 

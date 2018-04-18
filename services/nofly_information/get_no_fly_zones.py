@@ -70,7 +70,7 @@ def download():
 				result = '{}'.format(e.reason)
 			else:
 				print('No errors encountered during download, attempting to read result')
-				result = response.read().decode('utf-8')
+				result = response.read()
 
 			if result == '400' or result == 400:
 				print('Bad request, terminating')
@@ -86,8 +86,9 @@ def download():
 				directory = (dirname + '/' if dirname else '') + 'static/'
 				if not os.path.exists(directory):
 					os.makedirs(directory)
-				file_name = directory + 'drone_nofly_dk.kml'
-				file = open(file_name, 'w')
+				file_name = os.path.join(directory, 'drone_nofly_dk.kml')
+
+				file = open(file_name, 'wb')
 				file.write(result)
 				file.close()
 				print('File written: {}'.format(file_name))
