@@ -1,7 +1,16 @@
+import platform
 import json
-from sys import executable
-from subprocess import Popen, CREATE_NEW_CONSOLE
 import psutil
+
+def __is_windows():
+    return platform.system() == 'Windows'
+
+if __is_windows():
+    from sys import executable
+    from subprocess import Popen, CREATE_NEW_CONSOLE
+else:
+    from subprocess import call
+
 
 __services_dir = 'services/'
 __services_config_file = 'cfg/services.json'
@@ -13,8 +22,11 @@ def __get_path(service):
 
 
 def open_cmd(service, host, port, version):
-    Popen([executable, __get_path(service), '-a', str(host), '-p', str(port),
+    if __is_windows():
+        Popen([executable, __get_path(service), '-a', str(host), '-p', str(port),
            '-v', str(version)], creationflags=CREATE_NEW_CONSOLE)
+    else:
+        call('python3 {} -a {} -p {} -v {} &'.format(__get_path(service), str(host), str(port), str(version)), shell=True)
 
 
 def close_cmd(pid):

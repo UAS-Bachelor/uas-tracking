@@ -34,6 +34,16 @@ function initMap() {
     }));
 }
 
+function displayNoFlightZones(){
+    var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          url: kmlUrl,
+          format: new ol.format.KML()
+        })
+      });
+      map.addLayer(vector);
+}
+
 function initToolTip() {
     tooltipContainer = document.getElementById('tooltip');
     tooltipOverlay = new ol.Overlay({
@@ -60,7 +70,7 @@ function displayTooltip(event) {
     tooltipContainer.style.display = feature ? 'inline-block' : 'none';
     if (feature) {
         tooltipOverlay.setPosition(event.coordinate);
-        tooltipContainer.innerHTML = feature.get('html');
+        tooltipContainer.innerHTML = feature.get('name');
     }
 };
 
@@ -77,7 +87,7 @@ function createRoute() {
     routeFeatures.push( // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoute[][]
         new ol.Feature({
             geometry: routeLine,
-            html: createHtmlForRouteTooltip()
+            name: createHtmlForRouteTooltip()
         })
     );
 }
@@ -98,7 +108,7 @@ function createPointsOnRoute() {
 function addPointFeature(coordinates, index) {
     pointFeatures.push(new ol.Feature({
         geometry: new ol.geom.Point(coordinates),
-        html: createHtmlForPointTooltip(droneRoute[index])
+        name: createHtmlForPointTooltip(droneRoute[index])
     }));
 }
 
@@ -167,6 +177,7 @@ function createHtmlForRouteTooltip() {
 
 
 initMap();
+displayNoFlightZones();
 if (Object.keys(droneRoute[0]).length !== 0) {
     initToolTip();
     createRoute();
