@@ -34,14 +34,17 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/routes', methods = ['GET', 'POST'])
+@app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
     '''Returns a list of all drone routes'''
     if request.method == 'GET':
         return get_drone_routes_list()
 
-    if request.method == 'POST':
+    elif request.method == 'POST':
         return post_drone_route()
+
+    elif request.method == 'DELETE':
+        return delete_drone_route()
 
 
 def get_drone_routes_list():
@@ -77,6 +80,13 @@ def post_drone_route():
     db.session.add(route)
     db.session.commit()
     return jsonify(route.route_id)
+
+
+def delete_drone_route():
+    received_routeid = request.get_json(force=True)
+    route_to_delete = Route.query.filter(Route.route_id == received_routeid['routeid']).first()
+    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
+    db.session.delete(route_to_delete)
     db.session.commit()
     return ''
 

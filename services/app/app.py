@@ -23,7 +23,7 @@ def index():
 def get_3d_map():
     try:
         route_config = config['map_3d']
-        map_3d = __get_url(route_config)
+        map_3d = get(route_config)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
     return render_template('layout.html', html=map_3d)
@@ -33,7 +33,7 @@ def get_3d_map():
 def get_3d_map_by_routeid(routeid):
     try:
         route_config = config['map_3d']
-        map_3d = __get_url(route_config)
+        map_3d = get(route_config)
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable'
     return render_template('layout.html', html=map_3d)
@@ -47,7 +47,7 @@ def get_2d_map():
     end_time = request.args.get('end')'''
     try:
         route_config = config['map_2d']
-        map_2d = __get_url(route_config)
+        map_2d = get(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map_2d)
@@ -57,51 +57,63 @@ def get_2d_map():
 def get_2d_map_by_routeid(routeid):
     try:
         route_config = config['map_2d']
-        map_2d = __get_url(route_config)
+        map_2d = get(route_config)
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable'
     return render_template('layout.html', html=map_2d)
 
 
-@app.route('/routes', methods = ['GET', 'POST'])
+@app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
-    if request.method == 'GET':
-        return get_drone_routes_list()
-
-    if request.method == 'POST':
-        return post_drone_route()
-
-
-def get_drone_routes_list():
+    route_config = config['drone_information']
     try:
-        route_config = config['drone_information']
-        drone_routes_list = json.loads(__get_url(route_config))
+        if request.method == 'GET':
+            return get_drone_routes_list(route_config)
+
+        elif request.method == 'POST':
+            return post_drone_route(route_config)
+
+        elif request.method == 'DELETE':
+            return delete_drone_route(route_config)
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable'
+
+
+def get_drone_routes_list(route_config):
+    drone_routes_list = json.loads(get(route_config))
     return render_template('route_list.html', drones=drone_routes_list)
 
 
-def post_drone_route():
-    try:
-        route_config = config['drone_information']
-        return __post_url(route_config)
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable'
+def post_drone_route(route_config):
+    return post(route_config)
 
 
-def __get_url(route_config):
+def delete_drone_route(route_config):
+    return delete(route_config)
+
+
+def get(route_config):
     if(request.remote_addr == '127.0.0.1'):
         return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
     else:
         return requests.get('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)).text
 
 
-def __post_url(route_config):
+def post(route_config):
     if(request.remote_addr == '127.0.0.1'):
         response = requests.post('http://127.0.0.1:{}{}'.format(route_config['port'], request.path), json=request.json)
         return (response.text, response.status_code)
     else:
         response = requests.post('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path), json=request.json)
+        return (response.text, response.status_code)
+
+
+def delete(route_config):
+    if(request.remote_addr == '127.0.0.1'):
+        response = requests.delete('http://127.0.0.1:{}{}'.format(route_config['port'], request.path), json=request.json)
+        return (response.text, response.status_code)
+    else:
+        response = requests.delete('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path), json=request.json)
         return (response.text, response.status_code)
 
 
