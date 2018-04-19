@@ -74,7 +74,9 @@ def post_drone_route():
     first_point = received_route[0]
     last_point = received_route[-1]
     route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
-    db.session.merge(route)
+    db.session.add(route)
+    db.session.commit()
+    return jsonify(route.route_id)
     db.session.commit()
     return ''
 
