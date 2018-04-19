@@ -83,12 +83,14 @@ def post_drone_route():
 
 
 def delete_drone_route():
-    received_routeid = request.get_json(force=True)
-    route_to_delete = Route.query.filter(Route.route_id == received_routeid['routeid']).first()
-    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
-    db.session.delete(route_to_delete)
-    db.session.commit()
-    return ''
+    received_routeid = request.get_json(force=True)['routeid']
+    route_to_delete = Route.query.filter(Route.route_id == received_routeid).first()
+    if(route_to_delete):
+        Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
+        db.session.delete(route_to_delete)
+        db.session.commit()
+        return ''
+    return 'routeid {} does not exist'.format(received_routeid), 404
 
 
 @app.route('/routes/<routeid>')
