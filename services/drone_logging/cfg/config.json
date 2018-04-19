@@ -8,5 +8,6 @@
 	    "drones_table": "drones", 
 	    "routes_table": "routes"
     },
-    "droneurl": "https://droneid.dk/bsc2018/droneid.php"
+    "droneurl": "https://droneid.dk/bsc2018/droneid.php", 
+    "buffer": 150
 }

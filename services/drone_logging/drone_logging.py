@@ -14,9 +14,13 @@ cursor = db.cursor()
 
 drones_table = db_config['drones_table']
 routes_table = db_config['routes_table']
+
 droneurl = config['droneurl']
 
+buffer = config['buffer']
+
 previous_result = []
+gone_drones_buffer = {}
 
 
 def get_drone_info():
@@ -76,9 +80,9 @@ def update(table, set_list, where_list):
 def get_and_store_drone_info():
     result = get_drone_info()
     global previous_result
+    global gone_drones_buffer
     new_drones = []  # De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
-    gone_drones_time = []
-    gone_drones_id = []
+    
     drone_pairs = zip(result, previous_result)
 
     print('prev {}'.format(previous_result))
@@ -99,25 +103,32 @@ def get_and_store_drone_info():
         for new_drone in result:
             # Finds new IDs, which weren't in the previous result (routes_start)
             if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result):
-                new_drones.append({
-                    'drone_id': new_drone['id'],
-                    'start_time': new_drone['time']
-                })
-                print('New drone: {}'.format(new_drone['id']))
+                if new_drone['id'] in gone_drones_buffer.keys():
+                    print('Rediscovered drone {}'.format(new_drone['id']))
+                    gone_drones_buffer.pop(new_drone['id'], None)
+                else:
+                    new_drones.append({
+                        'drone_id': new_drone['id'],
+                        'start_time': new_drone['time']
+                    })
+                    print('New drone: {}'.format(new_drone['id']))
         store(routes_table, new_drones)
         
         for old_drone in previous_result:
             # Finds missing IDs, which are not in the new results (routes_end)
             if not any(new_drone['id'] == old_drone['id'] for new_drone in result):
-                gone_drones_time.append({
-                    'end_time': old_drone['time']
-                })
-                gone_drones_id.append({
-                    'drone_id': old_drone['id']
-                })
+                gone_drones_buffer[old_drone['id']] = old_drone['time']
+                
                 print('Gone drone: {}'.format(old_drone['id']))
-        update(routes_table, gone_drones_time, gone_drones_id)
+        #update(routes_table, gone_drones_time, gone_drones_id)
 
+        print('{} gone drones'.format(len(gone_drones_buffer)))
+        for gone_drone_id, last_seen in list(gone_drones_buffer.items()):
+            if (int(time.time()) - int(last_seen)) > buffer:
+                update(routes_table, [{'end_time': last_seen}], [{'drone_id': gone_drone_id}])
+                #del gone_drones_buffer[gone_drone_id]
+                gone_drones_buffer.pop(gone_drone_id, None)
+                print('{} finished its route'.format(gone_drone_id))
     previous_result = result
 
 
