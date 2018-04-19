@@ -48,7 +48,7 @@ def routes():
 
 
 def get_drone_routes_list():
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).all())
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).order_by(Route.start_time).all())
     for drone_dict in list_of_drone_dicts:
         drone_dict['start_time_stamp'] = time_util.epoch_to_datetime(drone_dict['start_time'])
         drone_dict['end_time_stamp'] = time_util.epoch_to_datetime(drone_dict['end_time'])
