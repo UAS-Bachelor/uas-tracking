@@ -29,7 +29,7 @@ class Route(db.Model):
     __tablename__ = "routes"
 
     route_id = db.Column(db.Integer, primary_key=True)
-    drone_id = db.Column(db.String(20))
+    drone_id = db.Column(db.String(20), db.ForeignKey('drones.id'))
     start_time = db.Column(db.BigInteger())
     end_time = db.Column(db.BigInteger())
 
