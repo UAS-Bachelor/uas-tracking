@@ -1,8 +1,12 @@
 <script>
     var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
     var droneRoute;
+    var kmlUrl;
     {% if drone_route_list is defined %}
         droneRoute = {{ drone_route_list | tojson }};
+    {% endif %}
+    {% if kml_url is defined %}
+        kmlUrl = '{{ kml_url }}';
     {% endif %}
 </script>
 
