@@ -4,8 +4,9 @@ var tooltipOverlay;
 var coordinates;
 var routeLine;
 var styles;
-var routeFeatures;
-var pointFeatures;
+var routeFeatures = [];
+var pointFeatures = [];
+var liveDroneFeatures = [];
 
 var lineWidth = 7;
 var hitTolerance = 2;
@@ -34,14 +35,55 @@ function initMap() {
     }));
 }
 
-function displayNoFlightZones(){
+var droneLayer;
+
+function updateLiveDrones() {
+    console.log('calling url')
+    liveDroneFeatures = []
+    $.get(liveDronesUrl, function (listOfLiveDrones) {
+        console.log('called url')
+        for (let i = 0; i < listOfLiveDrones.length; i++) {
+            liveDrone = listOfLiveDrones[i];
+
+            console.log(liveDrone)
+            liveDroneFeatures.push(new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.transform([liveDrone['lon'], liveDrone['lat']], 'EPSG:4326', 'EPSG:3857')),
+                name: createHtmlForDroneTooltip(liveDrone)
+            }));
+        }
+
+        console.log('live drones:')
+        console.log(liveDroneFeatures)
+
+        if(droneLayer) {
+            map.removeLayer(droneLayer);
+        }
+
+        var vectorSource = new ol.source.Vector({
+            features: liveDroneFeatures
+        });
+        droneLayer = new ol.layer.Vector({
+            source: vectorSource,
+            style: styles
+        });
+    
+        map.addLayer(droneLayer);
+
+
+            
+        //vectorSource.addFeatures(liveDroneFeatures)
+    });
+}
+
+
+function displayNoFlightZones() {
     var vector = new ol.layer.Vector({
         source: new ol.source.Vector({
-          url: kmlUrl,
-          format: new ol.format.KML()
+            url: kmlUrl,
+            format: new ol.format.KML()
         })
-      });
-      map.addLayer(vector);
+    });
+    map.addLayer(vector);
 }
 
 function initToolTip() {
@@ -71,6 +113,10 @@ function displayTooltip(event) {
     if (feature) {
         tooltipOverlay.setPosition(event.coordinate);
         tooltipContainer.innerHTML = feature.get('name');
+        document.getElementById('map').style.cursor = 'pointer';
+    }
+    else {
+        document.getElementById('map').style.cursor = '';
     }
 };
 
@@ -83,7 +129,6 @@ function createRoute() {
     routeLine = new ol.geom.LineString(coordinates);
     routeLine.transform('EPSG:4326', 'EPSG:3857');
 
-    routeFeatures = []
     routeFeatures.push( // can NOT handle multiple routes right now - would have to have a 2 dimensional array droneRoute[][]
         new ol.Feature({
             geometry: routeLine,
@@ -93,7 +138,6 @@ function createRoute() {
 }
 
 function createPointsOnRoute() {
-    pointFeatures = [];
     for (let i = 0; i < routeFeatures.length; i++) { // can handle multiple routes
         let geometry = routeFeatures[i].getGeometry();
         let j = 0;
@@ -130,7 +174,7 @@ function createStyles() {
         }),
         new ol.style.Style({ //pointStyle
             image: new ol.style.Circle({
-                radius: (lineWidth / 3),
+                radius: 20, //(lineWidth / 3),
                 fill: new ol.style.Fill({
                     color: '#f5f5f5'
                 }),
@@ -144,7 +188,7 @@ function createStyles() {
     ];
 }
 
-function addRouteAndPointsToMap() {
+function addFeaturesToMap() {
     var vectorSource = new ol.source.Vector({
         features: routeFeatures.concat(pointFeatures)
     });
@@ -175,13 +219,34 @@ function createHtmlForRouteTooltip() {
         '<b>Varighed:</b> ' + routeDuration
 }
 
+function createHtmlForDroneTooltip(drone) {
+    var id = drone['id'];
+    var lat = drone['lat'];
+    var lon = drone['lon'];
+    var time = drone['time_stamp'];
+    return '<b>Drone</b><br>' +
+        '<b>DroneID:</b> ' + id + '<br>' + 
+        '<b>Latitude:</b> ' + lat + '<br>' +
+        '<b>Longitude:</b> ' + lon + '<br>' +
+        '<b>Tid:</b> ' + time
+}
+
 
 initMap();
-displayNoFlightZones();
-if (Object.keys(droneRoute[0]).length !== 0) {
-    initToolTip();
+initToolTip();
+createStyles();
+if (typeof kmlUrl !== 'undefined') {
+    displayNoFlightZones();
+}
+if (typeof droneRoute !== 'undefined' && Object.keys(droneRoute[0]).length !== 0) { //historic routes
     createRoute();
     createPointsOnRoute();
-    createStyles();
-    addRouteAndPointsToMap();
+    addFeaturesToMap();
 }
+if (typeof liveDronesUrl !== 'undefined') {
+    updateLiveDrones();
+    setInterval(function () {
+        updateLiveDrones();
+    }, 2000);
+}
+

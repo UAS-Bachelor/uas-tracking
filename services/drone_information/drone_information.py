@@ -1,4 +1,5 @@
 from flask import Flask, render_template, url_for, request, jsonify
+from flask_cors import CORS
 from models import db, Drone, Route
 from interpolator import spline_interpolate
 import time_util
@@ -15,6 +16,7 @@ db_config = config['db']
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{}:{}@{}:{}/{}'.format(db_config['user'], db_config['password'], db_config['host'], db_config['port'], db_config['database'])
 app.config['SQLALCHEMY_POOL_SIZE'] = 100
@@ -32,6 +34,16 @@ def index():
         if rule.endpoint != 'static':
             func_list[rule.rule] = app.view_functions[rule.endpoint].__doc__
     return jsonify(func_list)
+
+
+@app.route('/drones')
+def get_drones():
+    current_drones = []
+    current_routes = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time).filter(Route.end_time == None).order_by(Route.start_time).all())
+    for route in current_routes:
+        drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route['drone_id']).order_by(Drone.time.desc()).first())
+        current_drones.append(drone)
+    return jsonify(current_drones)
 
 
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
@@ -130,6 +142,10 @@ def result_to_list_of_dicts(results):
             dict(zip(result.keys(), result))
         )
     return list_of_dicts
+
+
+def result_to_dict(result):
+    return dict(zip(result.keys(), result))
 
 
 if __name__ == '__main__':

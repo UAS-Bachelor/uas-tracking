@@ -32,7 +32,17 @@ def get_2d_map():
         kml_url = __get_url_string(route_config)
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
-    return render_template('map.html', kml_url=kml_url)
+
+    try:
+        route_config = config['drone_information']
+        request.path = '/drones'
+        if(request.remote_addr == '127.0.0.1'):
+            live_drones_url = 'http://127.0.0.1:{}{}'.format(route_config['port'], request.path)
+        else:
+            live_drones_url = 'http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable'
+    return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
 @app.route('/routes/<routeid>/2d')
