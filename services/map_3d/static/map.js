@@ -14,6 +14,7 @@ function initMap() {
         //timeline: false, 
         //navigationHelpButton: false
     });
+    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl))
     //Enable depth testing so things behind the terrain disappear.
     //viewer.scene.globe.depthTestAgainstTerrain = true;
 }
