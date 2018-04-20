@@ -57,11 +57,12 @@ def get_drone_routes_list():
 
 
 def post_drone_route():
-    print(request.json)
     received_route = request.get_json(force=True)
     print(received_route)
     
     for received_point in received_route:
+        if 'time' not in received_point:
+            return 'missing key: time', 400
         if 'aid' in received_point:
             received_point['id'] = received_point.pop('aid')
         if 'id' not in received_point:
@@ -76,21 +77,26 @@ def post_drone_route():
         db.session.merge(drone_point)
     first_point = received_route[0]
     last_point = received_route[-1]
-    route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
-    db.session.add(route)
+    route = Route.query.filter(Route.drone_id == first_point['id'], Route.start_time == first_point['time']).first()
+    if route: #route already exists
+        route.end_time = last_point['time']
+        db.session.merge(route)
+    else: #route doesn't exist
+        route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
+        db.session.add(route)
     db.session.commit()
-    return jsonify(route.route_id)
+    return jsonify(route.route_id), 200
 
 
 def delete_drone_route():
     received_routeid = request.get_json(force=True)['routeid']
     route_to_delete = Route.query.filter(Route.route_id == received_routeid).first()
-    if(route_to_delete):
-        Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
-        db.session.delete(route_to_delete)
-        db.session.commit()
-        return ''
-    return 'routeid {} does not exist'.format(received_routeid), 404
+    if not route_to_delete:
+        return 'routeid {} does not exist'.format(received_routeid), 404
+    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
+    db.session.delete(route_to_delete)
+    db.session.commit()
+    return jsonify(received_routeid), 200
 
 
 @app.route('/routes/<routeid>')
