@@ -15,9 +15,14 @@ function initMap() {
         //navigationHelpButton: false
     });
     viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl))
+}
+
+   // viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl, {}).then(function(KmlDataSource){
+   //     var p = KmlDataSource.entities.values;
+   //     
+   // }))
     //Enable depth testing so things behind the terrain disappear.
     //viewer.scene.globe.depthTestAgainstTerrain = true;
-}
 
 function initTime() {
     let routeStartTime = droneRoute[0]['time'];
