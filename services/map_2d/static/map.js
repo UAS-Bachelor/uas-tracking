@@ -37,6 +37,7 @@ function initMap() {
 function initLiveDrones() {
     liveDroneSource = new ol.source.Vector({
     });
+    liveDroneSource.useSpatialIndex = false;
     let liveDroneLayer = new ol.layer.Vector({
         source: liveDroneSource,
         style: [new ol.style.Style({ //liveDroneStyle
@@ -54,6 +55,7 @@ function initLiveDrones() {
 
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
+        liveDroneSource.clear();
         for (let i = 0; i < listOfLiveDrones.length; i++) {
             liveDrone = listOfLiveDrones[i];
             console.log(liveDrone)
