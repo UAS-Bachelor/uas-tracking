@@ -37,16 +37,24 @@ def get_3d_map_by_routeid(routeid):
         route_config = config['drone_information']
         request.path = '/routes/{}'.format(routeid)
         drone_route_list = json.loads(__get_url(route_config))
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable'
+        return 'Drone information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list)
 
 
 def __get_url(route_config):
+    url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
+        response = requests.get(url.format('127.0.0.1', route_config['port'], request.path))
     else:
-        return requests.get('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)).text
+        response =  requests.get(url.format(route_config['host'], route_config['port'], request.path))
+    if not response:
+        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
+        exception.__setattr__('text', response.text)
+        raise exception
+    return response.text
 
 
 if __name__ == '__main__':

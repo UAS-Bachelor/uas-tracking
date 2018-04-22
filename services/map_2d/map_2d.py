@@ -31,7 +31,7 @@ def get_2d_map():
         request.path = '/zones'
         kml_url = __get_url_string(route_config)
     except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable'
+        return 'No fly information service unavailable', 503
     return render_template('map.html', kml_url=kml_url)
 
 
@@ -45,15 +45,20 @@ def get_2d_map_by_routeid(routeid):
         route_duration = -1
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
+    except requests.exceptions.HTTPError as exception:
+        print(exception.text)
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable'
+        return 'Drone information service unavailable', 503
 
     try:
         route_config = config['nofly_information']
         request.path = '/zones'
         kml_url = __get_url_string(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable'
+        return 'No fly information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
 
 
@@ -69,10 +74,16 @@ def __get_url_string(route_config):
 
 
 def __get_url(route_config):
+    url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
+        response = requests.get(url.format('127.0.0.1', route_config['port'], request.path))
     else:
-        return requests.get('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)).text
+        response =  requests.get(url.format(route_config['host'], route_config['port'], request.path))
+    if not response:
+        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
+        exception.__setattr__('text', response.text)
+        raise exception
+    return response.text
 
 
 if __name__ == '__main__':
