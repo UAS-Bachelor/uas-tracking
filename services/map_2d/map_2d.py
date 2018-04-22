@@ -29,7 +29,7 @@ def get_2d_map():
     try:
         route_config = config['nofly_information']
         request.path = '/zones'
-        kml_url = __get_url_string(route_config)
+        kml_url = get_url_string(route_config)
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
     return render_template('map.html', kml_url=kml_url)
@@ -41,7 +41,7 @@ def get_2d_map_by_routeid(routeid):
     try:
         route_config = config['drone_information']
         request.path = '/routes/{}/interpolated'.format(routeid)
-        drone_route_list = json.loads(__get_url(route_config))
+        drone_route_list = json.loads(get(route_config))
         route_duration = -1
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
@@ -54,7 +54,7 @@ def get_2d_map_by_routeid(routeid):
     try:
         route_config = config['nofly_information']
         request.path = '/zones'
-        kml_url = __get_url_string(route_config)
+        kml_url = get_url_string(route_config)
     except requests.exceptions.HTTPError as exception:
         return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
@@ -66,24 +66,27 @@ def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
-def __get_url_string(route_config):
-    if(request.remote_addr == '127.0.0.1'):
-        return 'http://127.0.0.1:{}{}'.format(route_config['port'], request.path)
-    else:
-        return 'http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)
+def get(route_config):
+    url = get_url_string(route_config)
+    response = requests.get(url)
+    raise_for_status_code(response)
+    return response.text
 
 
-def __get_url(route_config):
+def get_url_string(route_config):
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        response = requests.get(url.format('127.0.0.1', route_config['port'], request.path))
+        url = url.format('127.0.0.1', route_config['port'], request.path)
     else:
-        response =  requests.get(url.format(route_config['host'], route_config['port'], request.path))
+        url = url.format(route_config['host'], route_config['port'], request.path)
+    return url
+
+
+def raise_for_status_code(response):
     if not response:
         exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.__setattr__('text', response.text)
+        exception.text = response.text
         raise exception
-    return response.text
 
 
 if __name__ == '__main__':

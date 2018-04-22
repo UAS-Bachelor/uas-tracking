@@ -103,42 +103,40 @@ def delete_drone_route(route_config):
 
 
 def get(route_config):
-    url = 'http://{}:{}{}'
-    if(request.remote_addr == '127.0.0.1'):
-        response = requests.get(url.format('127.0.0.1', route_config['port'], request.path))
-    else:
-        response =  requests.get(url.format(route_config['host'], route_config['port'], request.path))
-    if not response:
-        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.__setattr__('text', response.text)
-        raise exception
+    url = get_url_string(route_config)
+    response = requests.get(url)
+    raise_for_status_code(response)
     return response.text
 
 
 def post(route_config):
-    url = 'http://{}:{}{}'
-    if(request.remote_addr == '127.0.0.1'):
-        response = requests.post(url.format('127.0.0.1', route_config['port'], request.path), json=request.json)
-    else:
-        response =  requests.post(url.format(route_config['host'], route_config['port'], request.path), json=request.json)
-    if not response:
-        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.__setattr__('text', response.text)
-        raise exception
-    return (response.text, response.status_code)
+    url = get_url_string(route_config)
+    response = requests.post(url, json=request.json)
+    raise_for_status_code(response)
+    return response.text
 
 
 def delete(route_config):
+    url = get_url_string(route_config)
+    response = requests.delete(url, json=request.json)
+    raise_for_status_code(response)
+    return response.text
+
+
+def get_url_string(route_config):
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        response = requests.delete(url.format('127.0.0.1', route_config['port'], request.path), json=request.json)
+        url = url.format('127.0.0.1', route_config['port'], request.path)
     else:
-        response =  requests.delete(url.format(route_config['host'], route_config['port'], request.path), json=request.json)
+        url = url.format(route_config['host'], route_config['port'], request.path)
+    return url
+
+
+def raise_for_status_code(response):
     if not response:
         exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.__setattr__('text', response.text)
+        exception.text = response.text
         raise exception
-    return response.text
 
 
 if __name__ == '__main__':
