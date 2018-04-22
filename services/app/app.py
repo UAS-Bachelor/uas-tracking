@@ -24,8 +24,10 @@ def get_3d_map():
     try:
         route_config = config['map_3d']
         map_3d = get(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable'
+        return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
 
 
@@ -34,8 +36,10 @@ def get_3d_map_by_routeid(routeid):
     try:
         route_config = config['map_3d']
         map_3d = get(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable'
+        return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
 
 
@@ -48,8 +52,10 @@ def get_2d_map():
     try:
         route_config = config['map_2d']
         map_2d = get(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable'
+        return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
 
 
@@ -58,8 +64,10 @@ def get_2d_map_by_routeid(routeid):
     try:
         route_config = config['map_2d']
         map_2d = get(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable'
+        return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
 
 
@@ -75,8 +83,10 @@ def routes():
 
         elif request.method == 'DELETE':
             return delete_drone_route(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable'
+        return 'Drone information service unavailable', 503
 
 
 def get_drone_routes_list(route_config):
@@ -93,28 +103,40 @@ def delete_drone_route(route_config):
 
 
 def get(route_config):
-    if(request.remote_addr == '127.0.0.1'):
-        return requests.get('http://127.0.0.1:{}{}'.format(route_config['port'], request.path)).text
-    else:
-        return requests.get('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)).text
+    url = get_url_string(route_config)
+    response = requests.get(url)
+    raise_for_status_code(response)
+    return response.text
 
 
 def post(route_config):
-    if(request.remote_addr == '127.0.0.1'):
-        response = requests.post('http://127.0.0.1:{}{}'.format(route_config['port'], request.path), json=request.json)
-        return (response.text, response.status_code)
-    else:
-        response = requests.post('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path), json=request.json)
-        return (response.text, response.status_code)
+    url = get_url_string(route_config)
+    response = requests.post(url, json=request.json)
+    raise_for_status_code(response)
+    return response.text
 
 
 def delete(route_config):
+    url = get_url_string(route_config)
+    response = requests.delete(url, json=request.json)
+    raise_for_status_code(response)
+    return response.text
+
+
+def get_url_string(route_config):
+    url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        response = requests.delete('http://127.0.0.1:{}{}'.format(route_config['port'], request.path), json=request.json)
-        return (response.text, response.status_code)
+        url = url.format('127.0.0.1', route_config['port'], request.path)
     else:
-        response = requests.delete('http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path), json=request.json)
-        return (response.text, response.status_code)
+        url = url.format(route_config['host'], route_config['port'], request.path)
+    return url
+
+
+def raise_for_status_code(response):
+    if not response:
+        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
+        exception.text = response.text
+        raise exception
 
 
 if __name__ == '__main__':

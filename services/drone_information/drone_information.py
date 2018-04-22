@@ -74,7 +74,11 @@ def post_drone_route():
     
     for received_point in received_route:
         if 'time' not in received_point:
-            return 'missing key: time', 400
+            return jsonify(error='missing key: time'), 400
+        if 'lat' not in received_point:
+            return jsonify(error='missing key: lat'), 400
+        if 'lon' not in received_point:
+            return jsonify(error='missing key: lon'), 400
         if 'aid' in received_point:
             received_point['id'] = received_point.pop('aid')
         if 'id' not in received_point:
@@ -104,7 +108,7 @@ def delete_drone_route():
     received_routeid = request.get_json(force=True)['routeid']
     route_to_delete = Route.query.filter(Route.route_id == received_routeid).first()
     if not route_to_delete:
-        return 'routeid {} does not exist'.format(received_routeid), 404
+        return jsonify(error='routeid {} does not exist'.format(received_routeid)), 404
     Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
     db.session.delete(route_to_delete)
     db.session.commit()
@@ -115,24 +119,24 @@ def delete_drone_route():
 def get_route_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
     route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
-    list_of_drone_dicts = [{}]
-    if(route):
-        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
-            Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
-    return jsonify(list_of_drone_dicts)
+    if not route:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+    return jsonify(list_of_drone_dicts), 200
 
 
 @app.route('/routes/<routeid>/interpolated')
 def get_route_by_routeid_interpolated(routeid):
     '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
     route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
-    list_of_drone_dicts = [{}]
-    if(route):
-        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
-            Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
-        if len(list_of_drone_dicts) > 3:
-            list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
-    return jsonify(list_of_drone_dicts)
+    if not route:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+    if len(list_of_drone_dicts) > 3:
+        list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
+    return jsonify(list_of_drone_dicts), 200
 
 
 def result_to_list_of_dicts(results):
