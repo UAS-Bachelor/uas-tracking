@@ -46,7 +46,6 @@ def get_2d_map_by_routeid(routeid):
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.HTTPError as exception:
-        print(exception.text)
         return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
