@@ -2,7 +2,7 @@
 	"app": {
 		"host": "80.210.70.60", 
 		"port": 5000, 
-		"version": "1.0"
+		"version": "2.0"
 	}, 
 	"drone_information": {
 		"host": "80.210.70.60", 
