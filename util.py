@@ -32,7 +32,7 @@ def open_cmd(service, host, port, version):
     if __is_windows():
         Popen([executable, cmd] + args, creationflags=CREATE_NEW_CONSOLE)
     else:
-        call('python3 {} {} &'.format(cmd, args), shell=True)
+        call('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True)
 
 
 def close_cmd(pid):
