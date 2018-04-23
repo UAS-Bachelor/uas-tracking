@@ -57,11 +57,16 @@ def get_drone_routes_list():
 
 
 def post_drone_route():
-    print(request.json)
     received_route = request.get_json(force=True)
     print(received_route)
     
     for received_point in received_route:
+        if 'time' not in received_point:
+            return jsonify(error='missing key: time'), 400
+        if 'lat' not in received_point:
+            return jsonify(error='missing key: lat'), 400
+        if 'lon' not in received_point:
+            return jsonify(error='missing key: lon'), 400
         if 'aid' in received_point:
             received_point['id'] = received_point.pop('aid')
         if 'id' not in received_point:
@@ -76,45 +81,50 @@ def post_drone_route():
         db.session.merge(drone_point)
     first_point = received_route[0]
     last_point = received_route[-1]
-    route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
-    db.session.add(route)
+    route = Route.query.filter(Route.drone_id == first_point['id'], Route.start_time == first_point['time']).first()
+    if route: #route already exists
+        route.end_time = last_point['time']
+        db.session.merge(route)
+    else: #route doesn't exist
+        route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
+        db.session.add(route)
     db.session.commit()
-    return jsonify(route.route_id)
+    return jsonify(route.route_id), 200
 
 
 def delete_drone_route():
     received_routeid = request.get_json(force=True)['routeid']
     route_to_delete = Route.query.filter(Route.route_id == received_routeid).first()
-    if(route_to_delete):
-        Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
-        db.session.delete(route_to_delete)
-        db.session.commit()
-        return ''
-    return 'routeid {} does not exist'.format(received_routeid), 404
+    if not route_to_delete:
+        return jsonify(error='routeid {} does not exist'.format(received_routeid)), 404
+    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
+    db.session.delete(route_to_delete)
+    db.session.commit()
+    return jsonify(received_routeid), 200
 
 
 @app.route('/routes/<routeid>')
 def get_route_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
     route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
-    list_of_drone_dicts = [{}]
-    if(route):
-        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
-            Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
-    return jsonify(list_of_drone_dicts)
+    if not route:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+    return jsonify(list_of_drone_dicts), 200
 
 
 @app.route('/routes/<routeid>/interpolated')
 def get_route_by_routeid_interpolated(routeid):
     '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
     route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
-    list_of_drone_dicts = [{}]
-    if(route):
-        list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
-            Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
-        if len(list_of_drone_dicts) > 3:
-            list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
-    return jsonify(list_of_drone_dicts)
+    if not route:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+    if len(list_of_drone_dicts) > 3:
+        list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
+    return jsonify(list_of_drone_dicts), 200
 
 
 def result_to_list_of_dicts(results):
@@ -128,16 +138,18 @@ def result_to_list_of_dicts(results):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--address', type=str, default='127.0.0.1',
+    parser.add_argument('-a', '--address', type=str, default='0.0.0.0',
                         help='specify which host to run this service on')
     parser.add_argument('-p', '--port', type=int, default=5001,
                         help='specify which port to run this service on')
     parser.add_argument('-v', '--version', type=float, default=0,
                         help='specify which version of the service this is')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='run this service in debug mode')
     args = parser.parse_args()
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=True, threaded=True)
+    app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
