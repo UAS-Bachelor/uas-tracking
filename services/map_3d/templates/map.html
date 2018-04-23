@@ -1,8 +1,12 @@
 <script>
     var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
     var droneRoute;
+    var kmlUrl;
     {% if drone_route_list is defined %}
         droneRoute = {{ drone_route_list | tojson }};
+    {% endif %}
+    {% if kml_url is defined %}
+        kmlUrl = '{{ kml_url }}';
     {% endif %}
 </script>
 
@@ -24,7 +28,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', _external=True) }}">
 <link rel="stylesheet" href="http://cesiumjs.org/releases/1.42/Build/Cesium/Widgets/widgets.css">
 <script src="http://cesiumjs.org/releases/1.42/Build/Cesium/Cesium.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
 <script src="{{ url_for('static', filename='js/map.js', _external=True) }}"></script>
