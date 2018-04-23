@@ -30,12 +30,10 @@ def get_3d_map():
     try:
         route_config = config['nofly_information']
         request.path = '/zones'
-        kml_url = __get_url_string(route_config)
+        kml_url = get_url_string(route_config)
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
     return render_template('map.html', kml_url=kml_url)
-
-    
 
 
 @app.route('/routes/<routeid>/3d')
@@ -53,11 +51,7 @@ def get_3d_map_by_routeid(routeid):
 
 
 def get(route_config):
-    url = 'http://{}:{}{}'
-    if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', route_config['port'], request.path)
-    else:
-        url = url.format(route_config['host'], route_config['port'], request.path)
+    url = get_url_string(route_config)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
@@ -69,11 +63,14 @@ def raise_for_status_code(response):
         exception.text = response.text
         raise exception
 
-def __get_url_string(route_config):
+
+def get_url_string(route_config):
+    url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        return 'http://127.0.0.1:{}{}'.format(route_config['port'], request.path)
+        url = url.format('127.0.0.1', route_config['port'], request.path)
     else:
-        return 'http://{}:{}{}'.format(route_config['host'], route_config['port'], request.path)
+        url = url.format(route_config['host'], route_config['port'], request.path)
+    return url
 
 
 if __name__ == '__main__':
