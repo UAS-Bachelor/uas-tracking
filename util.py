@@ -1,6 +1,7 @@
 import platform
 import json
 import psutil
+import os
 
 def __is_windows():
     return platform.system() == 'Windows'
@@ -14,19 +15,24 @@ else:
 
 __services_dir = 'services/'
 __services_config_file = 'cfg/services.json'
+__environment_config_file = 'cfg/env_config.json'
 config = json.load(open(__services_config_file))
+environment_config = json.load(open(__environment_config_file))
 
 
 def __get_path(service):
-    return __services_dir + service + '/' + service + '.py'
+    return os.path.realpath(__services_dir + service + '/' + service + '.py')
 
 
 def open_cmd(service, host, port, version):
+    cmd = '{}'.format(__get_path(service))
+    args = ['-a', str(host), '-p', str(port), '-v', str(version)]
+    if environment_config['debug']:
+        args.append('-d')
     if __is_windows():
-        Popen([executable, __get_path(service), '-a', str(host), '-p', str(port),
-           '-v', str(version)], creationflags=CREATE_NEW_CONSOLE)
+        Popen([executable, cmd] + args, creationflags=CREATE_NEW_CONSOLE)
     else:
-        call('python3 {} -a {} -p {} -v {} &'.format(__get_path(service), str(host), str(port), str(version)), shell=True)
+        call('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True)
 
 
 def close_cmd(pid):
