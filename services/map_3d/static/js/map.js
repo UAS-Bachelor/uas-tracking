@@ -7,6 +7,15 @@ var lineWidth = 7;
 
 function initMap() {
     Cesium.BingMapsApi.defaultKey = 'AlP_7a7Bu5IKn_jRniYtal7yLOFyLfCG8X-tSLiE56287FLtKqX7nko0IQmtogg5';
+    let west = 8.0;
+    let south = 53.5;
+    let east = 13.0;
+    let north = 58.0;
+
+    let rectangle = Cesium.Rectangle.fromDegrees(west, south, east, north);
+
+    Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = rectangle;
     viewer = new Cesium.Viewer('cesiumContainer', {
         infoBox: false,
         selectionIndicator: false,
@@ -14,15 +23,20 @@ function initMap() {
         //timeline: false, 
         //navigationHelpButton: false
     });
-    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl))
-}
-
-   // viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl, {}).then(function(KmlDataSource){
-   //     var p = KmlDataSource.entities.values;
-   //     
-   // }))
     //Enable depth testing so things behind the terrain disappear.
     //viewer.scene.globe.depthTestAgainstTerrain = true;
+    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl)).then(function (kml) {
+        let entities = kml.entities.values;
+        let extrudedHeight = entities[0]._polygon._extrudedHeight;
+        extrudedHeight._value = 1000;
+        for (let i = 0; i < entities.length; i++) {
+            if (typeof entities[i]._polygon != 'undefined') {
+                entities[i]._polygon._extrudedHeight = extrudedHeight;
+            }
+        }
+    })
+}
+
 
 function initTime() {
     let routeStartTime = droneRoute[0]['time'];
@@ -36,7 +50,7 @@ function initTime() {
     viewer.clock.currentTime = start.clone();
     viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
     viewer.clock.multiplier = 1;
-    
+
     viewer.timeline.zoomTo(start, stop);
 }
 
