@@ -44,7 +44,7 @@ def get_3d_map_by_routeid(routeid):
 
 
 # called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
-@app.route('/map2d')
+@app.route('/live/2d')
 def get_2d_map():
     '''id = request.args.get('id')
     start_time = request.args.get('start')

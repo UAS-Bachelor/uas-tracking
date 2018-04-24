@@ -23,7 +23,7 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/map2d')
+@app.route('/live/2d')
 def get_2d_map():
     '''Returns a 2D map'''
     try:
