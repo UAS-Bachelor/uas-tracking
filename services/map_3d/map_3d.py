@@ -28,7 +28,7 @@ def index():
 def get_3d_map():
     '''Returns a 3D map'''
     try:
-        route_config = config['nofly_information']
+        route_config = config['no_fly_information']
         request.path = '/zones'
         kml_url = get_url_string(route_config)
     except requests.exceptions.ConnectionError:
