@@ -82,7 +82,7 @@ def load_file():
     kml_file = kml.KML()
     
     dirname = os.path.dirname(__file__)
-    directory = (dirname + '/' if dirname else '') + 'static/'
+    directory = (dirname + '/' if dirname else '') + 'static/kml/'
     file_name = os.path.join(directory, 'drone_nofly_dk.kml')
 
     kml_file.from_string(open(file_name, 'rb').read())
