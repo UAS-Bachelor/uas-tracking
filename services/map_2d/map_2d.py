@@ -35,7 +35,7 @@ def get_2d_map():
 
     try:
         route_config = config['drone_information']
-        request.path = '/drones'
+        request.path = '/live'
         live_drones_url = get_url_string(route_config)
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503

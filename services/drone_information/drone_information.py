@@ -36,7 +36,7 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/drones')
+@app.route('/live')
 def get_drones():
     current_drones = []
     current_routes = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time).filter(Route.end_time == None).order_by(Route.start_time).all())
