@@ -115,6 +115,7 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
+    prepare_file()
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
     app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
