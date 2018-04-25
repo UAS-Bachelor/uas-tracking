@@ -11,7 +11,7 @@ function initMap() {
         infoBox: false,
         selectionIndicator: false,
         shouldAnimate: true, 
-        timeline: false, 
+        timeline: true, 
         //navigationHelpButton: false
     });
     //Enable depth testing so things behind the terrain disappear.
@@ -57,6 +57,22 @@ function createDrone() {
             width: lineWidth
         }
     });
+
+    let droneRoutePoint = droneRoute[droneRoute.length - 1];
+    
+    let posi = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'], droneRoutePoint['lat'], droneRoutePoint['alt'] + 200);
+
+    viewer.entities.add({
+        availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+            start: start,
+            stop: stop
+        })]),
+        position: posi,
+        model: {
+            uri: droneModel,
+            minimumPixelSize: 32
+        }
+    });
 }
 
 function computeFlightCoordinates() {
@@ -99,7 +115,7 @@ function clickViewDrone() {
 
 
 
-    var newStop = Cesium.JulianDate.fromDate(new Date((routeEndTime * 1000) + 60 * 1000 * 5));
+    var newStop = Cesium.JulianDate.fromDate(new Date((routeEndTime + 15) * 1000));
     viewer.clock.stopTime = newStop.clone();
 
     viewer.timeline.zoomTo(start, newStop);
@@ -113,7 +129,7 @@ function clickViewDrone() {
 
     console.log(entity.availability.stop)
 
-    let droneRoutePoint = droneRoute[droneRoute.length - 2];
+    let droneRoutePoint = droneRoute[droneRoute.length - 1];
 
     let time = Cesium.JulianDate.fromDate(new Date((droneRoutePoint['time'] + 15) * 1000));
     let position = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'], droneRoutePoint['lat'], droneRoutePoint['alt'] + 200);
