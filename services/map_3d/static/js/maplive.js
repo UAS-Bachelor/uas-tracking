@@ -119,15 +119,13 @@ function clickViewDrone() {
     viewer.clock.stopTime = newStop.clone();
 
     viewer.timeline.zoomTo(start, newStop);
-
-    console.log(entity.availability.stop)
+    
 
     entity.availability = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
         start: entity.availability.start,
         stop: newStop
     })]);
-
-    console.log(entity.availability.stop)
+    
 
     let droneRoutePoint = droneRoute[droneRoute.length - 1];
 
