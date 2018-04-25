@@ -24,10 +24,19 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/map3d')
+@app.route('/live/3d')
 def get_3d_map():
     '''Returns a 3D map'''
-    return render_template('map.html')
+    try:
+        route_config = config['drone_information']
+        #request.path = '/live'
+        #live_drones_url = get_url_string(route_config)
+
+        request.path = '/routes/1'
+        drone_route_list = json.loads(get(route_config))
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return render_template('map.html',  drone_route_list=drone_route_list)#live_drones_url=live_drones_url)
 
 
 @app.route('/routes/<routeid>/3d')
@@ -45,14 +54,19 @@ def get_3d_map_by_routeid(routeid):
 
 
 def get(route_config):
+    url = get_url_string(route_config)
+    response = requests.get(url)
+    raise_for_status_code(response)
+    return response.text
+
+
+def get_url_string(route_config):
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
         url = url.format('127.0.0.1', route_config['port'], request.path)
     else:
         url = url.format(route_config['host'], route_config['port'], request.path)
-    response = requests.get(url)
-    raise_for_status_code(response)
-    return response.text
+    return url
 
 
 def raise_for_status_code(response):
