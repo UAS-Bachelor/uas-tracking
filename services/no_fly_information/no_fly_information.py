@@ -27,7 +27,7 @@ def index():
 
 @app.route('/zones')
 def get_nofly_zones_list():
-    return redirect(url_for('static', filename='kml/drone_nofly_dk.kml', _external=True))
+    return redirect(url_for('static', filename='kml/drone_no_fly_dk.kml', _external=True))
 
 
 @app.route('/conflicts')
