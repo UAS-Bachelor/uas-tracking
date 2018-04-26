@@ -21,72 +21,43 @@ def index():
 
 @app.route('/map3d')
 def get_3d_map():
-    try:
-        route_config = config['map_3d']
-        map_3d = get(route_config)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable', 503
+    route_config = config['map_3d']
+    map_3d = get(route_config)
     return render_template('layout.html', html=map_3d)
 
 
 @app.route('/routes/<routeid>/3d')
 def get_3d_map_by_routeid(routeid):
-    try:
-        route_config = config['map_3d']
-        map_3d = get(route_config)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable', 503
+    route_config = config['map_3d']
+    map_3d = get(route_config)
     return render_template('layout.html', html=map_3d)
 
 
-# called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
 @app.route('/map2d')
 def get_2d_map():
-    '''id = request.args.get('id')
-    start_time = request.args.get('start')
-    end_time = request.args.get('end')'''
-    try:
-        route_config = config['map_2d']
-        map_2d = get(route_config)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable', 503
+    route_config = config['map_2d']
+    map_2d = get(route_config)
     return render_template('layout.html', html=map_2d)
 
 
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
-    try:
-        route_config = config['map_2d']
-        map_2d = get(route_config)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable', 503
+    route_config = config['map_2d']
+    map_2d = get(route_config)
     return render_template('layout.html', html=map_2d)
 
 
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
     route_config = config['drone_information']
-    try:
-        if request.method == 'GET':
-            return get_drone_routes_list(route_config)
+    if request.method == 'GET':
+        return get_drone_routes_list(route_config)
 
-        elif request.method == 'POST':
-            return post_drone_route(route_config)
+    elif request.method == 'POST':
+        return post_drone_route(route_config)
 
-        elif request.method == 'DELETE':
-            return delete_drone_route(route_config)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
+    elif request.method == 'DELETE':
+        return delete_drone_route(route_config)
 
 
 def get_drone_routes_list(route_config):
@@ -104,22 +75,38 @@ def delete_drone_route(route_config):
 
 def get(route_config):
     url = get_url_string(route_config)
-    response = requests.get(url)
-    raise_for_status_code(response)
+    print(route_config)
+    try:
+        response = requests.get(url)
+        raise_for_status_code(response)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Service unavailable', 503
     return response.text
 
 
 def post(route_config):
     url = get_url_string(route_config)
-    response = requests.post(url, json=request.json)
-    raise_for_status_code(response)
+    try:
+        response = requests.post(url, json=request.json)
+        raise_for_status_code(response)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Service unavailable', 503
     return response.text
 
 
 def delete(route_config):
     url = get_url_string(route_config)
-    response = requests.delete(url, json=request.json)
-    raise_for_status_code(response)
+    try:
+        response = requests.delete(url, json=request.json)
+        raise_for_status_code(response)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Service unavailable', 503
     return response.text
 
 

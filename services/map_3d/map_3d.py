@@ -27,33 +27,30 @@ def index():
 @app.route('/map3d')
 def get_3d_map():
     '''Returns a 3D map'''
-    try:
-        route_config = config['no_fly_information']
-        request.path = '/zones'
-        kml_url = get_url_string(route_config)
-    except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable'
+    route_config = config['no_fly_information']
+    request.path = '/zones'
+    kml_url = get_url_string(route_config)
     return render_template('map.html', kml_url=kml_url)
 
 
 @app.route('/routes/<routeid>/3d')
 def get_3d_map_by_routeid(routeid):
     '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
-    try:
-        route_config = config['drone_information']
-        request.path = '/routes/{}'.format(routeid)
-        drone_route_list = json.loads(get(route_config))
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
+    route_config = config['drone_information']
+    request.path = '/routes/{}'.format(routeid)
+    drone_route_list = json.loads(get(route_config))
     return render_template('map.html', drone_route_list=drone_route_list)
 
 
 def get(route_config):
     url = get_url_string(route_config)
-    response = requests.get(url)
-    raise_for_status_code(response)
+    try:
+        response = requests.get(url)
+        raise_for_status_code(response)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Service unavailable', 503
     return response.text
 
 
