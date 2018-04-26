@@ -28,7 +28,7 @@ function initTime() {
     viewer.clock.startTime = start.clone();
     viewer.clock.stopTime = stop.clone();
     viewer.clock.currentTime = start.clone();
-    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+    viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
     viewer.clock.multiplier = 1;
 
     viewer.timeline.zoomTo(start, stop);
@@ -57,6 +57,40 @@ function createDrone() {
             width: lineWidth
         }
     });
+
+    let newPoint = droneRoute[droneRoute.length - 1];
+    let oldPoint = droneRoute[droneRoute.length - 2];
+
+    var newPosition = Cesium.Cartesian3.fromDegrees(newPoint['lon'], newPoint['lat'], newPoint['alt']);
+    var oldPosition = Cesium.Cartesian3.fromDegrees(oldPoint['lon'], oldPoint['lat'], oldPoint['alt']);
+    
+    var speedVector = new Cesium.Cartesian3();
+     speedVector = Cesium.Cartesian3.subtract(newPosition, oldPosition, speedVector);
+
+    //var positionVector = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'], droneRoutePoint['lat'], droneRoutePoint['alt']);
+
+    var positionVector = oldPosition.clone()
+
+
+    viewer.scene.preUpdate.addEventListener(function(scene, time) {
+        
+        positionVector = Cesium.Cartesian3.add(positionVector, speedVector, positionVector);
+
+        console.log(speedVector)
+
+        /*position = Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, speedVector, position);
+        pathPosition.addSample(Cesium.JulianDate.now(), position);
+        Cesium.Transforms.headingPitchRollToFixedFrame(position, hpRoll, Cesium.Ellipsoid.WGS84, fixedFrameTransform, planePrimitive.modelMatrix);
+    
+        if (fromBehind.checked) {
+            // Zoom to model
+            Cesium.Matrix4.multiplyByPoint(planePrimitive.modelMatrix, planePrimitive.boundingSphere.center, center);
+            hpRange.heading = hpRoll.heading;
+            hpRange.pitch = hpRoll.pitch;
+            camera.lookAt(center, hpRange);
+        }*/
+    });
+
 
     let droneRoutePoint = droneRoute[droneRoute.length - 1];
     
