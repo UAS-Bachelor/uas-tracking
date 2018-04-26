@@ -23,7 +23,7 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/map2d')
+@app.route('/live/2d')
 def get_2d_map():
     '''Returns a 2D map'''
     try:
@@ -32,7 +32,14 @@ def get_2d_map():
         kml_url = get_url_string(route_config)
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
-    return render_template('map.html', kml_url=kml_url)
+
+    try:
+        route_config = config['drone_information']
+        request.path = '/live'
+        live_drones_url = get_url_string(route_config)
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
 @app.route('/routes/<routeid>/2d')
