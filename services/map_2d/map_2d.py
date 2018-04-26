@@ -26,25 +26,38 @@ def index():
 @app.route('/map2d')
 def get_2d_map():
     '''Returns a 2D map'''
-    route_config = config['no_fly_information']
-    request.path = '/zones'
-    kml_url = get_url_string(route_config)
+    try:
+        route_config = config['no_fly_information']
+        request.path = '/zones'
+        kml_url = get_url_string(route_config)
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable', 503
     return render_template('map.html', kml_url=kml_url)
 
 
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
-    route_config = config['drone_information']
-    request.path = '/routes/{}/interpolated'.format(routeid)
-    drone_route_list = json.loads(get(route_config))
-    route_duration = -1
-    if all(route for route in drone_route_list):
-        route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
-    
-    route_config = config['no_fly_information']
-    request.path = '/zones'
-    kml_url = get_url_string(route_config)
+    try:
+        route_config = config['drone_information']
+        request.path = '/routes/{}/interpolated'.format(routeid)
+        drone_route_list = json.loads(get(route_config))
+        route_duration = -1
+        if all(route for route in drone_route_list):
+            route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+
+    try:
+        route_config = config['nofly_information']
+        request.path = '/zones'
+        kml_url = get_url_string(route_config)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
 
 
@@ -54,13 +67,8 @@ def epoch_to_time(epoch):
 
 def get(route_config):
     url = get_url_string(route_config)
-    try:
-        response = requests.get(url)
-        raise_for_status_code(response)
-    except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Service unavailable', 503
+    response = requests.get(url)
+    raise_for_status_code(response)
     return response.text
 
 
