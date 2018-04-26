@@ -83,10 +83,10 @@ def download():
 				# Save to file with proper naming
 				print('Attempting to write file')
 				dirname = os.path.dirname(__file__)
-				directory = (dirname + '/' if dirname else '') + 'static/'
+				directory = (dirname + '/' if dirname else '') + 'static/kml/'
 				if not os.path.exists(directory):
 					os.makedirs(directory)
-				file_name = os.path.join(directory, 'drone_nofly_dk.kml')
+				file_name = os.path.join(directory, 'drone_no_fly_dk.kml')
 
 				file = open(file_name, 'wb')
 				file.write(result)

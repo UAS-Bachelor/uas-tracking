@@ -1,19 +1,17 @@
 from flask import Flask, url_for, redirect, jsonify
 from flask_cors import CORS
+from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
 import argparse
 import sys
 import os
-import datetime
-import platform
-from get_no_fly_zones import download
+import time
 
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app)
-
 
 features = None
 
@@ -42,7 +40,7 @@ def drone_in_zone():
     x = 14.939
     y = 55.029
     z = 1
-    start = datetime.datetime.now()
+    start = time.time()
     i = 0
     for f in features:
         try:
@@ -55,7 +53,7 @@ def drone_in_zone():
         i = i + 1
         if inside:
             break
-    print('Done, took {}'.format(datetime.datetime.now() - start))
+    print('Done, took {}'.format(time.time() - start))
     print('index: {}'.format(i))
 
 
@@ -78,12 +76,8 @@ def point_in_polygon(x, y, z, polygon):
     return inside
 
 
-def load_file():
+def load_file(file_name):
     kml_file = kml.KML()
-    
-    dirname = os.path.dirname(__file__)
-    directory = (dirname + '/' if dirname else '') + 'static/'
-    file_name = os.path.join(directory, 'drone_nofly_dk.kml')
 
     kml_file.from_string(open(file_name, 'rb').read())
     global features
@@ -91,13 +85,21 @@ def load_file():
 
 
 def prepare_file():
-    try:
+    print('Locating KML file')
+    dirname = os.path.dirname(__file__)
+    directory = (dirname + '/' if dirname else '') + 'static/kml/'
+    file_name = os.path.join(directory, 'drone_no_fly_dk.kml')
+    if os.path.isfile(file_name):
+        seven_days_in_seconds = 7 * 24 * 60 * 60
+        if (int(time.time()) - int(os.path.getmtime(file_name))) > seven_days_in_seconds:
+            print('KML file older than seven days, downloading new')
+            download()
         print('Attempting to read KML file')
-        load_file()
-    except FileNotFoundError:
+        load_file(file_name)
+    else:
         print('KML file not found, attempting to download')
         download()
-        load_file()
+        load_file(file_name)
     print('KML file read')
 
 
@@ -115,6 +117,7 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
+    prepare_file()
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
     app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
