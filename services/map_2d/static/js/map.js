@@ -40,11 +40,15 @@ function initLiveDrones() {
     liveDroneSource.useSpatialIndex = false;
     let liveDroneLayer = new ol.layer.Vector({
         source: liveDroneSource,
-        style: [new ol.style.Style({ //liveDroneStyle
+        style: [new ol.style.Style({ //pointStyle
             image: new ol.style.Circle({
-                radius: 20, //(lineWidth / 3),
+                radius: lineWidth,
                 fill: new ol.style.Fill({
-                    color: '#f2815c'
+                    color: '#f5f5f5'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#2865a2',
+                    width: (lineWidth / 4)
                 })
             }),
             zIndex: 3
