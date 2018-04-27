@@ -81,6 +81,45 @@ function computeFlightCoordinates() {
 }
 
 
+
+function createDrone() {
+    entity = viewer.entities.add({
+        position: position,
+        orientation: new Cesium.VelocityOrientationProperty(position),
+        model: {
+            uri: droneModel,
+            minimumPixelSize: 32
+        },
+        path: {
+            resolution: 1,
+            material: new Cesium.PolylineOutlineMaterialProperty({
+                color: Cesium.Color.fromCssColorString('#00b3fd'),
+                outlineColor: Cesium.Color.fromCssColorString('#2865a2'),
+                outlineWidth: (lineWidth / 3)
+            }),
+            width: lineWidth
+        }
+    });
+}
+
+var liveDrones = {}
+
+function updateLiveDrones() {
+    $.get(liveDronesUrl, function (listOfLiveDrones) {
+        for (let i = 0; i < listOfLiveDrones.length; i++) {
+            liveDrone = listOfLiveDrones[i];
+            console.log(liveDrone)
+            /*liveDroneSource.addFeature(new ol.Feature({
+                geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
+                name: createHtmlForDroneTooltip(liveDrone)
+            }));*/
+        }
+        //liveDroneSource.refresh();
+    });
+}
+
+
+
 function initDropdown() {
     $('#dropdownMenu').html("Viewing drone");
     $('#viewDrone').click(clickViewDrone);
