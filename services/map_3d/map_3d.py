@@ -36,7 +36,13 @@ def get_3d_map():
         drone_route_list = json.loads(get(route_config))
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return render_template('map.html',  drone_route_list=drone_route_list)#live_drones_url=live_drones_url)
+        
+        route_config = config['no_fly_information']
+        request.path = '/zones'
+        kml_url = get_url_string(route_config)
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable'
+    return render_template('map.html', kml_url=kml_url, drone_route_list=drone_route_list)#live_drones_url=live_drones_url)
 
 
 @app.route('/routes/<routeid>/3d')
