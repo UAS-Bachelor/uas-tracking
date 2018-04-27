@@ -7,6 +7,15 @@ var lineWidth = 7;
 
 function initMap() {
     Cesium.BingMapsApi.defaultKey = 'AlP_7a7Bu5IKn_jRniYtal7yLOFyLfCG8X-tSLiE56287FLtKqX7nko0IQmtogg5';
+    let west = 8.0;
+    let south = 53.5;
+    let east = 13.0;
+    let north = 58.0;
+
+    let rectangle = Cesium.Rectangle.fromDegrees(west, south, east, north);
+
+    Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = rectangle;
     viewer = new Cesium.Viewer('cesiumContainer', {
         infoBox: false,
         selectionIndicator: false,
@@ -72,7 +81,7 @@ function createDrone() {
     var positionVector = oldPosition.clone()
 
 
-    viewer.scene.preUpdate.addEventListener(function(scene, time) {
+    /*viewer.scene.preUpdate.addEventListener(function(scene, time) {
         
         positionVector = Cesium.Cartesian3.add(positionVector, speedVector, positionVector);
 
@@ -89,7 +98,7 @@ function createDrone() {
             hpRange.pitch = hpRoll.pitch;
             camera.lookAt(center, hpRange);
         }*/
-    });
+    //});
 
 
     let droneRoutePoint = droneRoute[droneRoute.length - 1];
@@ -137,6 +146,54 @@ function initDropdown() {
     $('#viewSide').click(clickViewSide);
     $('#viewTopDown').click(clickViewTopDown);
 }
+
+
+var liveDrones = {}
+
+function updateLiveDrones() {
+    $.get(liveDronesUrl, function (listOfLiveDrones) {
+        for (let i = 0; i < listOfLiveDrones.length; i++) {
+            let liveDrone = listOfLiveDrones[i];
+            //console.log(liveDrone)
+            let droneEntity = viewer.entities.getById(liveDrone['id']);
+            if (typeof droneEntity === 'undefined') {
+                console.log('adding drone to drawing')
+                createDrone(liveDrone);
+            }
+            else {
+                updateDrone(droneEntity, liveDrone);
+            }
+        }
+    });
+}
+
+function updateDrone(droneEntity, liveDrone) {
+    let time = Cesium.JulianDate.fromDate(new Date(((liveDrone['time'] + 15) * 1000)));
+    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
+
+    droneEntity.position.addSample(time, position);
+}
+
+function createDrone(liveDrone) {
+    let positionProperty = new Cesium.SampledPositionProperty();
+    let time = Cesium.JulianDate.fromDate(new Date(((liveDrone['time'] + 5) * 1000)));
+    console.log(new Date(((liveDrone['time'] + 150) * 1000)));
+    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
+
+    positionProperty.addSample(time, position);
+
+    let entity = viewer.entities.add({
+        id: liveDrone['id'], 
+        position: positionProperty,
+        orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+        model: {
+            uri: droneModel,
+            minimumPixelSize: 32
+        }
+    });
+    return entity;
+}
+
 
 function clickViewDrone() {
     viewDrone();
@@ -210,11 +267,17 @@ function hermitePolynomialInterpolation() {
 
 
 initMap();
-if (Object.keys(droneRoute[0]).length !== 0) {
+if (typeof droneRoute !== 'undefined' && Object.keys(droneRoute[0]).length !== 0) {
     initTime();
     createDrone();
     initDropdown();
 
     clickViewTopDown();
     hermitePolynomialInterpolation();
+}
+if (typeof liveDronesUrl !== 'undefined') {
+    updateLiveDrones();
+    setInterval(function () {
+        updateLiveDrones();
+    }, 2000);
 }

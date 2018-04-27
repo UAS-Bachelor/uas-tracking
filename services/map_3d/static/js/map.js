@@ -122,23 +122,6 @@ function createDrone() {
     });
 }
 
-var liveDrones = {}
-
-function updateLiveDrones() {
-    $.get(liveDronesUrl, function (listOfLiveDrones) {
-        for (let i = 0; i < listOfLiveDrones.length; i++) {
-            liveDrone = listOfLiveDrones[i];
-            console.log(liveDrone)
-            /*liveDroneSource.addFeature(new ol.Feature({
-                geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
-                name: createHtmlForDroneTooltip(liveDrone)
-            }));*/
-        }
-        //liveDroneSource.refresh();
-    });
-}
-
-
 
 function initDropdown() {
     $('#dropdownMenu').html("Viewing drone");
