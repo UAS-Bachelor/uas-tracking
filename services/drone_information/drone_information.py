@@ -37,13 +37,31 @@ def index():
 
 
 @app.route('/live')
-def get_drones():
+def get_live_drones():
     current_drones = []
     current_routes = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time).filter(Route.end_time == None).order_by(Route.start_time).all())
     for route in current_routes:
-        drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route['drone_id']).order_by(Drone.time.desc()).first())
+        drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route['drone_id'], Drone.time >= route['start_time']).order_by(Drone.time.desc()).first())
         current_drones.append(drone)
-    return jsonify(current_drones)
+    return jsonify(current_drones), 200
+
+
+@app.route('/live/<droneid>')
+def get_live_drones_by_id(droneid):
+    current_route = Route.query.filter(Route.end_time == None, Route.drone_id == droneid).order_by(Route.start_time).first()
+    if not current_route:
+        return jsonify(error='drone with droneid {} is currently not in flight'.format(droneid)), 404
+    current_drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == current_route.drone_id, Drone.time >= current_route.start_time).order_by(Drone.time.desc()).first())
+    return jsonify(current_drone), 200
+
+
+
+    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    if not route:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
+        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+    return jsonify(list_of_drone_dicts), 200
 
 
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
@@ -65,7 +83,7 @@ def get_drone_routes_list():
         drone_dict['start_time_stamp'] = time_util.epoch_to_datetime(drone_dict['start_time'])
         drone_dict['end_time_stamp'] = time_util.epoch_to_datetime(drone_dict['end_time'])
         drone_dict['duration'] = time_util.epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-    return jsonify(list_of_drone_dicts)
+    return jsonify(list_of_drone_dicts), 200
 
 
 def post_drone_route():
