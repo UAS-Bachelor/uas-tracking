@@ -36,25 +36,21 @@ def get_conflicts():
     return ''
 
 
-def drone_in_zone():
-    x = 14.939
-    y = 55.029
-    z = 1
-    start = time.time()
-    i = 0
-    for f in features:
+def drone_in_zone(x, y, z):
+    x = 12.39
+    y = 55.85
+    z = 0
+    
+    for feature in features:
         try:
-            inside = point_in_polygon(x, y, z, f.geometry.exterior.coords)
-        except AttributeError:
-            print('Found multipoly')
-            for geom in f.geometry.geoms:
-                print('looping through polygons in multipoly')
-                inside = point_in_polygon(x, y, z, geom.exterior.coords)
-        i = i + 1
+            feature_geometry = feature.geometry
+            inside = point_in_polygon(x, y, z, feature_geometry.exterior.coords)
+        except AttributeError: #to handle multi-polygons
+            for geometry in feature_geometry.geoms:
+                inside = point_in_polygon(x, y, z, geometry.exterior.coords)
         if inside:
+            print('Drone is in {}'.format(feature.name))
             break
-    print('Done, took {}'.format(time.time() - start))
-    print('index: {}'.format(i))
 
 
 def point_in_polygon(x, y, z, polygon):
