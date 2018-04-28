@@ -50,7 +50,7 @@ def get_2d_map_by_routeid(routeid):
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
 
@@ -58,7 +58,7 @@ def get_2d_map_by_routeid(routeid):
         request.path = '/zones'
         kml_url = get_url_string('no_fly_information')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
