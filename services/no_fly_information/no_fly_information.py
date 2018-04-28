@@ -1,8 +1,10 @@
-from flask import Flask, url_for, redirect, jsonify
+from flask import Flask, url_for, redirect, jsonify, request
 from flask_cors import CORS
 from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
+import requests
+import json
 import argparse
 import sys
 import os
@@ -12,6 +14,10 @@ import time
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app)
+
+dirname = os.path.dirname(__file__)
+__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
+config = json.load(open(__services_config_file))
 
 features = None
 
@@ -30,9 +36,18 @@ def get_nofly_zones_list():
     return redirect(url_for('static', filename='kml/drone_no_fly_dk.kml', _external=True))
 
 
-@app.route('/conflicts')
-def get_conflicts():
-    drone_in_zone()
+@app.route('/collision/<droneid>')
+def get_collisions_by_droneid(droneid):
+    try:
+        route_config = config['drone_information']
+        request.path = '/live/{}'.format(droneid)
+        drone = json.loads(get(route_config))
+        print(drone)
+    except requests.exceptions.HTTPError as exception:
+        return exception.text, exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    #drone_in_zone()
     return ''
 
 
@@ -70,6 +85,29 @@ def point_in_polygon(x, y, z, polygon):
                             inside = not inside
         p1x, p1y, p1z = p2x, p2y, p2z
     return inside
+
+
+def get(route_config):
+    url = get_url_string(route_config)
+    response = requests.get(url)
+    raise_for_status_code(response)
+    return response.text
+
+
+def get_url_string(route_config):
+    url = 'http://{}:{}{}'
+    if(request.remote_addr == '127.0.0.1'):
+        url = url.format('127.0.0.1', route_config['port'], request.path)
+    else:
+        url = url.format(route_config['host'], route_config['port'], request.path)
+    return url
+
+
+def raise_for_status_code(response):
+    if not response:
+        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
+        exception.text = response.text
+        raise exception
 
 
 def load_file(file_name):
