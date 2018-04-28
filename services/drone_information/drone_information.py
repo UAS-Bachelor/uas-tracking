@@ -136,7 +136,7 @@ def delete_drone_route():
 @app.route('/routes/<routeid>')
 def get_route_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
-    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    route = Route.query.filter(Route.route_id == routeid).first()
     if not route:
         return jsonify(error='routeid {} does not exist'.format(routeid)), 404
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
@@ -147,7 +147,7 @@ def get_route_by_routeid(routeid):
 @app.route('/routes/<routeid>/interpolated')
 def get_route_by_routeid_interpolated(routeid):
     '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
-    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    route = Route.query.filter(Route.route_id == routeid).first()
     if not route:
         return jsonify(error='routeid {} does not exist'.format(routeid)), 404
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
