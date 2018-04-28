@@ -55,15 +55,6 @@ def get_live_drones_by_id(droneid):
     return jsonify(current_drone), 200
 
 
-
-    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
-    if not route:
-        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
-    list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
-        Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
-    return jsonify(list_of_drone_dicts), 200
-
-
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
     '''Returns a list of all drone routes'''
