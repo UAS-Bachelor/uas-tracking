@@ -42,13 +42,13 @@ def get_collisions_by_droneid(droneid):
     try:
         request.path = '/live/{}'.format(droneid)
         drone = json.loads(get('drone_information'))
-        inside, feature = drone_in_zone(drone['lon'], drone['lat'])
+        inside = drone_in_zone(drone['lon'], drone['lat'])
         print(inside)
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return jsonify(inside, feature.name), 200
+    return jsonify((inside is not None, inside.name)), 200
 
 
 def drone_in_zone(x, y, z=0):
@@ -64,8 +64,8 @@ def drone_in_zone(x, y, z=0):
                 inside = point_in_polygon(x, y, z, geometry.exterior.coords)
         if inside:
             print('Drone is in {}'.format(feature.name))
-            return True, feature
-    return False
+            return feature
+    return None
 
 
 def point_in_polygon(x, y, z, polygon):
