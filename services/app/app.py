@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, jsonify
 import json
 import requests
 import sys
@@ -24,7 +24,7 @@ def get_3d_map():
     try:
         map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
@@ -35,7 +35,7 @@ def get_3d_map_by_routeid(routeid):
     try:
         map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
@@ -50,7 +50,7 @@ def get_2d_map():
     try:
         map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
@@ -61,7 +61,7 @@ def get_2d_map_by_routeid(routeid):
     try:
         map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
@@ -79,7 +79,7 @@ def routes():
         elif request.method == 'DELETE':
             return delete_drone_route('drone_information')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
 

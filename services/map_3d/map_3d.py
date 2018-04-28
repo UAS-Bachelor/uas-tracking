@@ -42,7 +42,7 @@ def get_3d_map_by_routeid(routeid):
         request.path = '/routes/{}'.format(routeid)
         drone_route_list = json.loads(get('drone_information'))
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list)
