@@ -48,13 +48,10 @@ def get_collisions_by_droneid(droneid):
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return jsonify((inside is not None, inside.name)), 200
+    return jsonify(inside is not None), 200
 
 
-def drone_in_zone(x, y, z=0):
-    '''x = 12.39 # to get inside = True
-    y = 55.85
-    z = 0'''
+def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
     for feature in features:
         try:
             feature_geometry = feature.geometry
