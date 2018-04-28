@@ -39,9 +39,8 @@ def get_nofly_zones_list():
 @app.route('/collision/<droneid>')
 def get_collisions_by_droneid(droneid):
     try:
-        route_config = config['drone_information']
         request.path = '/live/{}'.format(droneid)
-        drone = json.loads(get(route_config))
+        drone = json.loads(get('drone_information'))
         print(drone)
     except requests.exceptions.HTTPError as exception:
         return exception.text, exception.errno
@@ -87,19 +86,20 @@ def point_in_polygon(x, y, z, polygon):
     return inside
 
 
-def get(route_config):
-    url = get_url_string(route_config)
+def get(service_name):
+    url = get_url_string(service_name)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(route_config):
+def get_url_string(service_name):
+    service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', route_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], request.path)
     else:
-        url = url.format(route_config['host'], route_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], request.path)
     return url
 
 
