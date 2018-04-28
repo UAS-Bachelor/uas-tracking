@@ -13,6 +13,7 @@ import time
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config['JSON_AS_ASCII'] = False
 CORS(app)
 
 dirname = os.path.dirname(__file__)
@@ -41,20 +42,19 @@ def get_collisions_by_droneid(droneid):
     try:
         request.path = '/live/{}'.format(droneid)
         drone = json.loads(get('drone_information'))
-        print(drone)
+        inside, feature = drone_in_zone(drone['lon'], drone['lat'])
+        print(inside)
     except requests.exceptions.HTTPError as exception:
         return exception.text, exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    #drone_in_zone()
-    return ''
+    return jsonify(inside, feature.name), 200
 
 
-def drone_in_zone(x, y, z):
-    x = 12.39
+def drone_in_zone(x, y, z=0):
+    '''x = 12.39 # to get inside = True
     y = 55.85
-    z = 0
-    
+    z = 0'''
     for feature in features:
         try:
             feature_geometry = feature.geometry
@@ -64,7 +64,8 @@ def drone_in_zone(x, y, z):
                 inside = point_in_polygon(x, y, z, geometry.exterior.coords)
         if inside:
             print('Drone is in {}'.format(feature.name))
-            break
+            return True, feature
+    return False
 
 
 def point_in_polygon(x, y, z, polygon):
