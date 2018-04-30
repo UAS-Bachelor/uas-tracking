@@ -67,6 +67,24 @@ function updateLiveDrones() {
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
                 name: createHtmlForDroneTooltip(liveDrone)
             }));
+            var overlay = new ol.Feature({
+                geometry: new ol.geom.Point(getCoordinates(liveDrone)),
+                name: createHtmlForDroneTooltip(liveDrone)
+            });
+            overlay.setStyle(new ol.style.Style({ //pointStyle
+                image: new ol.style.Circle({
+                    radius: 50,
+                    fill: new ol.style.Fill({
+                        color: '#ff0000'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#000000',
+                        width: 10
+                    })
+                }),
+                zIndex: 2
+            }))
+            liveDroneSource.addFeature(overlay);
         }
         liveDroneSource.refresh();
     });
