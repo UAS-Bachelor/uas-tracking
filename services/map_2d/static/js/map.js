@@ -10,6 +10,7 @@ var liveDroneSource;
 
 var lineWidth = 7;
 var hitTolerance = 2;
+var bufferCircleWidth = 100;
 if (
     (screen.width <= 640) ||
     (window.matchMedia &&
@@ -57,6 +58,12 @@ function initLiveDrones() {
     map.addLayer(liveDroneLayer);
 }
 
+/** geolocation.on('change:position', function() { // kan måske bruges til at gøre cirklen fastsat
+        var coordinates = geolocation.getPosition();
+        positionFeature.setGeometry(coordinates ?
+          new ol.geom.Point(coordinates) : null);
+      }); */
+
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
         liveDroneSource.clear();
@@ -73,13 +80,13 @@ function updateLiveDrones() {
             });
             overlay.setStyle(new ol.style.Style({ //pointStyle
                 image: new ol.style.Circle({
-                    radius: 50,
+                    radius: bufferCircleWidth,
                     fill: new ol.style.Fill({
-                        color: '#ff0000'
+                        color: '#c1d7f5'
                     }),
                     stroke: new ol.style.Stroke({
-                        color: '#000000',
-                        width: 10
+                        color: '#2865a2',
+                        width: bufferCircleWidth / 20
                     })
                 }),
                 zIndex: 2
