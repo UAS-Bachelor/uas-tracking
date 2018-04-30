@@ -90,52 +90,6 @@ function updateLiveDrones() {
     });
 }
 
-/*
-function initBufferOnLiveDrones() {
-    let bufferSource = new ol.source.Vector();
-    let bufferVector = new ol.layer.Vector({
-        source: bufferSource,
-        style: [new ol.style.Style({ //pointStyle
-            image: new ol.style.Circle({
-                radius: 14,
-                fill: new ol.style.Fill({
-                    color: '#f5f5f5'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: '#2865a2',
-                    width: (14 / 4)
-                })
-            }),
-            zIndex: 3
-        })]
-    });
-
-    map.addLayer(bufferVector);
-}*/
-/*
-function updateBufferOnLiveDrones(){
-    var positionFeature = new ol.Feature();
-    positionFeature.setStyle(new ol.style.Style({
-      image: new ol.style.Circle({
-        radius: 6,
-        fill: new ol.style.Fill({
-          color: '#3399CC'
-        }),
-        stroke: new ol.style.Stroke({
-          color: '#fff',
-          width: 2
-        })
-      })
-    }));
-
-    liveDroneSource.on('change:position',function(){
-        var coordinates = liveDroneSource.getPosition();
-        positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null)
-    
-    })
-    map.addFeature(positionFeature);
-}*/
-
 function displayNoFlightZones() {
     let noFlyZoneLayer = new ol.layer.Vector({
         source: new ol.source.Vector({
