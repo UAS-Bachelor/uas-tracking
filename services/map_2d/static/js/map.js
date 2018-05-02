@@ -63,13 +63,16 @@ function initLiveDrones() {
         positionFeature.setGeometry(coordinates ?
           new ol.geom.Point(coordinates) : null);
       }); */
-
+function printZoom(){
+    console.log(map.getView().getZoom());
+}
+      
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
         liveDroneSource.clear();
         for (let i = 0; i < listOfLiveDrones.length; i++) {
             liveDrone = listOfLiveDrones[i];
-            console.log(liveDrone)
+          //  console.log(liveDrone)
             liveDroneSource.addFeature(new ol.Feature({
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
                 name: createHtmlForDroneTooltip(liveDrone)
@@ -80,13 +83,13 @@ function updateLiveDrones() {
             });
             overlay.setStyle(new ol.style.Style({ //pointStyle
                 image: new ol.style.Circle({
-                    radius: bufferCircleWidth,
+                    radius: 100,  //map.getView().getResolution(),
                     fill: new ol.style.Fill({
-                        color: '#c1d7f5'
+                        color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha (opacity), same in hex: #c1d7f5
                     }),
                     stroke: new ol.style.Stroke({
-                        color: '#2865a2',
-                        width: bufferCircleWidth / 20
+                        color: '#2b8cee',
+                        width: 1
                     })
                 }),
                 zIndex: 2
@@ -271,6 +274,7 @@ if (typeof liveDronesUrl !== 'undefined') {
     updateLiveDrones();
     setInterval(function () {
         updateLiveDrones();
+      //  printZoom();
     }, 2000);
 }
 
