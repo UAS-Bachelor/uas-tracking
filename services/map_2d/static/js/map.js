@@ -10,7 +10,7 @@ var liveDroneSource;
 
 var lineWidth = 7;
 var hitTolerance = 2;
-var bufferCircleWidth = 100;
+var overlayCircleWidth = 100;
 if (
     (screen.width <= 640) ||
     (window.matchMedia &&
@@ -83,7 +83,7 @@ function updateLiveDrones() {
             });
             overlay.setStyle(new ol.style.Style({ //pointStyle
                 image: new ol.style.Circle({
-                    radius: 100,  //map.getView().getResolution(),
+                    radius: overlayCircleWidth,  //map.getView().getResolution(),
                     fill: new ol.style.Fill({
                         color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha (opacity), same in hex: #c1d7f5
                     }),
