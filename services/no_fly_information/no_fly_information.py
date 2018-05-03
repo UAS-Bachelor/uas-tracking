@@ -50,6 +50,10 @@ def get_collisions_by_droneid(droneid):
         return 'Drone information service unavailable', 503
     return jsonify(inside is not None), 200
 
+@app.route('/collection/live/<droneid>')
+def get_live_collisions_by_droneid(droneid):
+    return 'not yet implemented'
+
 
 def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
     for feature in features:
