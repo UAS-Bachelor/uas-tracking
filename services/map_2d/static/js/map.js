@@ -82,22 +82,19 @@ function updateLiveDrones() {
                 name: createHtmlForDroneTooltip(liveDrone)
             }));
             var overlay = new ol.Feature({
-                geometry: new ol.geom.Point(getCoordinates(liveDrone)),
+                geometry: new ol.geom.Circle(getCoordinates(liveDrone), 1000),               
                 name: createHtmlForDroneTooltip(liveDrone),
                 id : liveDrone.id
             });
             console.log(overlay)
             overlay.setStyle(new ol.style.Style({ //pointStyle
-                image: new ol.style.Circle({
-                    radius: overlayCircleWidth,  //map.getView().getResolution(),
                     fill: new ol.style.Fill({
                         color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha (opacity), same in hex: #c1d7f5
                     }),
                     stroke: new ol.style.Stroke({
                         color: '#2b8cee',
                         width: 1
-                    })
-                }),
+                    }),
                 zIndex: 2
             }))
             liveDroneSource.addFeature(overlay);
