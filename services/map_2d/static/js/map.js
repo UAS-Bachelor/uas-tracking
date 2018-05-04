@@ -83,8 +83,10 @@ function updateLiveDrones() {
             }));
             var overlay = new ol.Feature({
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)),
-                name: createHtmlForDroneTooltip(liveDrone)
+                name: createHtmlForDroneTooltip(liveDrone),
+                id : liveDrone.id
             });
+            console.log(overlay)
             overlay.setStyle(new ol.style.Style({ //pointStyle
                 image: new ol.style.Circle({
                     radius: overlayCircleWidth,  //map.getView().getResolution(),
