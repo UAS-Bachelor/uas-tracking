@@ -10,7 +10,9 @@ var liveDroneSource;
 
 var lineWidth = 7;
 var hitTolerance = 2;
-var overlayCircleWidth = 100;
+var overlay;
+var overlayCircleRadius = 1000;
+
 if (
     (screen.width <= 640) ||
     (window.matchMedia &&
@@ -62,14 +64,41 @@ function initLiveDrones() {
     map.addLayer(liveDroneLayer);
 }
 
-/** geolocation.on('change:position', function() { // kan måske bruges til at gøre cirklen fastsat
-        var coordinates = geolocation.getPosition();
-        positionFeature.setGeometry(coordinates ?
-          new ol.geom.Point(coordinates) : null);
-      }); */
 function printZoom(){
     console.log(map.getView().getZoom());
 }
+
+
+function Circle(x,y,r) {
+  this.x = x;
+  this.y = y;
+  this.r = r;
+}
+
+function circleCircleIntersectionPoints(c1, c2) {
+    var c1R, c2R, c1X, c1Y, c2X, c2Y;
+
+    if(c1 < c2) {
+        c1R = c1.r; c2R = c2.r;
+        c1X = c1.x; c2X = c2.x;
+        c1Y = c1.y; c2Y = c2.y;
+    } else {
+        c1R = c2.r; c2R = c1.r;
+        c1X = c2.x; c2X = c1.x;
+        c1Y = c2.y; c2Y = c2.y;
+    }
+    
+    if((c1R-c2R)^2  <= (c1X-c2X)^2 +(c1Y-c2Y)^2 <= (c1R + c2R)^2) {
+        console.log('Circles are intersecting');
+        return true;
+    } 
+    /*https://stackoverflow.com/questions/8367512/how-do-i-detect-intersections-between-a-circle-and-any-other-circle-in-the-same?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_q
+    if(Math.abs(c1R - c2R) <= Math.sqrt((c1X - c2X)^2 + (c1Y - c2Y)^2) <= (c1R - c2R)) {
+        console.log('hej')
+    } */
+}
+
+
       
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
@@ -81,12 +110,12 @@ function updateLiveDrones() {
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
                 name: createHtmlForDroneTooltip(liveDrone)
             }));
-            var overlay = new ol.Feature({
-                geometry: new ol.geom.Circle(getCoordinates(liveDrone), 1000),               
+            overlay = new ol.Feature({
+                geometry: new ol.geom.Circle(getCoordinates(liveDrone), overlayCircleRadius),               
                 name: createHtmlForDroneTooltip(liveDrone),
-                id : liveDrone.id
             });
-            console.log(overlay)
+            overlay.setId(liveDrone.id);
+           // console.log(overlay)
             overlay.setStyle(new ol.style.Style({ //pointStyle
                     fill: new ol.style.Fill({
                         color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha (opacity), same in hex: #c1d7f5
@@ -277,7 +306,14 @@ if (typeof liveDronesUrl !== 'undefined') {
     updateLiveDrones();
     setInterval(function () {
         updateLiveDrones();
-      //  printZoom();
+        c1 = new Circle(5,1,1)
+        c2 = new Circle(3,1,1)
+        circleCircleIntersectionPoints(c1,c2);
+        //circleCircleIntersectionPoints(Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000), Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000))
+      //  console.log(liveDroneSource.getFeatureById(911).getGeometry);
+     // console.log(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates())
+     // console.log(liveDroneSource.getFeatures())
     }, 2000);
+    
 }
 
