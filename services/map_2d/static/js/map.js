@@ -75,7 +75,7 @@ function Circle(x,y,r) {
   this.r = r;
 }
 
-function circleCircleIntersectionPoints(c1, c2) {
+function circleIntersection(c1, c2) {
     var c1R, c2R, c1X, c1Y, c2X, c2Y;
 
     if(c1 < c2) {
@@ -308,7 +308,7 @@ if (typeof liveDronesUrl !== 'undefined') {
         updateLiveDrones();
         c1 = new Circle(5,1,1)
         c2 = new Circle(3,1,1)
-        circleCircleIntersectionPoints(c1,c2);
+        circleIntersection(c1,c2);
         //circleCircleIntersectionPoints(Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000), Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000))
       //  console.log(liveDroneSource.getFeatureById(911).getGeometry);
      // console.log(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates())
