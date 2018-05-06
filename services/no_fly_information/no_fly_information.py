@@ -50,11 +50,55 @@ def get_collisions_by_droneid(droneid):
         return 'Drone information service unavailable', 503
     return jsonify(inside is not None), 200
 
-@app.route('/collection/live/<droneid>')
+@app.route('/collision/live/<droneid>')
 def get_live_collisions_by_droneid(droneid):
-    return 'not yet implemented'
+    c1 = Circle(3,1,1)
+    c2 = Circle(5,1,1)
+    if circleIntersection(c1,c2):
+        return 'yaya'
+    else:
+        return 'fuckno'
     # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
+class Circle:
+    def __init__(self, x, y, r):
+        self.x = x
+        self.y = y
+        self.r = r
+    def __str__(self):
+        return "Circle at (%d , %d). Radius: %f" % (self.x, self.y, self.r)
+    
+    def __rc__(self, circle2):
+        return self.r > circle2.r or self.r < circle2.r
+
+    def __xc__(self, circle2):
+        return self.x > circle2.x or self.x < circle2.x
+
+    def __yc__(self, circle2):
+        return self.y > circle2.y or self.y < circle2.y
+    
+
+def circleIntersection(c1,c2):
+    if c1 < c2: 
+        c1R = c1.r
+        c2R = c2.r
+        c1X = c1.x
+        c2X = c2.x
+        c1Y = c1.y
+        c2Y = c2.y
+    else: 
+        c1R = c2.r
+        c2R = c1.r
+        c1X = c2.x
+        c2X = c1.x
+        c1Y = c2.y
+        c2Y = c2.y
+
+    if c1R-c2R^2  <= c1X-c2X^2 + c1Y-c2Y^2 <= c1R + c2R^2: 
+        print('Circles are intersecting')
+        return True
+    
+     
 
 def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
     for feature in features:
