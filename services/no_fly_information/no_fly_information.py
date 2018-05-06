@@ -68,15 +68,8 @@ class Circle:
     def __str__(self):
         return "Circle at (%d , %d). Radius: %f" % (self.x, self.y, self.r)
     
-    def __rc__(self, circle2):
-        return self.r > circle2.r or self.r < circle2.r
-
-    def __xc__(self, circle2):
-        return self.x > circle2.x or self.x < circle2.x
-
-    def __yc__(self, circle2):
-        return self.y > circle2.y or self.y < circle2.y
-    
+    def __gt__(self, circle2):
+        self > circle2
 
 def circleIntersection(c1,c2):
     if c1 < c2: 
