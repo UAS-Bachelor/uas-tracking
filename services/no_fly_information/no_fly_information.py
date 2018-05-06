@@ -50,6 +50,7 @@ def get_collisions_by_droneid(droneid):
         return 'Drone information service unavailable', 503
     return jsonify(inside is not None), 200
 
+# WorkInProgress
 @app.route('/collision/live/<droneid>')
 def get_live_collisions_by_droneid(droneid):
     c1 = Circle(3,1,1)
@@ -59,7 +60,7 @@ def get_live_collisions_by_droneid(droneid):
     else:
         return 'fuckno'
     # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
-
+# WorkInProgress
 class Circle:
     def __init__(self, x, y, r):
         self.x = x
@@ -70,9 +71,9 @@ class Circle:
     
     def __gt__(self, circle2):
         self > circle2
-
+# WorkInProgress
 def circleIntersection(c1,c2):
-    if c1 < c2: 
+    if c1 < c2: # giver maximum recurssion error lige nu
         c1R = c1.r
         c2R = c2.r
         c1X = c1.x
