@@ -104,3 +104,4 @@ ENV/
 
 *.pyc
 *.kml
+.pytest_cache/
