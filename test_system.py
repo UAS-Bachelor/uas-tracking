@@ -1,13 +1,17 @@
 import pytest
+from flask import request
 from services.app import app
 from services.drone_information import drone_information
+import json
 from util import config
+import time
 from multiprocessing import Process
 
 
 @pytest.fixture
 def app_client():
     app.app.config['TESTING'] = True
+    app.config = json.load(open(app.__services_config_file))
     app_client = app.app.test_client()
     yield app_client
 
@@ -17,29 +21,24 @@ def test_drone_information_integration(app_client):
     assert response.status_code == 503
     assert response.data.decode().strip() == 'Drone information service unavailable'
 
-    server = Process(target=start_drone_information_server, args=[config['drone_information']['port']])
-    server.start()
+    server = start_drone_information_server(config['drone_information']['port'])
     
     response = app_client.get('/routes')
     assert response.status_code == 200
 
-    server.terminate()
-    server.join()
+    stop_drone_information_server(server)
 
 
 def test_different_ports_for_same_service(app_client):
-    server = Process(target=start_drone_information_server, args=[config['drone_information']['port']])
-    server.start()
+    server_1 = start_drone_information_server(config['drone_information']['port'])
     
     response = app_client.get('/routes')
     assert response.status_code == 200
 
-    server.terminate()
-    server.join()
+    stop_drone_information_server(server_1)
 
     new_port = 6001
-    server = Process(target=start_drone_information_server, args=[new_port])
-    server.start()
+    server_2 = start_drone_information_server(new_port)
     
     app.config = {
         'drone_information': {
@@ -50,12 +49,26 @@ def test_different_ports_for_same_service(app_client):
     response = app_client.get('/routes')
     assert response.status_code == 200
 
+    stop_drone_information_server(server_2)
+
+def start_drone_information_server(port):
+    server = Process(target=run_drone_information, args=[port])
+    server.daemon = True
+    server.start()
+    time.sleep(5)
+    return server
+
+
+def stop_drone_information_server(server):
     server.terminate()
     server.join()
 
 
-def start_drone_information_server(port):
-    drone_information.app.run(host='127.0.0.1', port=port, threaded=True)
+def run_drone_information(port):
+    drone_information.app.run(host='127.0.0.1', port=port, threaded=False)
+
+
+#https://stackoverflow.com/a/45017691/5484534
 
 
 if __name__ == '__main__':
