@@ -1,6 +1,4 @@
-import os
 import pytest
-import unittest
 import drone_information
 import json
 
