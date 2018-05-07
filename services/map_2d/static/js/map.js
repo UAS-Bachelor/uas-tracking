@@ -10,7 +10,6 @@ var liveDroneSource;
 
 var lineWidth = 7;
 var hitTolerance = 2;
-var overlay;
 var overlayCircleRadius = 1000;
 
 if (
@@ -110,15 +109,16 @@ function updateLiveDrones() {
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
                 name: createHtmlForDroneTooltip(liveDrone)
             }));
-            overlay = new ol.Feature({
-                geometry: new ol.geom.Circle(getCoordinates(liveDrone), overlayCircleRadius),               
+            
+            var overlay = new ol.Feature({
+                geometry: new ol.geom.Circle(getCoordinates(liveDrone), liveDrone['buffer_radius']),               
                 name: createHtmlForDroneTooltip(liveDrone),
             });
             overlay.setId(liveDrone.id);
            // console.log(overlay)
             overlay.setStyle(new ol.style.Style({ //pointStyle
                     fill: new ol.style.Fill({
-                        color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha (opacity), same in hex: #c1d7f5
+                        color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha/opacity, same in hex: #c1d7f5
                     }),
                     stroke: new ol.style.Stroke({
                         color: '#2b8cee',
@@ -306,13 +306,6 @@ if (typeof liveDronesUrl !== 'undefined') {
     updateLiveDrones();
     setInterval(function () {
         updateLiveDrones();
-        c1 = new Circle(5,1,1)
-        c2 = new Circle(3,1,1)
-        circleIntersection(c1,c2);
-        //circleCircleIntersectionPoints(Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000), Circle(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates, 1000))
-      //  console.log(liveDroneSource.getFeatureById(911).getGeometry);
-     // console.log(liveDroneSource.getFeatureById(911).getGeometry().getCoordinates())
-     // console.log(liveDroneSource.getFeatures())
     }, 2000);
     
 }
