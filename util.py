@@ -33,6 +33,7 @@ def open_cmd(service, host, port, version):
         Popen([executable, cmd] + args, creationflags=CREATE_NEW_CONSOLE)
     else:
         call('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True)
+        #Popen('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True, stdout=subprocess.PIPE)
 
 
 def close_cmd(pid):
