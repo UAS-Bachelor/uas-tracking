@@ -3,12 +3,15 @@ from flask_cors import CORS
 from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
+from haversine import haversine
 import requests
 import json
 import argparse
 import sys
 import os
 import time
+import math # new
+import utm # new
 
 
 app = Flask(__name__)
@@ -51,45 +54,35 @@ def get_collisions_by_droneid(droneid):
     return jsonify(inside is not None), 200
 
 # WorkInProgress
-@app.route('/collision/live/<droneid>')
-def get_live_collisions_by_droneid(droneid):
-    c1 = Circle(3,1,1)
-    c2 = Circle(5,1,1)
-    if circleIntersection(c1,c2):
-        return 'yaya'
-    else:
-        return 'fuckno'
-    # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
-# WorkInProgress
-class Circle:
-    def __init__(self, x, y, r):
-        self.x = x
-        self.y = y
-        self.r = r
-    def __str__(self):
-        return "Circle at (%d , %d). Radius: %f" % (self.x, self.y, self.r)
-    
-    def __gt__(self, circle2):
-        self > circle2
-# WorkInProgress
-def circleIntersection(c1,c2):
-    if c1 < c2: # giver maximum recurssion error lige nu
-        c1R = c1.r
-        c2R = c2.r
-        c1X = c1.x
-        c2X = c2.x
-        c1Y = c1.y
-        c2Y = c2.y
-    else: 
-        c1R = c2.r
-        c2R = c1.r
-        c1X = c2.x
-        c2X = c1.x
-        c1Y = c2.y
-        c2Y = c2.y
+@app.route('/collision/live/')
+def get_live_collisions_by_droneid():
+    request.path = '/live'
+    current_drones = json.loads(get('drone_information'))
+    for d in current_drones:
+        for d2 in current_drones:
+            if(d['id'] != d2['id']):
+                if (circle_intersection((d['lat'], d['lon'], d['buffer_radius']), (d2['lat'], d2['lon'], d2['buffer_radius']))): 
+                    return 'Drone {} buffer circle is intersecting with Drone {} circle with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))), 200
+                else:
+                    return 'not nice'
 
-    if c1R-c2R^2  <= c1X-c2X^2 + c1Y-c2Y^2 <= c1R + c2R^2: 
-        print('Circles are intersecting')
+    # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+
+def get_utm_from_lat_lon(p):
+    return utm.from_latlon(p[0],p[1])
+
+
+def get_distance_between_utm_points(latlon1,latlon2):
+    p1 = get_utm_from_lat_lon(latlon1)
+    p2 = get_utm_from_lat_lon(latlon2)
+    return math.sqrt(((p2[0] - p1[0])**2 + (p2[1] - p1[2])**2)) / 10000 # to get meters
+    # distance = haversine((d['lat'], d['lon']), (d2['lat'], d2['lon'])) * 1000
+
+
+def circle_intersection(c1,c2):
+    x1,y1,r1 = c1
+    x2,y2,r2 = c2
+    if (((r1 - r2)**2)  <= ((x1 - x2)**2 + (y1 - y2)**2) <= ((r1 + r2)**2)): 
         return True
     
      
@@ -192,7 +185,7 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
-    prepare_file()
+   # prepare_file()
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
     app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
