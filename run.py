@@ -1,5 +1,6 @@
 import argparse
 from util import config, open_cmd, check_port
+from kill import kill
 
 
 def __launch_service(service, config):
@@ -39,4 +40,5 @@ if __name__ == '__main__':
     parser.add_argument('-s', metavar='service', type=str, default='all',
                         help='specify which service to run')
     args = parser.parse_args()
+    kill('all')
     run(args.s)
