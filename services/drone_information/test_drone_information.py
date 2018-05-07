@@ -1,6 +1,6 @@
 import pytest
-import drone_information
 import json
+from drone_information import app
 
 
 drone_data_points = [
@@ -20,10 +20,10 @@ drone_data_points = [
     }]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def client():
-    drone_information.app.config['TESTING'] = True
-    client = drone_information.app.test_client()
+    app.config['TESTING'] = True
+    client = app.test_client()
     yield client
 
 
@@ -98,3 +98,7 @@ def post_illegal_route(client):
 def delete_route(client, routeid):
     response = client.delete('/routes', json={'routeid': routeid})
     return response
+
+
+if __name__ == '__main__':
+    pytest.main()
