@@ -1,7 +1,6 @@
 import os
 import pytest
 import unittest
-from models import Drone
 import drone_information
 import json
 
