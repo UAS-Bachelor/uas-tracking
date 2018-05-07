@@ -42,6 +42,7 @@ def get_live_drones():
     current_routes = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time == None).distinct(Route.drone_id).order_by(Route.start_time).all()
     for route in current_routes:
         drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time).order_by(Drone.time.desc()).first())
+        drone['buffer_radius'] = 1000
         current_drones.append(drone)
     return jsonify(current_drones), 200
 
