@@ -69,13 +69,14 @@ def get_live_collisions_by_droneid():
     # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
 def get_utm_from_lat_lon(p):
+    #(EASTHING, NORTHING, ZONE NUMBER, ZONE LETTER)
     return utm.from_latlon(p[0],p[1])
 
 
 def get_distance_between_utm_points(latlon1,latlon2):
     p1 = get_utm_from_lat_lon(latlon1)
     p2 = get_utm_from_lat_lon(latlon2)
-    return math.sqrt(((p2[0] - p1[0])**2 + (p2[1] - p1[2])**2)) / 10000 # to get meters
+    return round((math.sqrt(((p2[0] - p1[0])**2 + (p2[1] - p1[2])**2)) / 10000), 2) # to get meters
     # distance = haversine((d['lat'], d['lon']), (d2['lat'], d2['lon'])) * 1000
 
 
