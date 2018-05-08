@@ -53,7 +53,7 @@ def get_collisions_by_droneid(droneid):
         return 'Drone information service unavailable', 503
     return jsonify(inside is not None), 200
 
-# WorkInProgress
+
 @app.route('/collision/live/')
 def get_live_collisions_by_droneid():
     request.path = '/live'
@@ -63,10 +63,9 @@ def get_live_collisions_by_droneid():
         for d2 in current_drones:
             if(d['id'] != d2['id']):
                 if (circle_intersection((d['lat'], d['lon'], d['buffer_radius']), (d2['lat'], d2['lon'], d2['buffer_radius']))): 
-                    list_of_colliding_drones.append('Drone {} is intersecting with Drone {} with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))))
+                    list_of_colliding_drones.append('Drone {} is intersecting with Drone {} with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))))                
     return jsonify(list_of_colliding_drones)
                
-    # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
 def get_utm_from_lat_lon(p):
     #(EASTHING, NORTHING, ZONE NUMBER, ZONE LETTER)
@@ -186,7 +185,7 @@ if __name__ == '__main__':
     args.prog = sys.argv[0].split('/')[-1].split('.')[0]
 
     print('Running {} service version {}'.format(args.prog, args.version))
-   # prepare_file()
+    prepare_file()
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
     app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
