@@ -3,15 +3,15 @@ from flask_cors import CORS
 from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
-from haversine import haversine
+#from haversine import haversine
 import requests
 import json
 import argparse
 import sys
 import os
 import time
-import math # new
-import utm # new
+import math
+import utm
 
 
 app = Flask(__name__)
@@ -57,15 +57,15 @@ def get_collisions_by_droneid(droneid):
 @app.route('/collision/live/')
 def get_live_collisions_by_droneid():
     request.path = '/live'
+    list_of_colliding_drones = []
     current_drones = json.loads(get('drone_information'))
     for d in current_drones:
         for d2 in current_drones:
             if(d['id'] != d2['id']):
                 if (circle_intersection((d['lat'], d['lon'], d['buffer_radius']), (d2['lat'], d2['lon'], d2['buffer_radius']))): 
-                    return 'Drone {} buffer circle is intersecting with Drone {} circle with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))), 200
-                else:
-                    return 'not nice'
-
+                    list_of_colliding_drones.append('Drone {} is intersecting with Drone {} with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))))
+    return jsonify(list_of_colliding_drones)
+               
     # https://stackoverflow.com/questions/3349125/circle-circle-intersection-points?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
 def get_utm_from_lat_lon(p):
@@ -73,9 +73,9 @@ def get_utm_from_lat_lon(p):
     return utm.from_latlon(p[0],p[1])
 
 
-def get_distance_between_utm_points(latlon1,latlon2):
-    p1 = get_utm_from_lat_lon(latlon1)
-    p2 = get_utm_from_lat_lon(latlon2)
+def get_distance_between_utm_points(coords1,coords2):
+    p1 = get_utm_from_lat_lon(coords1)
+    p2 = get_utm_from_lat_lon(coords2)
     return round((math.sqrt(((p2[0] - p1[0])**2 + (p2[1] - p1[2])**2)) / 10000), 2) # to get meters
     # distance = haversine((d['lat'], d['lon']), (d2['lat'], d2['lon'])) * 1000
 
