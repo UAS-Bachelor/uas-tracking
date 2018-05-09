@@ -28,8 +28,7 @@ def index():
 def get_3d_map():
     '''Returns a 3D map'''
     try:
-        request.path = '/zones'
-        kml_url = get_url_string('no_fly_information')
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
     return render_template('map.html', kml_url=kml_url)
@@ -39,8 +38,7 @@ def get_3d_map():
 def get_3d_map_by_routeid(routeid):
     '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
     try:
-        request.path = '/routes/{}'.format(routeid)
-        drone_route_list = json.loads(get('drone_information'))
+        drone_route_list = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
@@ -48,20 +46,20 @@ def get_3d_map_by_routeid(routeid):
     return render_template('map.html', drone_route_list=drone_route_list)
 
 
-def get(service_name):
-    url = get_url_string(service_name)
+def get(service_name, path=request.path):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name):
+def get_url_string(service_name, path=request.path):
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', service_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(service_config['host'], service_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 

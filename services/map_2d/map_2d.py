@@ -27,14 +27,12 @@ def index():
 def get_2d_map():
     '''Returns a 2D map'''
     try:
-        request.path = '/zones'
-        kml_url = get_url_string('no_fly_information')
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
 
     try:
-        request.path = '/live'
-        live_drones_url = get_url_string('drone_information')
+        live_drones_url = get_url_string('drone_information', '/live')
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
@@ -44,8 +42,7 @@ def get_2d_map():
 def get_2d_map_by_routeid(routeid):
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
     try:
-        request.path = '/routes/{}/interpolated'.format(routeid)
-        drone_route_list = json.loads(get('drone_information'))
+        drone_route_list = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
         route_duration = -1
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
@@ -55,8 +52,7 @@ def get_2d_map_by_routeid(routeid):
         return 'Drone information service unavailable', 503
 
     try:
-        request.path = '/zones'
-        kml_url = get_url_string('no_fly_information')
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
@@ -68,20 +64,20 @@ def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
-def get(service_name):
-    url = get_url_string(service_name)
+def get(service_name, path=request.path):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name):
+def get_url_string(service_name, path=request.path):
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', service_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(service_config['host'], service_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 
