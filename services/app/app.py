@@ -8,8 +8,7 @@ import os
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-dirname = os.path.dirname(__file__)
-__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
+__services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
 config = json.load(open(__services_config_file))
 
 
@@ -97,34 +96,36 @@ def delete_drone_route(service_name):
     return delete(service_name)
 
 
-def get(service_name):
-    url = get_url_string(service_name)
+def get(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def post(service_name):
-    url = get_url_string(service_name)
+def post(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.post(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def delete(service_name):
-    url = get_url_string(service_name)
+def delete(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.delete(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', service_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(service_config['host'], service_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 

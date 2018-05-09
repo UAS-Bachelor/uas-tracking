@@ -1,11 +1,14 @@
 import pytest
 from flask import request
-from services.app import app
-from services.drone_information import drone_information
+import sys
+import os
 import json
-from util import config
 import time
 from multiprocessing import Process
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from services.app import app
+from services.drone_information import drone_information
+from scripts.util import config
 
 
 @pytest.fixture
