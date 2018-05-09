@@ -13,9 +13,12 @@ else:
     from subprocess import call
 
 
-__services_dir = 'services/'
-__services_config_file = 'cfg/services.json'
-__environment_config_file = 'cfg/env_config.json'
+print(__file__)
+print(os.path.dirname(__file__))
+
+__services_dir = '../services/'
+__services_config_file = os.path.join(os.path.dirname(__file__), '../cfg/services.json')
+__environment_config_file = os.path.join(os.path.dirname(__file__), '../cfg/env_config.json')
 config = json.load(open(__services_config_file))
 environment_config = json.load(open(__environment_config_file))
 

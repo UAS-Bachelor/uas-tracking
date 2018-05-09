@@ -3,7 +3,7 @@ from flask import request
 from services.app import app
 from services.drone_information import drone_information
 import json
-from util import config
+from scripts.util import config
 import time
 from multiprocessing import Process
 

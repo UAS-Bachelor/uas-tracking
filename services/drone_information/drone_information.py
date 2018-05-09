@@ -15,8 +15,7 @@ else:
     from .time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
 
 
-dirname = os.path.dirname(__file__)
-__config_file = (dirname + '/' if dirname else '') + 'cfg/config.json'
+__config_file = os.path.join(os.path.dirname(__file__), 'cfg/config.json')
 config = json.load(open(__config_file))
 db_config = config['db']
 
