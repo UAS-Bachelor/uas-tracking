@@ -8,8 +8,7 @@ import os
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-dirname = os.path.dirname(__file__)
-__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
+__services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
 config = json.load(open(__services_config_file))
 
 
