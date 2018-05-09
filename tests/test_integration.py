@@ -1,5 +1,6 @@
 import pytest
 from flask import request
+import sys
 from services.app import app
 from services.drone_information import drone_information
 import json
