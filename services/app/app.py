@@ -96,28 +96,30 @@ def delete_drone_route(service_name):
     return delete(service_name)
 
 
-def get(service_name, path=request.path):
+def get(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def post(service_name, path=request.path):
+def post(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.post(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def delete(service_name, path=request.path):
+def delete(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.delete(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name, path=request.path):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):

@@ -64,14 +64,16 @@ def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
-def get(service_name, path=request.path):
+def get(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name, path=request.path):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
