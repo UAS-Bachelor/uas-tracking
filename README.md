@@ -16,3 +16,7 @@ Requires Python 3.6 and pip.
 
 ## Documentation
 An API overview and detailed API description can be found [here](https://docs.google.com/document/d/1sgmST3H5-IDegrrKFVCr_vQVqwL7w1Tg-pdPdTY59es/edit?usp=sharing).
+
+
+## Testing
+Tests are automatically run by the Travis CI build server on every push to the git repository, but tests can also be run manually by executing the command `pytest` or `python -m pytest` in the project root.
