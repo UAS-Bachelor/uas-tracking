@@ -1,5 +1,8 @@
 from scipy import interpolate
-from time_util import epoch_to_time
+if __package__ is None or __package__ == '':
+    from time_util import epoch_to_time
+else:
+    from .time_util import epoch_to_time
 
 
 def spline_interpolate(drone_route_list, interval):
