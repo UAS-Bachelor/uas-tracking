@@ -5,14 +5,10 @@ import argparse
 import os
 import requests
 import json
-if __package__ is None or __package__ == '':
-    from models import db, Drone, Route
-    from interpolator import spline_interpolate
-    from time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
-else:
-    from .models import db, Drone, Route
-    from .interpolator import spline_interpolate
-    from .time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from models import db, Drone, Route
+from interpolator import spline_interpolate
+from time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
 
 
 __config_file = os.path.join(os.path.dirname(__file__), 'cfg/config.json')
