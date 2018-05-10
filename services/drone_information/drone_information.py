@@ -1,16 +1,17 @@
 from flask import Flask, render_template, url_for, request, jsonify
 from flask_cors import CORS
-from models import db, Drone, Route
-from interpolator import spline_interpolate
-import time_util
-import requests
-import json
 import sys
 import argparse
 import os
+import requests
+import json
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from models import db, Drone, Route
+from interpolator import spline_interpolate
+from time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
 
-dirname = os.path.dirname(__file__)
-__config_file = (dirname + '/' if dirname else '') + 'cfg/config.json'
+
+__config_file = os.path.join(os.path.dirname(__file__), 'cfg/config.json')
 config = json.load(open(__config_file))
 db_config = config['db']
 
@@ -62,9 +63,9 @@ def routes():
 def get_drone_routes_list():
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).order_by(Route.start_time).all())
     for drone_dict in list_of_drone_dicts:
-        drone_dict['start_time_stamp'] = time_util.epoch_to_datetime(drone_dict['start_time'])
-        drone_dict['end_time_stamp'] = time_util.epoch_to_datetime(drone_dict['end_time'])
-        drone_dict['duration'] = time_util.epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
+        drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
+        drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
+        drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
     return jsonify(list_of_drone_dicts)
 
 
@@ -84,7 +85,7 @@ def post_drone_route():
         if 'id' not in received_point:
             received_point['id'] = 910
         if 'time_stamp' not in received_point:
-            received_point['time_stamp'] = time_util.epoch_to_datetime_with_dashes(received_point['time'])
+            received_point['time_stamp'] = epoch_to_datetime_with_dashes(received_point['time'])
         if 'name' not in received_point:
             received_point['name'] = '{0:06d}'.format(received_point['id'])
         if 'sim' not in received_point:
@@ -118,7 +119,7 @@ def delete_drone_route():
 @app.route('/routes/<routeid>')
 def get_route_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
-    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    route = Route.query.filter(Route.route_id == routeid).first()
     if not route:
         return jsonify(error='routeid {} does not exist'.format(routeid)), 404
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
@@ -129,7 +130,7 @@ def get_route_by_routeid(routeid):
 @app.route('/routes/<routeid>/interpolated')
 def get_route_by_routeid_interpolated(routeid):
     '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
-    route = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.route_id == routeid).first()
+    route = Route.query.filter(Route.route_id == routeid).first()
     if not route:
         return jsonify(error='routeid {} does not exist'.format(routeid)), 404
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(

@@ -6,12 +6,12 @@ import argparse
 import time
 import os
 
+
+__services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
+config = json.load(open(__services_config_file))
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
-
-dirname = os.path.dirname(__file__)
-__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
-config = json.load(open(__services_config_file))
 
 
 @app.route('/')
@@ -27,16 +27,12 @@ def index():
 def get_2d_map():
     '''Returns a 2D map'''
     try:
-        route_config = config['no_fly_information']
-        request.path = '/zones'
-        kml_url = get_url_string(route_config)
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
 
     try:
-        route_config = config['drone_information']
-        request.path = '/live'
-        live_drones_url = get_url_string(route_config)
+        live_drones_url = get_url_string('drone_information', '/live')
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
@@ -46,23 +42,19 @@ def get_2d_map():
 def get_2d_map_by_routeid(routeid):
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
     try:
-        route_config = config['drone_information']
-        request.path = '/routes/{}/interpolated'.format(routeid)
-        drone_route_list = json.loads(get(route_config))
+        drone_route_list = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
         route_duration = -1
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
 
     try:
-        route_config = config['nofly_information']
-        request.path = '/zones'
-        kml_url = get_url_string(route_config)
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
@@ -72,19 +64,22 @@ def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
 
 
-def get(route_config):
-    url = get_url_string(route_config)
+def get(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(route_config):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
+    service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', route_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(route_config['host'], route_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 

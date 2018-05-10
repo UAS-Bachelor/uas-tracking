@@ -6,13 +6,13 @@ import sys
 import argparse
 import os
 
+
+__services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
+config = json.load(open(__services_config_file))
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app)
-
-dirname = os.path.dirname(__file__)
-__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
-config = json.load(open(__services_config_file))
 
 
 @app.route('/')
@@ -28,19 +28,12 @@ def index():
 def get_3d_map():
     '''Returns a 3D map'''
     try:
-        route_config = config['drone_information']
-        request.path = '/live'
-        live_drones_url = get_url_string(route_config)
-
-        #request.path = '/routes/1'
-        #drone_route_list = json.loads(get(route_config))
+        live_drones_url = get_url_string('drone_information', '/live')
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     
     try:
-        route_config = config['no_fly_information']
-        request.path = '/zones'
-        kml_url = get_url_string(route_config)
+        kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
@@ -50,29 +43,30 @@ def get_3d_map():
 def get_3d_map_by_routeid(routeid):
     '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
     try:
-        route_config = config['drone_information']
-        request.path = '/routes/{}'.format(routeid)
-        drone_route_list = json.loads(get(route_config))
+        drone_route_list = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     return render_template('map.html', drone_route_list=drone_route_list)
 
 
-def get(route_config):
-    url = get_url_string(route_config)
+def get(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(route_config):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
+    service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', route_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(route_config['host'], route_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 

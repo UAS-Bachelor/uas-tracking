@@ -2,9 +2,10 @@ import requests
 import time
 import argparse
 import json
+import os
 import MySQLdb
 
-__config_file = 'cfg/config.json'
+__config_file = os.path.join(os.path.dirname(__file__), 'cfg/config.json')
 config = json.load(open(__config_file))
 db_config = config['db']
 

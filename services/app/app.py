@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, jsonify
 import json
 import requests
 import sys
@@ -8,8 +8,7 @@ import os
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-dirname = os.path.dirname(__file__)
-__services_config_file = (dirname + '/' if dirname else '') + '../../cfg/services.json'
+__services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
 config = json.load(open(__services_config_file))
 
 
@@ -22,10 +21,9 @@ def index():
 @app.route('/live/3d')
 def get_3d_map():
     try:
-        route_config = config['map_3d']
-        map_3d = get(route_config)
+        map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
@@ -34,10 +32,9 @@ def get_3d_map():
 @app.route('/routes/<routeid>/3d')
 def get_3d_map_by_routeid(routeid):
     try:
-        route_config = config['map_3d']
-        map_3d = get(route_config)
+        map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
@@ -50,10 +47,9 @@ def get_2d_map():
     start_time = request.args.get('start')
     end_time = request.args.get('end')'''
     try:
-        route_config = config['map_2d']
-        map_2d = get(route_config)
+        map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
@@ -62,10 +58,9 @@ def get_2d_map():
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
     try:
-        route_config = config['map_2d']
-        map_2d = get(route_config)
+        map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return '2D Map service unavailable', 503
     return render_template('layout.html', html=map_2d)
@@ -73,62 +68,64 @@ def get_2d_map_by_routeid(routeid):
 
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
-    route_config = config['drone_information']
     try:
         if request.method == 'GET':
-            return get_drone_routes_list(route_config)
+            return get_drone_routes_list('drone_information')
 
         elif request.method == 'POST':
-            return post_drone_route(route_config)
+            return post_drone_route('drone_information')
 
         elif request.method == 'DELETE':
-            return delete_drone_route(route_config)
+            return delete_drone_route('drone_information')
     except requests.exceptions.HTTPError as exception:
-        return exception.text, exception.errno
+        return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
 
 
-def get_drone_routes_list(route_config):
-    drone_routes_list = json.loads(get(route_config))
+def get_drone_routes_list(service_name):
+    drone_routes_list = json.loads(get(service_name))
     return render_template('route_list.html', drones=drone_routes_list)
 
 
-def post_drone_route(route_config):
-    return post(route_config)
+def post_drone_route(service_name):
+    return post(service_name)
 
 
-def delete_drone_route(route_config):
-    return delete(route_config)
+def delete_drone_route(service_name):
+    return delete(service_name)
 
 
-def get(route_config):
-    url = get_url_string(route_config)
+def get(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def post(route_config):
-    url = get_url_string(route_config)
+def post(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.post(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def delete(route_config):
-    url = get_url_string(route_config)
+def delete(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.delete(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(route_config):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
+    service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', route_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(route_config['host'], route_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 
