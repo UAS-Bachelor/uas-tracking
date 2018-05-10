@@ -54,6 +54,7 @@ def get_live_drones_by_id(droneid):
     if not current_route:
         return jsonify(error='drone with droneid {} is currently not in flight'.format(droneid)), 404
     current_drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == current_route.drone_id, Drone.time >= current_route.start_time).order_by(Drone.time.desc()).first())
+    current_drone['buffer_radius'] = 1000
     return jsonify(current_drone), 200
 
 
