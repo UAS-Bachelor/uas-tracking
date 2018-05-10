@@ -18,7 +18,7 @@ def index():
     #return render_template('index.html')
 
 
-@app.route('/map3d')
+@app.route('/live/3d')
 def get_3d_map():
     try:
         map_3d = get('map_3d')
