@@ -40,7 +40,7 @@ def get_nofly_zones_list():
     return redirect(url_for('static', filename='kml/drone_no_fly_dk.kml', _external=True))
 
 
-@app.route('/collision/<droneid>')
+@app.route('/collision/zones/<droneid>')
 def get_collisions_by_droneid(droneid):
     try:
         drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
@@ -53,22 +53,46 @@ def get_collisions_by_droneid(droneid):
     return jsonify(inside is not None), 200
 
 
-@app.route('/collision')
-def get_live_collisions_by_droneid():
-    dict_of_colliding_drones = {}
-    current_drones = json.loads(get('drone_information', '/live'))
-    for drone1 in current_drones:
-        for drone2 in current_drones:
-            if(drone1['id'] != drone2['id']):
-                if circle_intersection((drone1['lat'], drone1['lon'], drone1['buffer_radius']), (drone2['lat'], drone2['lon'], drone2['buffer_radius'])): 
-                    if drone1['id'] not in dict_of_colliding_drones:
-                        dict_of_colliding_drones[drone1['id']] = []
-                    dict_of_colliding_drones[drone1['id']].append({
-                            'id': drone2['id'], 
-                            'distance' : get_distance_between_utm_points(drone1, drone2)
-                        })
+@app.route('/collision/drones')
+def get_live_collisions():
+    try:
+        current_drones = json.loads(get('drone_information', '/live'))
+        dict_of_colliding_drones = {}
+        for drone in current_drones:
+            dict_of_colliding_drones = {**dict_of_colliding_drones, **drone_in_drone(drone, current_drones)}
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
     return jsonify(dict_of_colliding_drones)
-               
+
+
+@app.route('/collision/drones/<droneid>')
+def get_live_collisions_by_droneid(droneid):
+    try:
+        drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
+        current_drones = json.loads(get('drone_information', '/live'))
+        dict_of_colliding_drones = drone_in_drone(drone, current_drones)
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return jsonify(dict_of_colliding_drones)
+
+
+def drone_in_drone(drone, list_of_current_drones):
+    dict_of_colliding_drones = {}
+    for current_drone in list_of_current_drones:
+        if(drone['id'] != current_drone['id']):
+            if circle_intersection((drone['lat'], drone['lon'], drone['buffer_radius']), (current_drone['lat'], current_drone['lon'], current_drone['buffer_radius'])): 
+                if drone['id'] not in dict_of_colliding_drones:
+                    dict_of_colliding_drones[drone['id']] = []
+                dict_of_colliding_drones[drone['id']].append({
+                        'id': current_drone['id'], 
+                        'distance' : get_distance_between_utm_points(drone, current_drone)
+                    })
+    return dict_of_colliding_drones
+
 
 def get_distance_between_utm_points(drone1, drone2):
     point1 = from_latlon(drone1['lat'], drone1['lon'])
@@ -83,8 +107,7 @@ def circle_intersection(circle1, circle2):
     if ((r1 - r2)**2)  <= ((x1 - x2)**2 + (y1 - y2)**2) <= ((r1 + r2)**2): 
         return True
     return False
-    
-     
+
 
 def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
     for feature in features:
