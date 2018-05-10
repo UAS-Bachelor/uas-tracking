@@ -35,8 +35,7 @@ def test_routes_post_legal_and_get(client, drone_data_points):
     post_response = post_legal_route(client, drone_data_points)
     assert post_response.status_code == 200
     get_response = get_routes(client)
-    assert any(route['route_id'] == int(post_response.data)
-               for route in json.loads(get_response.data))
+    assert any(route['route_id'] == int(post_response.data) for route in json.loads(get_response.data))
     delete_route(client, int(post_response.data))
 
 
@@ -71,6 +70,12 @@ def test_route_get_by_routeid(client, drone_data_points):
             for received_drone_data_point in received_drone_data_points:
                 assert key, value in received_drone_data_point.items()
     delete_route(client, int(post_response.data))
+
+
+def test_route_get_by_routeid_fail(client, drone_data_points):
+    response = client.get('/routes/-1')
+    assert response.status_code == 404
+    assert 'error' in json.loads(response.data)
 
 
 def get_routes(client):
