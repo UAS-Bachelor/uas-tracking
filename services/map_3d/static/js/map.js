@@ -3,6 +3,7 @@ var entity;
 var start;
 var stop;
 var lineWidth = 7;
+var liveDroneTimeOffset = 5;
 
 
 function initMap() {
@@ -19,24 +20,13 @@ function initMap() {
     viewer = new Cesium.Viewer('cesiumContainer', {
         infoBox: false,
         selectionIndicator: false,
-        shouldAnimate: true
-        //timeline: false, 
+        shouldAnimate: true, 
+        timeline: true, 
         //navigationHelpButton: false
     });
     //Enable depth testing so things behind the terrain disappear.
     //viewer.scene.globe.depthTestAgainstTerrain = true;
-    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl)).then(function (kml) {
-        let entities = kml.entities.values;
-        let extrudedHeight = entities[0]._polygon._extrudedHeight;
-        extrudedHeight._value = 1000;
-        for (let i = 0; i < entities.length; i++) {
-            if (typeof entities[i]._polygon != 'undefined') {
-                entities[i]._polygon._extrudedHeight = extrudedHeight;
-            }
-        }
-    })
 }
-
 
 function initTime() {
     let routeStartTime = droneRoute[0]['time'];
@@ -48,13 +38,13 @@ function initTime() {
     viewer.clock.startTime = start.clone();
     viewer.clock.stopTime = stop.clone();
     viewer.clock.currentTime = start.clone();
-    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+    viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
     viewer.clock.multiplier = 1;
 
     viewer.timeline.zoomTo(start, stop);
 }
 
-function createDrone() {
+function createTrackedDrone() {
     let position = computeFlightCoordinates();
     entity = viewer.entities.add({
         availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
@@ -100,28 +90,57 @@ function computeFlightCoordinates() {
     return positionProperty;
 }
 
-
-
-function createDrone() {
-    entity = viewer.entities.add({
-        position: position,
-        orientation: new Cesium.VelocityOrientationProperty(position),
-        model: {
-            uri: droneModel,
-            minimumPixelSize: 32
-        },
-        path: {
-            resolution: 1,
-            material: new Cesium.PolylineOutlineMaterialProperty({
-                color: Cesium.Color.fromCssColorString('#00b3fd'),
-                outlineColor: Cesium.Color.fromCssColorString('#2865a2'),
-                outlineWidth: (lineWidth / 3)
-            }),
-            width: lineWidth
+function updateLiveDrones() {
+    $.get(liveDronesUrl, function (listOfLiveDrones) {
+        for (let i = 0; i < listOfLiveDrones.length; i++) {
+            let liveDrone = listOfLiveDrones[i];
+            //console.log(liveDrone)
+            let droneEntity = viewer.entities.getById(liveDrone['id']);
+            if (typeof droneEntity === 'undefined') {
+                createLiveDrone(liveDrone);
+            }
+            else {
+                updateLiveDrone(droneEntity, liveDrone);
+            }
         }
     });
 }
 
+function updateLiveDrone(droneEntity, liveDrone) {
+    let startTime = new Date(((liveDrone['time'] + liveDroneTimeOffset) * 1000));
+    let now = new Date();
+    if(((now - startTime) / 1000) > liveDroneTimeOffset) {
+        startTime = now;
+    }
+    let time = Cesium.JulianDate.fromDate(startTime);
+    Cesium.JulianDate.addSeconds(time, liveDroneTimeOffset, time);
+
+    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
+
+    droneEntity.position.addSample(time, position);
+}
+
+function createLiveDrone(liveDrone) {
+    let positionProperty = new Cesium.SampledPositionProperty();
+
+    let startTime = new Date(((liveDrone['time'] + liveDroneTimeOffset) * 1000));
+    let time = Cesium.JulianDate.fromDate(startTime);
+
+    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
+
+    positionProperty.addSample(time, position);
+
+    let entity = viewer.entities.add({
+        id: liveDrone['id'], 
+        position: positionProperty,
+        orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+        model: {
+            uri: droneModel,
+            minimumPixelSize: 32
+        }
+    });
+    return entity;
+}
 
 function initDropdown() {
     $('#dropdownMenu').html("Viewing drone");
@@ -130,33 +149,16 @@ function initDropdown() {
     $('#viewTopDown').click(clickViewTopDown);
 }
 
+function hideDropdown() {
+    $('#dropdownMenu').hide();
+}
+
 function clickViewDrone() {
     viewDrone();
     $('#dropdownMenu').html("Viewing drone");
     $('#viewSide').removeClass('active');
     $('#viewTopDown').removeClass('active');
     $('#viewDrone').addClass('active');
-
-    let routeEndTime = droneRoute[droneRoute.length - 1]['time'];
-
-
-
-    var newStop = Cesium.JulianDate.fromDate(new Date((routeEndTime * 1000) + 60 * 1000 * 5));
-    viewer.clock.stopTime = newStop.clone();
-
-    viewer.timeline.zoomTo(start, newStop);
-
-    entity.availability = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
-        start: entity.availability.start,
-        stop: newStop
-    })]);
-
-    let droneRoutePoint = droneRoute[droneRoute.length - 1];
-
-    let time = Cesium.JulianDate.fromDate(new Date(droneRoutePoint['time'] + 60 * 1000));
-    let position = Cesium.Cartesian3.fromDegrees(droneRoutePoint['lon'] + 0.5, droneRoutePoint['lat'] + 0.5, droneRoutePoint['alt'] + 200);
-
-    entity.position.addSample(time, position);
 }
 
 function clickViewSide() {
@@ -189,22 +191,27 @@ function viewDrone() {
     viewer.trackedEntity = entity;
 }
 
-
-
 function hermitePolynomialInterpolation() {
     entity.position.setInterpolationOptions({
-        interpolationDegree: 5,
+        interpolationDegree: 3,
         interpolationAlgorithm: Cesium.HermitePolynomialApproximation
     });
 }
 
 
 initMap();
-if (Object.keys(droneRoute[0]).length !== 0) {
+if (typeof droneRoute !== 'undefined' && Object.keys(droneRoute[0]).length !== 0) {
     initTime();
-    createDrone();
+    createTrackedDrone();
     initDropdown();
 
     clickViewTopDown();
     hermitePolynomialInterpolation();
+}
+if (typeof liveDronesUrl !== 'undefined') {
+    hideDropdown();
+    updateLiveDrones();
+    setInterval(function () {
+        updateLiveDrones();
+    }, 2000);
 }
