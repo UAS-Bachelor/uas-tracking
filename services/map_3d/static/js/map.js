@@ -44,6 +44,19 @@ function initTime() {
     viewer.timeline.zoomTo(start, stop);
 }
 
+function initKml() {
+    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl)).then(function (kml) {
+        let entities = kml.entities.values;
+        let extrudedHeight = entities[0]._polygon._extrudedHeight;
+        extrudedHeight._value = 1000;
+        for (let i = 0; i < entities.length; i++) {
+            if (typeof entities[i]._polygon != 'undefined') {
+                entities[i]._polygon._extrudedHeight = extrudedHeight;
+            }
+        }
+    });
+}
+
 function createTrackedDrone() {
     let position = computeFlightCoordinates();
     entity = viewer.entities.add({
@@ -207,6 +220,9 @@ if (typeof droneRoute !== 'undefined' && Object.keys(droneRoute[0]).length !== 0
 
     clickViewTopDown();
     hermitePolynomialInterpolation();
+}
+if (typeof kmlUrl !== 'undefined') {
+    initKml();
 }
 if (typeof liveDronesUrl !== 'undefined') {
     hideDropdown();
