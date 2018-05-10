@@ -31,6 +31,11 @@ def drone_data_points():
     }]
 
 
+def test_illegal_url(client):
+    response = client.get('/illegalurl')
+    assert response.status_code == 404
+
+
 def test_routes_post_legal_and_get(client, drone_data_points):
     post_response = post_legal_route(client, drone_data_points)
     assert post_response.status_code == 200
