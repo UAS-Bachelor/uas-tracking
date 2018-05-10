@@ -11,7 +11,7 @@ import sys
 import os
 import time
 import math
-import utm
+from utm import from_latlon
 
 
 app = Flask(__name__)
@@ -43,8 +43,7 @@ def get_nofly_zones_list():
 @app.route('/collision/<droneid>')
 def get_collisions_by_droneid(droneid):
     try:
-        request.path = '/live/{}'.format(droneid)
-        drone = json.loads(get('drone_information'))
+        drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
         inside = drone_in_zone(drone['lon'], drone['lat'])
         print(inside)
     except requests.exceptions.HTTPError as exception:
@@ -54,36 +53,36 @@ def get_collisions_by_droneid(droneid):
     return jsonify(inside is not None), 200
 
 
-@app.route('/collision/live/')
+@app.route('/collision')
 def get_live_collisions_by_droneid():
-    request.path = '/live'
-    list_of_colliding_drones = []
-    current_drones = json.loads(get('drone_information'))
-    for d in current_drones:
-        for d2 in current_drones:
-            if(d['id'] != d2['id']):
-                if (circle_intersection((d['lat'], d['lon'], d['buffer_radius']), (d2['lat'], d2['lon'], d2['buffer_radius']))): 
-                    list_of_colliding_drones.append('Drone {} is intersecting with Drone {} with a distance of {} meter from each other'.format(d['id'], d2['id'], get_distance_between_utm_points((d['lat'], d['lon']), (d2['lat'], d2['lon']))))                
-    return jsonify(list_of_colliding_drones)
+    dict_of_colliding_drones = {}
+    current_drones = json.loads(get('drone_information', '/live'))
+    for drone1 in current_drones:
+        for drone2 in current_drones:
+            if(drone1['id'] != drone2['id']):
+                if circle_intersection((drone1['lat'], drone1['lon'], drone1['buffer_radius']), (drone2['lat'], drone2['lon'], drone2['buffer_radius'])): 
+                    if drone1['id'] not in dict_of_colliding_drones:
+                        dict_of_colliding_drones[drone1['id']] = []
+                    dict_of_colliding_drones[drone1['id']].append({
+                            'id': drone2['id'], 
+                            'distance' : get_distance_between_utm_points(drone1, drone2)
+                        })
+    return jsonify(dict_of_colliding_drones)
                
 
-def get_utm_from_lat_lon(p):
-    #(EASTHING, NORTHING, ZONE NUMBER, ZONE LETTER)
-    return utm.from_latlon(p[0],p[1])
-
-
-def get_distance_between_utm_points(coords1,coords2):
-    p1 = get_utm_from_lat_lon(coords1)
-    p2 = get_utm_from_lat_lon(coords2)
-    return round((math.sqrt(((p2[0] - p1[0])**2 + (p2[1] - p1[2])**2)) / 10000), 2) # to get meters
+def get_distance_between_utm_points(drone1, drone2):
+    point1 = from_latlon(drone1['lat'], drone1['lon'])
+    point2 = from_latlon(drone2['lat'], drone2['lon'])
+    return round((math.sqrt(((point2[0] - point1[0])**2 + (point2[1] - point1[2])**2)) / 10000), 2) # to get meters
     # distance = haversine((d['lat'], d['lon']), (d2['lat'], d2['lon'])) * 1000
 
 
-def circle_intersection(c1,c2):
-    x1,y1,r1 = c1
-    x2,y2,r2 = c2
-    if (((r1 - r2)**2)  <= ((x1 - x2)**2 + (y1 - y2)**2) <= ((r1 + r2)**2)): 
+def circle_intersection(circle1, circle2):
+    x1, y1, r1 = circle1
+    x2, y2, r2 = circle2
+    if ((r1 - r2)**2)  <= ((x1 - x2)**2 + (y1 - y2)**2) <= ((r1 + r2)**2): 
         return True
+    return False
     
      
 
@@ -120,20 +119,22 @@ def point_in_polygon(x, y, z, polygon):
     return inside
 
 
-def get(service_name):
-    url = get_url_string(service_name)
+def get(service_name, path=''):
+    url = get_url_string(service_name, path)
     response = requests.get(url)
     raise_for_status_code(response)
     return response.text
 
 
-def get_url_string(service_name):
+def get_url_string(service_name, path=''):
+    if request and path == '':
+        path = request.path
     service_config = config[service_name]
     url = 'http://{}:{}{}'
     if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', service_config['port'], request.path)
+        url = url.format('127.0.0.1', service_config['port'], path)
     else:
-        url = url.format(service_config['host'], service_config['port'], request.path)
+        url = url.format(service_config['host'], service_config['port'], path)
     return url
 
 
