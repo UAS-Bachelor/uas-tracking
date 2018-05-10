@@ -46,6 +46,16 @@ def test_different_ports_for_same_service(app_client):
     app.config = {
         'drone_information': {
             'host': '127.0.0.1', 
+            'port': new_port + 1
+        }
+    }
+    response = app_client.get('/routes')
+    assert response.status_code == 503
+    assert response.data.decode().strip() == 'Drone information service unavailable'
+
+    app.config = {
+        'drone_information': {
+            'host': '127.0.0.1', 
             'port': new_port
         }
     }
@@ -58,7 +68,6 @@ def start_drone_information_server(port):
     server = Process(target=run_drone_information, args=[port])
     server.daemon = True
     server.start()
-    time.sleep(5)
     return server
 
 
@@ -69,9 +78,6 @@ def stop_drone_information_server(server):
 
 def run_drone_information(port):
     drone_information.app.run(host='127.0.0.1', port=port, threaded=False)
-
-
-#https://stackoverflow.com/a/45017691/5484534
 
 
 if __name__ == '__main__':
