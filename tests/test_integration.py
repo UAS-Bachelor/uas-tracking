@@ -68,6 +68,7 @@ def start_drone_information_server(port):
     server = Process(target=run_drone_information, args=[port])
     server.daemon = True
     server.start()
+    time.sleep(1)
     return server
 
 
