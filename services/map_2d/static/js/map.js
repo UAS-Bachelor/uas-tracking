@@ -62,10 +62,6 @@ function initLiveDrones() {
     });
     map.addLayer(liveDroneLayer);
 }
-
-function printZoom(){
-    console.log(map.getView().getZoom());
-}
       
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
@@ -81,10 +77,9 @@ function updateLiveDrones() {
                 geometry: new ol.geom.Circle(getCoordinates(liveDrone), liveDrone['buffer_radius']),               
                 name: createHtmlForDroneTooltip(liveDrone),
             });
-            overlay.setId(liveDrone.id);
             overlay.setStyle(new ol.style.Style({ //pointStyle
                     fill: new ol.style.Fill({
-                        color: 'rgba(193, 215, 245, 0.15)' // rbga for alpha/opacity, same in hex: #c1d7f5
+                        color: 'rgba(193, 215, 245, 0.35)' // rbga for alpha/opacity, same in hex: #c1d7f5
                     }),
                     stroke: new ol.style.Stroke({
                         color: '#2b8cee',
