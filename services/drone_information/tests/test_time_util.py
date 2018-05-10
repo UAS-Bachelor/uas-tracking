@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import time_util
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def epoch_time():
     yield 1517481030#01 Feb 2018, 10:30:30
 
