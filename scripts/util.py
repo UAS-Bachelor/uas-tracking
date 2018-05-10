@@ -13,9 +13,9 @@ else:
     from subprocess import call
 
 
-__services_dir = 'services/'
-__services_config_file = 'cfg/services.json'
-__environment_config_file = 'cfg/env_config.json'
+__services_dir = '../services/'
+__services_config_file = os.path.join(os.path.dirname(__file__), '../cfg/services.json')
+__environment_config_file = os.path.join(os.path.dirname(__file__), '../cfg/env_config.json')
 config = json.load(open(__services_config_file))
 environment_config = json.load(open(__environment_config_file))
 
@@ -33,6 +33,7 @@ def open_cmd(service, host, port, version):
         Popen([executable, cmd] + args, creationflags=CREATE_NEW_CONSOLE)
     else:
         call('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True)
+        #Popen('python3 {} {} &'.format(cmd, ' '.join(args)), shell=True, stdout=subprocess.PIPE)
 
 
 def close_cmd(pid):

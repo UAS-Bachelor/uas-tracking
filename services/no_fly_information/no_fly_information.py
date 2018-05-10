@@ -154,8 +154,7 @@ def load_file(file_name):
 
 def prepare_file():
     print('Locating KML file')
-    dirname = os.path.dirname(__file__)
-    directory = (dirname + '/' if dirname else '') + 'static/kml/'
+    directory = os.path.join(os.path.dirname(__file__), 'static/kml/')
     file_name = os.path.join(directory, 'drone_no_fly_dk.kml')
     if os.path.isfile(file_name):
         seven_days_in_seconds = 7 * 24 * 60 * 60
