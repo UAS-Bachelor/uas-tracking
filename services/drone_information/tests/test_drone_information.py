@@ -8,14 +8,14 @@ from drone_information import app
 
 drone_data_points = [
     {
-        'id': 910, 
+        'id': 919, 
         'lat': 55.37000, 
         'lon': 10.43000, 
         'alt': 00.00000, 
         'time': 1524231287
     }, 
     {
-        'id': 910, 
+        'id': 919, 
         'lat': 55.38050,
         'lon': 10.43000,
         'alt': 100.00000,
@@ -84,13 +84,13 @@ def post_legal_route(client):
 def post_illegal_route(client):
     response = client.post('/routes', json=
                 [{
-                    'id': 910, 
+                    'id': 919, 
                     'lon': 10.43000, 
                     'alt': 00.00000, 
                     'time': 1524231287
                 }, 
                 {
-                    'id': 910, 
+                    'id': 919, 
                     'lon': 10.43000,
                     'alt': 100.00000,
                     'time': 1524231299
