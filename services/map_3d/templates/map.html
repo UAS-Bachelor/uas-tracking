@@ -2,14 +2,17 @@
     var droneModel = "{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}";
     var droneRoute;
     var kmlUrl;
+    var liveDronesUrl;
     {% if drone_route_list is defined %}
         droneRoute = {{ drone_route_list | tojson }};
     {% endif %}
     {% if kml_url is defined %}
         kmlUrl = '{{ kml_url }}';
     {% endif %}
+    {% if live_drones_url is defined %}
+        liveDronesUrl = '{{ live_drones_url }}';
+    {% endif %}
 </script>
-
 
 
 <div id="cesiumContainer" class="map"></div>
@@ -23,7 +26,6 @@
         <a id="viewTopDown" class="dropdown-item">View top down</a>
     </div>
 </div>
-<!--<input type="hidden" id="droneModel" value="{{ url_for('static', filename='models/CesiumDrone.gltf', _external=True) }}"></input>-->
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', _external=True) }}">
 <link rel="stylesheet" href="http://cesiumjs.org/releases/1.42/Build/Cesium/Widgets/widgets.css">

@@ -18,54 +18,6 @@ def index():
     #return render_template('index.html')
 
 
-@app.route('/map3d')
-def get_3d_map():
-    try:
-        map_3d = get('map_3d')
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable', 503
-    return render_template('layout.html', html=map_3d)
-
-
-@app.route('/routes/<routeid>/3d')
-def get_3d_map_by_routeid(routeid):
-    try:
-        map_3d = get('map_3d')
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable', 503
-    return render_template('layout.html', html=map_3d)
-
-
-# called like localhost:5000/map2d?id=000910&start_time=1500&end_time=2000
-@app.route('/live/2d')
-def get_2d_map():
-    '''id = request.args.get('id')
-    start_time = request.args.get('start')
-    end_time = request.args.get('end')'''
-    try:
-        map_2d = get('map_2d')
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable', 503
-    return render_template('layout.html', html=map_2d)
-
-
-@app.route('/routes/<routeid>/2d')
-def get_2d_map_by_routeid(routeid):
-    try:
-        map_2d = get('map_2d')
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '2D Map service unavailable', 503
-    return render_template('layout.html', html=map_2d)
-
-
 @app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
 def routes():
     try:
@@ -94,6 +46,50 @@ def post_drone_route(service_name):
 
 def delete_drone_route(service_name):
     return delete(service_name)
+
+
+@app.route('/routes/<routeid>/2d')
+def get_2d_map_by_routeid(routeid):
+    try:
+        map_2d = get('map_2d')
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return '2D Map service unavailable', 503
+    return render_template('layout.html', html=map_2d)
+
+
+@app.route('/routes/<routeid>/3d')
+def get_3d_map_by_routeid(routeid):
+    try:
+        map_3d = get('map_3d')
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return '3D Map service unavailable', 503
+    return render_template('layout.html', html=map_3d)
+
+
+@app.route('/live/2d')
+def get_2d_map():
+    try:
+        map_2d = get('map_2d')
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return '2D Map service unavailable', 503
+    return render_template('layout.html', html=map_2d)
+
+
+@app.route('/live/3d')
+def get_3d_map():
+    try:
+        map_3d = get('map_3d')
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return '3D Map service unavailable', 503
+    return render_template('layout.html', html=map_3d)
 
 
 def get(service_name, path=''):
