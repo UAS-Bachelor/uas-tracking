@@ -41,7 +41,7 @@ def get_nofly_zones_list():
 
 
 @app.route('/collision/zones/<droneid>')
-def get_collisions_by_droneid(droneid):
+def get_zone_collisions_by_droneid(droneid):
     try:
         drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
         inside = drone_in_zone(drone['lon'], drone['lat'])
@@ -64,7 +64,7 @@ def get_live_collisions():
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return jsonify(dict_of_colliding_drones)
+    return jsonify(dict_of_colliding_drones), 200
 
 
 @app.route('/collision/drones/<droneid>')
@@ -77,7 +77,7 @@ def get_live_collisions_by_droneid(droneid):
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return jsonify(dict_of_colliding_drones)
+    return jsonify(dict_of_colliding_drones), 200
 
 
 def drone_in_drone(drone, list_of_current_drones):
