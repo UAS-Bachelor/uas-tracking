@@ -42,6 +42,8 @@ def test_routes_post_legal_and_delete(client):
     post_response = post_legal_route(client)
     assert post_response.status_code == 200
     delete_response = delete_route(client, int(post_response.data))
+    print(post_response.data)
+    print(delete_response.data)
     assert int(post_response.data) == int(delete_response.data)
 
 
@@ -99,7 +101,7 @@ def post_illegal_route(client):
 
 
 def delete_route(client, routeid):
-    response = client.delete('/routes', json={'routeid': routeid})
+    response = client.delete('/routes/{}'.format(routeid))
     return response
 
 
