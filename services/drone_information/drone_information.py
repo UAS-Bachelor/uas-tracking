@@ -99,7 +99,7 @@ def post_drone_route():
         route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
         db.session.add(route)
     db.session.commit()
-    return jsonify(route.route_id), 200
+    return jsonify(route.route_id), 201
 
 
 @app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])

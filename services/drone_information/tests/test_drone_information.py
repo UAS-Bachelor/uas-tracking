@@ -43,7 +43,7 @@ def test_illegal_method(client):
 
 def test_routes_post_legal_and_get(client, drone_data_points):
     post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 200
+    assert post_response.status_code == 201
     get_response = get_routes(client)
     assert any(route['route_id'] == int(post_response.data) for route in json.loads(get_response.data))
     delete_route(client, int(post_response.data))
@@ -51,7 +51,7 @@ def test_routes_post_legal_and_get(client, drone_data_points):
 
 def test_routes_post_legal_and_delete(client, drone_data_points):
     post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 200
+    assert post_response.status_code == 201
     delete_response = delete_route(client, int(post_response.data))
     print(post_response.data)
     print(delete_response.data)
@@ -72,7 +72,7 @@ def test_routes_delete_illegal(client):
 
 def test_route_get_by_routeid(client, drone_data_points):
     post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 200
+    assert post_response.status_code == 201
     get_response = client.get('/routes/{}'.format(int(post_response.data)))
     assert get_response.status_code == 200
     received_drone_data_points = json.loads(get_response.data)
