@@ -18,34 +18,15 @@ def index():
     #return render_template('index.html')
 
 
-@app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
-def routes():
+@app.route('/routes')
+def get_drone_routes():
     try:
-        if request.method == 'GET':
-            return get_drone_routes_list('drone_information')
-
-        elif request.method == 'POST':
-            return post_drone_route('drone_information')
-
-        elif request.method == 'DELETE':
-            return delete_drone_route('drone_information')
+        drone_routes_list = json.loads(get('drone_information', '/routes'))
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-
-
-def get_drone_routes_list(service_name):
-    drone_routes_list = json.loads(get(service_name))
     return render_template('route_list.html', drones=drone_routes_list)
-
-
-def post_drone_route(service_name):
-    return post(service_name)
-
-
-def delete_drone_route(service_name):
-    return delete(service_name)
 
 
 @app.route('/routes/<routeid>/2d')
