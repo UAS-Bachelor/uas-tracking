@@ -47,20 +47,17 @@ def get_drones():
     return jsonify(current_drones)
 
 
-@app.route('/routes', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/routes', methods = ['GET', 'POST'])
 def routes():
     '''Returns a list of all drone routes'''
     if request.method == 'GET':
-        return get_drone_routes_list()
+        return get_drone_routes()
 
     elif request.method == 'POST':
         return post_drone_route()
 
-    elif request.method == 'DELETE':
-        return delete_drone_route()
 
-
-def get_drone_routes_list():
+def get_drone_routes():
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time != None).order_by(Route.start_time).all())
     for drone_dict in list_of_drone_dicts:
         drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
@@ -105,18 +102,15 @@ def post_drone_route():
     return jsonify(route.route_id), 200
 
 
-def delete_drone_route():
-    received_routeid = request.get_json(force=True)['routeid']
-    route_to_delete = Route.query.filter(Route.route_id == received_routeid).first()
-    if not route_to_delete:
-        return jsonify(error='routeid {} does not exist'.format(received_routeid)), 404
-    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
-    db.session.delete(route_to_delete)
-    db.session.commit()
-    return jsonify(received_routeid), 200
+@app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
+def route_by_routeid(routeid):
+    if request.method == 'GET':
+        return get_route_by_routeid(routeid)
+
+    elif request.method == 'DELETE':
+        return delete_route_by_routeid(routeid)
 
 
-@app.route('/routes/<routeid>')
 def get_route_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
     route = Route.query.filter(Route.route_id == routeid).first()
@@ -125,6 +119,16 @@ def get_route_by_routeid(routeid):
     list_of_drone_dicts = result_to_list_of_dicts(db.session.query(
         Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
     return jsonify(list_of_drone_dicts), 200
+
+
+def delete_route_by_routeid(routeid):
+    route_to_delete = Route.query.filter(Route.route_id == routeid).first()
+    if not route_to_delete:
+        return jsonify(error='routeid {} does not exist'.format(routeid)), 404
+    Drone.query.filter(Drone.id == route_to_delete.drone_id, Drone.time >= route_to_delete.start_time, Drone.time <= route_to_delete.end_time).delete()
+    db.session.delete(route_to_delete)
+    db.session.commit()
+    return jsonify(int(routeid)), 200
 
 
 @app.route('/routes/<routeid>/interpolated')
