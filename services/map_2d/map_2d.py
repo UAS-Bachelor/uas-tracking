@@ -24,7 +24,7 @@ def index():
 
 
 @app.route('/live/2d')
-def get_2d_map():
+def get_2d_live_map():
     '''Returns a 2D map'''
     try:
         kml_url = get_url_string('no_fly_information', '/zones')

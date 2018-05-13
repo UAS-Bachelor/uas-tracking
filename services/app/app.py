@@ -81,7 +81,7 @@ def get_live():
 
 
 @app.route('/live/2d')
-def get_2d_map():
+def get_2d_live_map():
     try:
         map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
@@ -92,7 +92,7 @@ def get_2d_map():
 
 
 @app.route('/live/3d')
-def get_3d_map():
+def get_3d_live_map():
     try:
         map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:
