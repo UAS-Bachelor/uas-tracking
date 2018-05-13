@@ -13,7 +13,7 @@ def client():
     yield client
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def drone_data_points():
     yield [{
         'id': 919,
@@ -31,8 +31,15 @@ def drone_data_points():
     }]
 
 
+@pytest.fixture
+def post_legal_route_response(client, drone_data_points):
+    response = client.post('/routes', json=drone_data_points)
+    yield response
+    delete_route(client, int(response.data))
+
+
 def test_illegal_url(client):
-    response = client.get('/illegalurl')
+    response = client.get('/illegalurl/does/not/exist')
     assert response.status_code == 404
 
 
@@ -41,39 +48,36 @@ def test_illegal_method(client):
     assert response.status_code == 405
 
 
-def test_routes_post_legal_and_get(client, drone_data_points):
-    post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 201
-    get_response = get_routes(client)
-    assert any(route['route_id'] == int(post_response.data) for route in json.loads(get_response.data))
-    delete_route(client, int(post_response.data))
+def test_post_legal_route(post_legal_route_response):
+    assert post_legal_route_response.status_code == 201
 
 
-def test_routes_post_legal_and_delete(client, drone_data_points):
-    post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 201
-    delete_response = delete_route(client, int(post_response.data))
-    print(post_response.data)
-    print(delete_response.data)
-    assert int(post_response.data) == int(delete_response.data)
-
-
-def test_routes_post_illegal(client):
-    response = post_illegal_route(client)
+def test_post_illegal_route(client, drone_data_points):
+    [drone_data_point.pop('lat') for drone_data_point in drone_data_points]
+    response = client.post('/routes', json=drone_data_points)
     assert response.status_code == 400
     assert 'error' in json.loads(response.data)
 
 
-def test_routes_delete_illegal(client):
+def test_delete_route(client, post_legal_route_response):
+    delete_response = delete_route(client, int(post_legal_route_response.data))
+    assert delete_response.status_code == 200
+    assert int(post_legal_route_response.data) == int(delete_response.data)
+
+
+def test_delete_illegal_route(client):
     response = delete_route(client, -1)
     assert response.status_code == 404
     assert 'error' in json.loads(response.data)
 
 
-def test_route_get_by_routeid(client, drone_data_points):
-    post_response = post_legal_route(client, drone_data_points)
-    assert post_response.status_code == 201
-    get_response = client.get('/routes/{}'.format(int(post_response.data)))
+def test_get_routes(client, post_legal_route_response):
+    get_response = get_routes(client)
+    assert any(route['route_id'] == int(post_legal_route_response.data) for route in json.loads(get_response.data))
+
+
+def test_get_route_by_routeid(client, drone_data_points, post_legal_route_response):
+    get_response = client.get('/routes/{}'.format(int(post_legal_route_response.data)))
     assert get_response.status_code == 200
     received_drone_data_points = json.loads(get_response.data)
 
@@ -81,10 +85,9 @@ def test_route_get_by_routeid(client, drone_data_points):
         for key, value in drone_data_point.items():
             for received_drone_data_point in received_drone_data_points:
                 assert key, value in received_drone_data_point.items()
-    delete_route(client, int(post_response.data))
 
 
-def test_route_get_by_routeid_fail(client, drone_data_points):
+def test_route_get_by_routeid_illegal(client):
     response = client.get('/routes/-1')
     assert response.status_code == 404
     assert 'error' in json.loads(response.data)
@@ -92,27 +95,6 @@ def test_route_get_by_routeid_fail(client, drone_data_points):
 
 def get_routes(client):
     response = client.get('/routes')
-    return response
-
-
-def post_legal_route(client, drone_data_points):
-    response = client.post('/routes', json=drone_data_points)
-    return response
-
-
-def post_illegal_route(client):
-    response = client.post('/routes', json=[{
-        'id': 919,
-        'lon': 10.43000,
-        'alt': 00.00000,
-        'time': 1524231287
-    },
-    {
-        'id': 919,
-        'lon': 10.43000,
-        'alt': 100.00000,
-        'time': 1524231299
-    }])
     return response
 
 
