@@ -52,11 +52,61 @@ def test_post_legal_route(post_legal_route_response):
     assert post_legal_route_response.status_code == 201
 
 
-def test_post_illegal_route(client, drone_data_points):
-    [drone_data_point.pop('lat') for drone_data_point in drone_data_points]
+def test_post_illegal_route_missing_time(client, drone_data_points):
+    delete_key('time', drone_data_points)
     response = client.post('/routes', json=drone_data_points)
+    response_text = json.loads(response.data)
     assert response.status_code == 400
-    assert 'error' in json.loads(response.data)
+    assert 'error' in response_text
+    assert 'missing key: time' == response_text['error']
+
+
+def test_post_illegal_route_missing_lat(client, drone_data_points):
+    delete_key('lat', drone_data_points)
+    response = client.post('/routes', json=drone_data_points)
+    response_text = json.loads(response.data)
+    assert response.status_code == 400
+    assert 'error' in response_text
+    assert 'missing key: lat' == response_text['error']
+
+
+def test_post_illegal_route_missing_lon(client, drone_data_points):
+    delete_key('lon', drone_data_points)
+    response = client.post('/routes', json=drone_data_points)
+    response_text = json.loads(response.data)
+    assert response.status_code == 400
+    assert 'error' in response_text
+    assert 'missing key: lon' == response_text['error']
+
+
+def test_post_route_default_id(client, drone_data_points):
+    delete_key('id', drone_data_points)
+    post_response = post_route(client, drone_data_points)
+    get_response = client.get('/routes/{}'.format(int(post_response.data)))
+    assert get_response.status_code == 200
+    assert json.loads(get_response.data)[0]['id'] == '910'
+    
+    delete_route(client, int(post_response.data))
+
+
+def test_post_existing_route_to_extend_it(client, drone_data_points):
+    first_post_response = post_route(client, [dict(drone_data_points[0])])
+    first_get_response = client.get('/routes/{}'.format(int(first_post_response.data)))
+    first_response_text = json.loads(first_get_response.data)
+    assert first_get_response.status_code == 200
+    assert len(first_response_text) == 1
+    assert first_response_text[-1]['time'] == drone_data_points[0]['time']
+
+    second_post_response = post_route(client, drone_data_points)
+    second_get_response = client.get('/routes/{}'.format(int(second_post_response.data)))
+    second_response_text = json.loads(second_get_response.data)
+    assert second_get_response.status_code == 200
+    assert len(second_response_text) == 2
+    assert second_response_text[-1]['time'] == drone_data_points[1]['time']
+
+    assert first_post_response.data == second_post_response.data
+    
+    delete_route(client, int(second_post_response.data))
 
 
 def test_delete_route(client, post_legal_route_response):
@@ -93,14 +143,40 @@ def test_route_get_by_routeid_illegal(client):
     assert 'error' in json.loads(response.data)
 
 
+def test_get_live(client):
+    response = client.get('/live')
+    assert response.status_code == 200
+    assert type(json.loads(response.data) == list)
+
+
+'''def test_get_live_by_id(client):
+    response = client.get('/live/1')
+    assert response.status_code == 200
+    assert type(json.loads(response.data) == list)
+
+
+def test_get_live_by_id_illegal(client):
+    response = client.get('/live/-1')
+    assert response.status_code == 404
+    assert 'error' in json.loads(response.data)'''
+
+
 def get_routes(client):
     response = client.get('/routes')
+    return response
+
+
+def post_route(client, drone_data_points):
+    response = client.post('/routes', json=drone_data_points)
     return response
 
 
 def delete_route(client, routeid):
     response = client.delete('/routes/{}'.format(routeid))
     return response
+
+def delete_key(key, collection):
+    [d.pop(key) for d in collection]
 
 
 if __name__ == '__main__':
