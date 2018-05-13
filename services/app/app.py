@@ -48,6 +48,11 @@ def delete_drone_route(service_name):
     return delete(service_name)
 
 
+@app.route('/routes/<routeid>')
+def get_route_by_id(routeid):
+    return render_template('route.html', routeid=routeid)
+
+
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
     try:
@@ -68,6 +73,11 @@ def get_3d_map_by_routeid(routeid):
     except requests.exceptions.ConnectionError:
         return '3D Map service unavailable', 503
     return render_template('layout.html', html=map_3d)
+
+
+@app.route('/live')
+def get_live():
+    return render_template('live.html')
 
 
 @app.route('/live/2d')
