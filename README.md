@@ -10,6 +10,7 @@ Requires Python 3 and pip3.
 1. Download or clone the project
 2. Execute the following command `pip install -r requirements.txt` to install the required Python packages
    * If on Unix, the command might have to be run as `sudo pip3`
+   * If on Unix and there's an error during installation of `mysqlclient`, install the package `python-mysqldb`
    * If on Windows, the command might have to be run in an elevated command prompt
 3. Execute the `run.py` script to run the server. This will launch all microservices
    * If on Unix, the command might need to be executed as `sudo python3 run.py`
