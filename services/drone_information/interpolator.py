@@ -1,13 +1,12 @@
 from scipy import interpolate
-if __package__ is None or __package__ == '':
-    from time_util import epoch_to_time
-else:
-    from .time_util import epoch_to_time
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from time_util import epoch_to_time
 
 
 def spline_interpolate(drone_route_list, interval):
     interpolated_result = []
-    drone = drone_route_list[0]
     time = [drone_route['time'] for drone_route in drone_route_list]
     lat = [drone_route['lat'] for drone_route in drone_route_list]
     lon = [drone_route['lon'] for drone_route in drone_route_list]
@@ -23,7 +22,7 @@ def spline_interpolate(drone_route_list, interval):
         interpolated_result.append({
             'time_stamp': epoch_to_time(counter),
             'time': counter,
-            'id': drone['id'],
+            'id': drone_route_list[0]['id'],
             'lat': interpolated_lat,
             'lon': interpolated_lon
         })

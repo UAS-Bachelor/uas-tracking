@@ -1,0 +1,11 @@
+[run]
+branch = False
+omit = 
+    */site-packages/*
+
+[report]
+exclude_lines = 
+    if __name__ == '__main__':
+omit = 
+    */tests/*
+    scripts/*
