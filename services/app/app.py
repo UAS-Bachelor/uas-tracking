@@ -29,6 +29,11 @@ def get_drone_routes():
     return render_template('route_list.html', drones=drone_routes_list)
 
 
+@app.route('/routes/<routeid>')
+def get_route_by_id(routeid):
+    return render_template('route.html', routeid=routeid)
+
+
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
     try:
@@ -51,8 +56,13 @@ def get_3d_map_by_routeid(routeid):
     return render_template('layout.html', html=map_3d)
 
 
+@app.route('/live')
+def get_live():
+    return render_template('live.html')
+
+
 @app.route('/live/2d')
-def get_2d_map():
+def get_2d_live_map():
     try:
         map_2d = get('map_2d')
     except requests.exceptions.HTTPError as exception:
@@ -63,7 +73,7 @@ def get_2d_map():
 
 
 @app.route('/live/3d')
-def get_3d_map():
+def get_3d_live_map():
     try:
         map_3d = get('map_3d')
     except requests.exceptions.HTTPError as exception:

@@ -25,7 +25,7 @@ def index():
 
 
 @app.route('/live/3d')
-def get_3d_map():
+def get_3d_live_map():
     '''Returns a 3D map'''
     try:
         live_drones_url = get_url_string('drone_information', '/live')
