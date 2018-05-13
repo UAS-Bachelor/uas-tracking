@@ -6,6 +6,6 @@ os:
 install:
  - pip install -r requirements.txt
 script:
- - coverage run -m pytest
+ - coverage run --omit */site-packages/* -m pytest
 after_success:
  - coveralls
