@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/UAS-Bachelor/uas-tracking.svg?branch=master)](https://travis-ci.org/UAS-Bachelor/uas-tracking)
 [![Coverage Status](https://coveralls.io/repos/github/UAS-Bachelor/uas-tracking/badge.svg?branch=master)](https://coveralls.io/github/UAS-Bachelor/uas-tracking?branch=master)
 
-Bachelor project concerning UAV tracking and visualization,  by Niels Heltner and Lars Christensen at SDU, MMMI, spring 2018.
+Bachelor project concerning UAV tracking and visualization, by Niels Heltner and Lars Christensen at SDU, MMMI, in cooperation with the SDU UAS Center, spring 2018. Supervisor: Ulrik Pagh Schultz.
 
 
 ## Installation and running
