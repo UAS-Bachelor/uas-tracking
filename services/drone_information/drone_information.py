@@ -39,13 +39,24 @@ def index():
 
 
 @app.route('/live')
-def get_drones():
+def get_live_drones():
     current_drones = []
-    current_routes = result_to_list_of_dicts(db.session.query(Route.route_id, Route.drone_id, Route.start_time).filter(Route.end_time == None).order_by(Route.start_time).all())
+    current_routes = db.session.query(Route.drone_id, Route.start_time, Route.end_time).filter(Route.end_time == None).distinct(Route.drone_id).order_by(Route.start_time).all()
     for route in current_routes:
-        drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route['drone_id']).order_by(Drone.time.desc()).first())
+        drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time).order_by(Drone.time.desc()).first())
+        drone['buffer_radius'] = 500
         current_drones.append(drone)
-    return jsonify(current_drones)
+    return jsonify(current_drones), 200
+
+
+@app.route('/live/<droneid>')
+def get_live_drones_by_id(droneid):
+    current_route = Route.query.filter(Route.end_time == None, Route.drone_id == droneid).order_by(Route.start_time).first()
+    if not current_route:
+        return jsonify(error='drone with droneid {} is currently not in flight'.format(droneid)), 404
+    current_drone = result_to_dict(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == current_route.drone_id, Drone.time >= current_route.start_time).order_by(Drone.time.desc()).first())
+    current_drone['buffer_radius'] = 500
+    return jsonify(current_drone), 200
 
 
 @app.route('/routes', methods = ['GET', 'POST'])

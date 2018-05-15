@@ -10,6 +10,8 @@ var liveDroneSource;
 
 var lineWidth = 7;
 var hitTolerance = 2;
+var overlayCircleRadius = 1000;
+
 if (
     (screen.width <= 640) ||
     (window.matchMedia &&
@@ -23,6 +25,10 @@ if (
 function initMap() {
     map = new ol.Map({
         target: 'map',
+        controls: ol.control.defaults({
+            attributionOptions: {
+              collapsible: false
+            }}),
         view: new ol.View({
             projection: 'EPSG:3857',
             center: ol.proj.transform([10.4, 55.9], 'EPSG:4326', 'EPSG:3857'),
@@ -56,17 +62,32 @@ function initLiveDrones() {
     });
     map.addLayer(liveDroneLayer);
 }
-
+      
 function updateLiveDrones() {
     $.get(liveDronesUrl, function (listOfLiveDrones) {
         liveDroneSource.clear();
         for (let i = 0; i < listOfLiveDrones.length; i++) {
             liveDrone = listOfLiveDrones[i];
-            console.log(liveDrone)
             liveDroneSource.addFeature(new ol.Feature({
                 geometry: new ol.geom.Point(getCoordinates(liveDrone)), 
                 name: createHtmlForDroneTooltip(liveDrone)
             }));
+            
+            var overlay = new ol.Feature({
+                geometry: new ol.geom.Circle(getCoordinates(liveDrone), liveDrone['buffer_radius']),               
+                name: createHtmlForDroneTooltip(liveDrone),
+            });
+            overlay.setStyle(new ol.style.Style({ //pointStyle
+                    fill: new ol.style.Fill({
+                        color: 'rgba(193, 215, 245, 0.35)' // rbga for alpha/opacity, same in hex: #c1d7f5
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#2b8cee',
+                        width: 1
+                    }),
+                zIndex: 2
+            }))
+            liveDroneSource.addFeature(overlay);
         }
         liveDroneSource.refresh();
     });
@@ -247,5 +268,6 @@ if (typeof liveDronesUrl !== 'undefined') {
     setInterval(function () {
         updateLiveDrones();
     }, 2000);
+    
 }
 
