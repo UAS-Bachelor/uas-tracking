@@ -19,7 +19,15 @@ def index():
     #return render_template('index.html')
 
 
-@app.route('/routes')
+@app.route('/routes', methods = ['GET', 'POST'])
+def drone_routes():
+    if request.method == 'GET':
+        return get_drone_routes()
+
+    elif request.method == 'POST':
+        return post_drone_route()
+
+
 def get_drone_routes():
     try:
         drone_routes_list = json.loads(get('drone_information', '/routes'))
@@ -30,9 +38,32 @@ def get_drone_routes():
     return render_template('route_list.html', drones=drone_routes_list)
 
 
-@app.route('/routes/<routeid>')
-def get_route_by_id(routeid):
+def post_drone_route():
+    try:
+        post_response = post('drone_information', '/routes')
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return post_response
+
+
+@app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
+def route_by_routeid(routeid):
+    if request.method == 'GET':
+        return get_route_by_routeid(routeid)
+
+    elif request.method == 'DELETE':
+        return delete_route_by_routeid(routeid)
     return render_template('route.html', routeid=routeid)
+
+
+def get_route_by_routeid(routeid):
+    return render_template('route.html', routeid=routeid)
+
+
+def delete_route_by_routeid(routeid):
+    return delete('drone_information', '/routes/{}'.format(routeid))
 
 
 @app.route('/routes/2d')
@@ -136,7 +167,7 @@ def post(service_name, path=''):
 
 def delete(service_name, path=''):
     url = get_url_string(service_name, path)
-    response = requests.delete(url, json=request.json)
+    response = requests.delete(url)
     raise_for_status_code(response)
     return response.text
 
