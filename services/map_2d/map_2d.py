@@ -39,20 +39,17 @@ def get_2d_live_map():
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
-@app.route('/routes/<routeid>/2d')
-def get_2d_map_by_routeid(routeid):
+@app.route('/routes/2d')
+def get_2d_map():
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
     try:
-        drone_route_list = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
+        if not request.is_json:
+            return jsonify(error='missing drone data'), 400
+        drone_route_list = request.get_json(force=True)
         route_duration = -1
         if all(route for route in drone_route_list):
             route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
 
-    try:
         kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
@@ -107,4 +104,4 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
+    app.run(host=args.address, port=args.port, debug=True, threaded=True)
