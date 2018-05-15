@@ -20,8 +20,8 @@
 		"version": "1.0"
 	},
 	"no_fly_information": {
-		"host":"80.210.70.60",
-		"port": 5004,
-		"version":"1.0"
+		"host": "80.210.70.60", 
+		"port": 5004, 
+		"version": "1.0"
 	}
 }
