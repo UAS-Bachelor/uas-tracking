@@ -73,6 +73,147 @@ LOG_TEST_DATA = [
     }
 ]
 
+LOG_TEST_DATA1 = [
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 911,
+        'lat': 55.37000,
+        'lon': 10.43000,
+        'alt': 00.00000,
+    }
+]
+
+LOG_TEST_DATA2 = [
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    },
+    {
+        'aid': 912,
+        'lat': 55.37000,
+        'lon': 10.44000,
+        'alt': 00.00000,
+    }
+]
+
+
+
+
 def test_drone_information_post(log):
     #print(requests.get('https://www.techgen.dk/msc/droneTL_1.JSON').text)
     '''r = requests.post("http://127.0.0.1:5001/routes", data=
@@ -99,7 +240,8 @@ def test_drone_information_post(log):
 
 for i in range(10):
     print('Sending {}'.format(i))
-    send_log_entry(LOG_TEST_DATA[i])
+    send_log_entry(LOG_TEST_DATA1[i])
+    send_log_entry(LOG_TEST_DATA2[i])
     time.sleep(5)
 
 #send_log_entry(LOG_TEST_DATA[0])
