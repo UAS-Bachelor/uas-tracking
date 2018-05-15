@@ -73,75 +73,6 @@ LOG_TEST_DATA = [
     }
 ]
 
-LOG_TEST_DATA1 = [
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    }
-]
-
 LOG_TEST_DATA2 = [
     {
         'aid': 912,
@@ -238,15 +169,25 @@ def test_drone_information_post(log):
 
 #test_drone_information_post(LOG_TEST_DATA[1])
 
-for i in range(10):
-    print('Sending {}'.format(i))
-    send_log_entry(LOG_TEST_DATA1[i])
-    send_log_entry(LOG_TEST_DATA2[i])
-    time.sleep(5)
+#for i in range(10):
+#    print('Sending {}'.format(i))
+#    send_log_entry(LOG_TEST_DATA[i])
+#    send_log_entry(LOG_TEST_DATA2[i])
+#    time.sleep(5)
 
-#send_log_entry(LOG_TEST_DATA[0])
-#send_log_entry(LOG_TEST_DATA[1])
-
-
-#r = requests.delete("http://127.0.0.1:5000/routes", json={'routeid': 2})
-#print(r.status_code, r.reason, r.text)
+r = requests.get("http://uas.heltner.net/routes/2d", json=
+                    [{
+                      'aid': LOG_TEST_DATA2[0]['aid'], 
+                      'lat': LOG_TEST_DATA2[0]['lat'], 
+                      'lon': LOG_TEST_DATA2[0]['lon'], 
+                      'alt': LOG_TEST_DATA2[0]['alt'], 
+                      'time': 1524231287
+                    }, 
+                    {
+                      'aid': LOG_TEST_DATA2[1]['aid'], 
+                      'lat': LOG_TEST_DATA2[1]['lat'], 
+                      'lon': LOG_TEST_DATA2[1]['lon'], 
+                      'alt': LOG_TEST_DATA2[1]['alt'], 
+                      'time': 1524231299
+                    }])
+print(r.status_code, r.reason, r.text)

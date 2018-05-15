@@ -40,15 +40,12 @@ def get_3d_live_map():
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
-@app.route('/routes/<routeid>/3d')
-def get_3d_map_by_routeid(routeid):
+@app.route('/routes/3d')
+def get_3d_map():
     '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
-    try:
-        drone_route_list = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
+    if not request.is_json:
+        return jsonify(error='missing drone data'), 400
+    drone_route_list = request.get_json(force=True)
     return render_template('map.html', drone_route_list=drone_route_list)
 
 
