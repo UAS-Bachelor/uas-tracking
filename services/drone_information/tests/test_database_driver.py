@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from models import Drone
+from database_driver import Drone
 
 @pytest.fixture(scope='module')
 def drone_data():
