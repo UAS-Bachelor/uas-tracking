@@ -47,7 +47,7 @@ def get_live_drones():
 
 
 @app.route('/live/<droneid>')
-def get_live_drones_by_id(droneid):
+def get_live_drone_by_id(droneid):
     current_route = db.get_latest_live_route_by_droneid(droneid)
     if not current_route:
         return jsonify(error='drone with droneid {} is currently not in flight'.format(droneid)), 404

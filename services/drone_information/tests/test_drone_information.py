@@ -153,12 +153,15 @@ def test_get_live(client):
     response = client.get('/live/1')
     assert response.status_code == 200
     assert type(json.loads(response.data) == list)
-
+'''
 
 def test_get_live_by_id_illegal(client):
-    response = client.get('/live/-1')
+    droneid = -1
+    response = client.get('/live/{}'.format(droneid))
+    response_text = json.loads(response.data)
     assert response.status_code == 404
-    assert 'error' in json.loads(response.data)'''
+    assert 'error' in response_text
+    assert 'drone with droneid {} is currently not in flight'.format(droneid) == response_text['error']
 
 
 def get_routes(client):
