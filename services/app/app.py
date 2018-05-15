@@ -7,6 +7,7 @@ import os
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 __services_config_file = os.path.join(os.path.dirname(__file__), '../../cfg/services.json')
 config = json.load(open(__services_config_file))
