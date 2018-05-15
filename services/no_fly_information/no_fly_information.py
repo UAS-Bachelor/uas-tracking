@@ -3,7 +3,7 @@ from flask_cors import CORS
 from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
-#from haversine import haversine
+from haversine import haversine
 import requests
 import json
 import argparse
@@ -84,29 +84,18 @@ def drone_in_drone(drone, list_of_current_drones):
     dict_of_colliding_drones = {}
     for current_drone in list_of_current_drones:
         if(drone['id'] != current_drone['id']):
-            if circle_intersection((drone['lat'], drone['lon'], drone['buffer_radius']), (current_drone['lat'], current_drone['lon'], current_drone['buffer_radius'])): 
+            if get_distance_between_drone_points(drone, current_drone) < drone['buffer_radius']: 
                 if drone['id'] not in dict_of_colliding_drones:
                     dict_of_colliding_drones[drone['id']] = []
                 dict_of_colliding_drones[drone['id']].append({
                         'id': current_drone['id'], 
-                        'distance' : get_distance_between_utm_points(drone, current_drone)
+                        'distance' : get_distance_between_drone_points(drone, current_drone)
                     })
     return dict_of_colliding_drones
 
 
-def get_distance_between_utm_points(drone1, drone2):
-    point1 = from_latlon(drone1['lat'], drone1['lon'])
-    point2 = from_latlon(drone2['lat'], drone2['lon'])
-    return round((math.sqrt(((point2[0] - point1[0])**2 + (point2[1] - point1[2])**2)) / 10000), 2) # to get meters
-    # distance = haversine((d['lat'], d['lon']), (d2['lat'], d2['lon'])) * 1000
-
-
-def circle_intersection(circle1, circle2):
-    x1, y1, r1 = circle1
-    x2, y2, r2 = circle2
-    if ((r1 - r2)**2)  <= ((x1 - x2)**2 + (y1 - y2)**2) <= ((r1 + r2)**2): 
-        return True
-    return False
+def get_distance_between_drone_points(drone1, drone2):
+    return round(haversine((drone1['lat'], drone1['lon']), (drone2['lat'], drone2['lon'])) * 1000, 2)
 
 
 def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
