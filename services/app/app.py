@@ -64,14 +64,32 @@ def get_2d_map_by_routeid(routeid):
     return render_template('layout.html', html=map_2d)
 
 
-@app.route('/routes/<routeid>/3d')
-def get_3d_map_by_routeid(routeid):
+@app.route('/routes/3d')
+def get_3d_map():
     try:
-        map_3d = get('map_3d')
+        map_3d = get('map_3d', '/routes/3d', json=request.json)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
-        return '3D Map service unavailable', 503
+        return '3D map service unavailable', 503
+    return render_template('layout.html', html=map_3d)
+
+
+@app.route('/routes/<routeid>/3d')
+def get_3d_map_by_routeid(routeid):
+    try:
+        drone_route_list = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+
+    try:
+        map_3d = get('map_3d', '/routes/3d', json=drone_route_list)
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return '3D map service unavailable', 503
     return render_template('layout.html', html=map_3d)
 
 
