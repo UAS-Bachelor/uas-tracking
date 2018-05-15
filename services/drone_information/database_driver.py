@@ -17,26 +17,95 @@ class DatabaseDriver:
         db.init_app(app)
     
 
+    def get_distinct_live_routes(self):
+        return db.session\
+            .query(Route.drone_id, Route.start_time, Route.end_time)\
+            .filter(Route.end_time == None)\
+            .distinct(Route.drone_id)\
+            .order_by(Route.start_time)\
+            .all()
+    
+
+    def get_data_point_by_live_route(self, route):
+        return self.result_to_dict(
+            db.session\
+            .query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt)\
+            .filter(Drone.id == route.drone_id, Drone.time >= route.start_time)\
+            .order_by(Drone.time.desc()).first())
+    
+
+    def get_latest_live_route_by_droneid(self, droneid):
+        return Route.query\
+                .filter(Route.end_time == None, Route.drone_id == droneid)\
+                .order_by(Route.start_time)\
+                .first()
+    
+
     def get_route_by_routeid(self, routeid):
-        route = Route.query.filter(Route.route_id == routeid).first()
+        route = Route.query\
+                    .filter(Route.route_id == routeid)\
+                    .first()
         if not route:
             raise RouteNotFoundException(routeid)
         return route
+    
+
+    def get_route_by_droneid_and_start_time(self, droneid, start_time):
+        return Route.query\
+                .filter(Route.drone_id == droneid, Route.start_time == start_time)\
+                .first()
 
 
     def get_data_points_by_route(self, route):
-        return self.result_to_list_of_dicts(db.session.query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt).filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time).all())
+        return self.result_to_list_of_dicts(
+            db.session\
+            .query(Drone.id, Drone.time, Drone.time_stamp, Drone.lat, Drone.lon, Drone.alt)\
+            .filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time)\
+            .all())
+
+
+    def get_finished_routes(self):
+        return self.result_to_list_of_dicts(
+            db.session\
+            .query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time)\
+            .filter(Route.end_time != None)\
+            .order_by(Route.start_time)\
+            .all())
+
+
+    def delete_data_points_by_route(self, route):
+        Drone.query\
+            .filter(Drone.id == route.drone_id, Drone.time >= route.start_time, Drone.time <= route.end_time)\
+            .delete()
+
+
+    def delete_route(self, route):
+        db.session.delete(route)
+
+
+    def merge(self, element):
+        db.session.merge(element)
+
+
+    def add(self, element):
+        db.session.add(element)
+
+
+    def commit(self):
+        db.session.commit()
 
 
     def result_to_list_of_dicts(self, results):
         list_of_dicts = []
         for result in results:
-            print(result)
             list_of_dicts.append(
-                dict(zip(result.keys(), result))
+                self.result_to_dict(result)
             )
         return list_of_dicts
+    
 
+    def result_to_dict(self, result):
+        return dict(zip(result.keys(), result))
 
 
 class Drone(db.Model):
