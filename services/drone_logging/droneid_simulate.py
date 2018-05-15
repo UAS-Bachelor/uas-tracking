@@ -248,5 +248,5 @@ for i in range(10):
 #send_log_entry(LOG_TEST_DATA[1])
 
 
-r = requests.delete("http://127.0.0.1:5000/routes", json={'routeid': 2})
-print(r.status_code, r.reason, r.text)
+#r = requests.delete("http://127.0.0.1:5000/routes", json={'routeid': 2})
+#print(r.status_code, r.reason, r.text)

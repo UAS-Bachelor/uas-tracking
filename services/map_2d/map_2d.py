@@ -12,6 +12,7 @@ config = json.load(open(__services_config_file))
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 
 @app.route('/')
@@ -24,7 +25,7 @@ def index():
 
 
 @app.route('/live/2d')
-def get_2d_map():
+def get_2d_live_map():
     '''Returns a 2D map'''
     try:
         kml_url = get_url_string('no_fly_information', '/zones')

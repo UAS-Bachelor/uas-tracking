@@ -12,6 +12,7 @@ config = json.load(open(__services_config_file))
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 CORS(app)
 
 
@@ -24,14 +25,19 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/map3d')
-def get_3d_map():
+@app.route('/live/3d')
+def get_3d_live_map():
     '''Returns a 3D map'''
+    try:
+        live_drones_url = get_url_string('drone_information', '/live')
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    
     try:
         kml_url = get_url_string('no_fly_information', '/zones')
     except requests.exceptions.ConnectionError:
         return 'No fly information service unavailable'
-    return render_template('map.html', kml_url=kml_url)
+    return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
 @app.route('/routes/<routeid>/3d')

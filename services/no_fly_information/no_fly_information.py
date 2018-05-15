@@ -17,6 +17,7 @@ from utm import from_latlon
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 CORS(app)
 
 dirname = os.path.dirname(__file__)
