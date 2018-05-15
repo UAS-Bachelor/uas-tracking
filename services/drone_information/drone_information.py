@@ -126,9 +126,6 @@ def get_route_points_by_routeid(routeid):
         route = db.get_route_by_routeid(routeid)
     except RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
-    #route = Route.query.filter(Route.route_id == routeid).first()
-    #if not route:
-    #    return jsonify(error='routeid {} does not exist'.format(routeid)), 404
     list_of_drone_dicts = db.get_data_points_by_route(route)
     return jsonify(list_of_drone_dicts), 200
 
