@@ -55,7 +55,6 @@ def route_by_routeid(routeid):
 
     elif request.method == 'DELETE':
         return delete_route_by_routeid(routeid)
-    return render_template('route.html', routeid=routeid)
 
 
 def get_route_by_routeid(routeid):
