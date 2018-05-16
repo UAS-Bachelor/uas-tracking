@@ -11,7 +11,6 @@ import sys
 import os
 import time
 import math
-from utm import from_latlon
 
 
 app = Flask(__name__)
