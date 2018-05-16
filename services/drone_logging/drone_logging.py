@@ -12,7 +12,6 @@ db_config = config['db']
 
 db = MySQLdb.connect(host=db_config['host'], port=db_config['port'],
                      user=db_config['user'], password=db_config['password'], db=db_config['database'])
-cursor = db.cursor()
 
 drones_table = db_config['drones_table']
 routes_table = db_config['routes_table']
@@ -54,7 +53,7 @@ def store_row(table, drone_dict):
     sql = 'INSERT IGNORE INTO {} ( {} ) VALUES ( {} )'.format(
         table, columns, placeholder_values
     )
-    cursor.execute(sql, drone_dict.values())
+    __execute(sql, drone_dict.values())
 
 
 # example usage update_row('routes', {'end_time': '1594329'}, {'id': '914'})
@@ -62,7 +61,17 @@ def update_row(table, set_dict, where_dict):
     set_column = __flatten_dict(', ', set_dict)
     where_column = __flatten_dict(' AND ', where_dict)
     sql = 'UPDATE {} SET {} WHERE route_id=(SELECT * FROM (SELECT route_id FROM routes WHERE end_time IS NULL AND {} ORDER BY route_id ASC LIMIT 1) AS a)'.format(table, set_column, where_column)
-    cursor.execute(sql)
+    __execute(sql)
+
+
+def __execute(sql, values=''):
+    try:
+        cursor = db.cursor()
+        cursor.execute(sql, values)
+    except MySQLdb.OperationalError:
+        print('[{}] Connection timed out, creating new cursor'.format(datetime.now()))
+        cursor = db.cursor()
+        cursor.execute(sql, values)
 
 
 def __flatten_dict(join_string, dict_to_flat):
