@@ -58,6 +58,7 @@ function initKml() {
 }
 
 function createTrackedDrone() {
+    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
     let position = computeFlightCoordinates();
     entity = viewer.entities.add({
         availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
