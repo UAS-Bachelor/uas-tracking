@@ -44,12 +44,14 @@ def get_zone_collisions_by_droneid(droneid):
     try:
         drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
         inside = drone_in_zone(drone['lon'], drone['lat'])
-        print(inside)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
-    return jsonify(inside is not None), 200
+    try:
+        return jsonify(inside=inside is not None, zone=inside.name), 200
+    except AttributeError:
+        return jsonify(inside=inside is not None, zone=None), 200
 
 
 @app.route('/collision/drones')
