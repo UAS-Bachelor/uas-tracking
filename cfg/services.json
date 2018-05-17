@@ -1,5 +1,5 @@
 {
-	"app": {
+	"api_gateway": {
 		"host": "80.210.70.60", 
 		"port": 5000, 
 		"version": "2.0"
