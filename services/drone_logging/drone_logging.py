@@ -65,13 +65,19 @@ def update_row(table, set_dict, where_dict):
 
 
 def __execute(sql, values=''):
+    db.ping(True)
+    cursor = db.cursor()
+    cursor.execute(sql, values)
+    ''''global db
     try:
         cursor = db.cursor()
         cursor.execute(sql, values)
     except MySQLdb.OperationalError:
-        print('[{}] Connection timed out, creating new cursor'.format(datetime.now()))
+        print('[{}] Connection timed out, creating new connection'.format(datetime.now()))
+        db = MySQLdb.connect(host=db_config['host'], port=db_config['port'],
+                     user=db_config['user'], password=db_config['password'], db=db_config['database'])
         cursor = db.cursor()
-        cursor.execute(sql, values)
+        cursor.execute(sql, values)'''
 
 
 def __flatten_dict(join_string, dict_to_flat):
