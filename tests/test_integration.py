@@ -64,6 +64,7 @@ def test_different_ports_for_same_service(app_client):
 
     stop_drone_information_server(server_2)
 
+
 def start_drone_information_server(port):
     server = Process(target=run_drone_information, args=[port])
     server.daemon = True
