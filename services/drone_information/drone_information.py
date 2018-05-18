@@ -38,7 +38,7 @@ def index():
 @app.route('/live')
 def get_live_drones():
     current_drones = []
-    current_routes = db.get_distinct_live_routes()
+    current_routes = db.get_live_routes()
     for route in current_routes:
         drone = db.get_data_point_by_live_route(route)
         drone['buffer_radius'] = 500
@@ -136,7 +136,7 @@ def delete_route_by_routeid(routeid):
     except RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
     db.delete_data_points_by_route(route_to_delete)
-    db.delete_route(route_to_delete)
+    db.delete(route_to_delete)
     db.commit()
     return jsonify(int(routeid)), 200
 

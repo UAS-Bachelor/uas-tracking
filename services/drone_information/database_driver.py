@@ -14,12 +14,13 @@ class DatabaseDriver:
         app.config['SQLALCHEMY_POOL_SIZE'] = 100
         app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        db.confirm_deleted_rows = False
         db.init_app(app)
     
 
-    def get_distinct_live_routes(self):
+    def get_live_routes(self):
         return db.session\
-            .query(Route.drone_id, Route.start_time, Route.end_time)\
+            .query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time)\
             .filter(Route.end_time == None)\
             .distinct(Route.drone_id)\
             .order_by(Route.start_time)\
@@ -79,8 +80,8 @@ class DatabaseDriver:
             .delete()
 
 
-    def delete_route(self, route):
-        db.session.delete(route)
+    def delete(self, element):
+        db.session.delete(element)
 
 
     def merge(self, element):
