@@ -24,7 +24,7 @@ def test_drone_information_integration(app_client):
     assert response.status_code == 503
     assert response.data.decode().strip() == 'Drone information service unavailable'
 
-    server = start_server(drone_information.app, config['drone_information']['port'])
+    server = start_server(__run_drone_information, config['drone_information']['port'])
     
     response = app_client.get('/routes')
     assert response.status_code == 200
@@ -33,7 +33,7 @@ def test_drone_information_integration(app_client):
 
 
 def test_different_ports_for_same_service(app_client):
-    server_1 = start_server(drone_information.app, config['drone_information']['port'])
+    server_1 = start_server(__run_drone_information, config['drone_information']['port'])
     
     response = app_client.get('/routes')
     assert response.status_code == 200
@@ -41,7 +41,7 @@ def test_different_ports_for_same_service(app_client):
     stop_server(server_1)
 
     new_port = 6001
-    server_2 = start_server(drone_information.app, new_port)
+    server_2 = start_server(__run_drone_information, new_port)
     
     api_gateway.config = {
         'drone_information': {
@@ -65,8 +65,8 @@ def test_different_ports_for_same_service(app_client):
     stop_server(server_2)
 
 
-def start_server(app, port):
-    server = Process(target=__run_server, args=[app, port])
+def start_server(service, port):
+    server = Process(target=service, args=[port])
     server.daemon = True
     server.start()
     time.sleep(1)
@@ -78,8 +78,8 @@ def stop_server(server):
     server.join()
 
 
-def __run_server(app, port):
-    app.run(host='127.0.0.1', port=port, threaded=False)
+def __run_drone_information(port):
+    drone_information.app.run(host='127.0.0.1', port=port, debug=False, threaded=False)
 
 
 if __name__ == '__main__':
