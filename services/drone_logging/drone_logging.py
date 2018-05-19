@@ -68,16 +68,6 @@ def __execute(sql, values=''):
     db.ping(True)
     cursor = db.cursor()
     cursor.execute(sql, values)
-    ''''global db
-    try:
-        cursor = db.cursor()
-        cursor.execute(sql, values)
-    except MySQLdb.OperationalError:
-        print('[{}] Connection timed out, creating new connection'.format(datetime.now()))
-        db = MySQLdb.connect(host=db_config['host'], port=db_config['port'],
-                     user=db_config['user'], password=db_config['password'], db=db_config['database'])
-        cursor = db.cursor()
-        cursor.execute(sql, values)'''
 
 
 def __flatten_dict(join_string, dict_to_flat):
@@ -108,15 +98,7 @@ def get_and_store_drone_info():
     if not previous_result or not result or any(new_drone != old_drone for new_drone, old_drone in drone_pairs): #Checks the previous result was empty OR if there are any new entries (compared to previous result)
         store(drones_table, result)
         print('[{}] Storing...'.format(datetime.now()))
-
-        #for hver drone i result, for hver item i dronen's item (id=922, time=15..., lat=55), hvis det id og value IKKE findes i previous_result, så har vi en ny drone
-        '''for new_drone in result:
-
-            for key, value in new_drone.items():
-                if key not in previous_result:#skal være den enkelte drone, hvilket previous_result er en liste af
-                    print(key + ' not in previous result')
-                    print(previous_result)'''
-            
+        
         for new_drone in result:
             # Finds new IDs, which weren't in the previous result (routes_start)
             if not any(old_drone['id'] == new_drone['id'] for old_drone in previous_result):
