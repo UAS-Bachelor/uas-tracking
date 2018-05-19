@@ -58,11 +58,23 @@ def route_by_routeid(routeid):
 
 
 def get_route_by_routeid(routeid):
-    return render_template('route.html', routeid=routeid)
+    try:
+        drone_route = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return jsonify(drone_route)
 
 
 def delete_route_by_routeid(routeid):
-    return delete('drone_information', '/routes/{}'.format(routeid))
+    try:
+        delete_response = delete('drone_information', '/routes/{}'.format(routeid))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return delete_response
 
 
 @app.route('/routes/2d')
@@ -125,7 +137,13 @@ def get_3d_map_by_routeid(routeid):
 
 @app.route('/live')
 def get_live():
-    return render_template('live.html')
+    try:
+        live_drones = json.loads(get('drone_information', '/live'))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return jsonify(live_drones)
 
 
 @app.route('/live/2d')
