@@ -27,65 +27,30 @@ def index():
 @app.route('/live/2d')
 def get_2d_live_map():
     '''Returns a 2D map'''
-    try:
-        kml_url = get_url_string('no_fly_information', '/zones')
-    except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable', 503
-
-    try:
-        live_drones_url = get_url_string('drone_information', '/live')
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
+    if not request.is_json:
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    live_drones_url = data['live']
+    kml_url = data['no_fly_zones']
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
 @app.route('/routes/2d')
 def get_2d_map():
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
-    try:
-        if not request.is_json:
-            return jsonify(error='missing drone data'), 400
-        drone_route_list = request.get_json(force=True)
-        route_duration = -1
-        if all(route for route in drone_route_list):
-            route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
-
-        kml_url = get_url_string('no_fly_information', '/zones')
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable', 503
+    if not request.is_json:
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    kml_url = data['no_fly_zones']
+    drone_route_list = data['drone_route_list']
+    route_duration = -1
+    if all(route for route in drone_route_list):
+        route_duration = epoch_to_time(drone_route_list[-1]['time'] - drone_route_list[0]['time'])
     return render_template('map.html', drone_route_list=drone_route_list, route_duration=route_duration, kml_url=kml_url)
 
 
 def epoch_to_time(epoch):
     return time.strftime('%H:%M:%S', time.gmtime(epoch))
-
-
-def get(service_name, path=''):
-    url = get_url_string(service_name, path)
-    response = requests.get(url)
-    raise_for_status_code(response)
-    return response.text
-
-
-def get_url_string(service_name, path=''):
-    if request and path == '':
-        path = request.path
-    service_config = config[service_name]
-    url = 'http://{}:{}{}'
-    if request.remote_addr == '127.0.0.1' or not request.remote_addr:
-        url = url.format('127.0.0.1', service_config['port'], path)
-    else:
-        url = url.format(service_config['host'], service_config['port'], path)
-    return url
-
-
-def raise_for_status_code(response):
-    if not response:
-        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.text = response.text
-        raise exception
 
 
 if __name__ == '__main__':

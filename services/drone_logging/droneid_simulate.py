@@ -175,19 +175,19 @@ def test_drone_information_post(log):
 #    send_log_entry(LOG_TEST_DATA2[i])
 #    time.sleep(5)
 
-r = requests.put("http://127.0.0.1:5001/routes", json=
+r = requests.put("http://127.0.0.1:5001/routes/2470", json=
                     [{
                       'aid': LOG_TEST_DATA2[0]['aid'], 
                       'lat': LOG_TEST_DATA2[0]['lat'], 
                       'lon': LOG_TEST_DATA2[0]['lon'], 
                       'alt': LOG_TEST_DATA2[0]['alt'], 
-                      'time': 1524231287
+                      'time': 1526817898
                     }, 
                     {
                       'aid': LOG_TEST_DATA2[1]['aid'], 
                       'lat': LOG_TEST_DATA2[1]['lat'], 
                       'lon': LOG_TEST_DATA2[1]['lon'], 
                       'alt': LOG_TEST_DATA2[1]['alt'], 
-                      'time': 1524231299
+                      'time': 1526818900
                     }])
 print(r.status_code, r.reason, r.text)
