@@ -58,7 +58,6 @@ def get_live_drone_by_id(droneid):
 
 @app.route('/routes', methods = ['GET', 'POST', 'PUT'])
 def routes():
-    '''Returns a list of all drone routes'''
     if request.method == 'GET':
         return get_drone_routes()
 
@@ -81,36 +80,20 @@ def get_drone_routes():
 def post_drone_route():
     received_route = request.get_json(force=True)
     print(received_route)
-    
-    for received_point in received_route:
-        if 'time' not in received_point:
-            return jsonify(error='missing key: time'), 400
-        if 'lat' not in received_point:
-            return jsonify(error='missing key: lat'), 400
-        if 'lon' not in received_point:
-            return jsonify(error='missing key: lon'), 400
-        if 'aid' in received_point:
-            received_point['id'] = received_point.pop('aid')
-        if 'id' not in received_point:
-            received_point['id'] = 910
-        if 'time_stamp' not in received_point:
-            received_point['time_stamp'] = epoch_to_datetime_with_dashes(received_point['time'])
-        if 'name' not in received_point:
-            received_point['name'] = '{0:06d}'.format(received_point['id'])
-        if 'sim' not in received_point:
-            received_point['sim'] = 1
-        drone_point = Drone(received_point)
-        db.merge(drone_point)
-    first_point = received_route[0]
-    last_point = received_route[-1]
-    route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
-    if route: #route already exists
-        route.end_time = last_point['time']
-        db.merge(route)
-    else: #route doesn't exist
-        route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
+    try:
+        __fit_drone_data_points_and_add_to_db(received_route)
+        first_point = received_route[0]
+        last_point = received_route[-1]
+        route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
+        if route: #route already exists
+            db.delete_data_points_by_route(route)
+            route.end_time = last_point['time']
+        else: #route doesn't exist
+            route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
         db.add(route)
-    db.commit()
+        db.commit()
+    except exceptions.MissingKeyException as exception:
+        return jsonify(error=exception.text), exception.status_code
     return jsonify(route.route_id), 201
 
 
@@ -118,20 +101,37 @@ def put_drone_route():
     received_route = request.get_json(force=True)
     print(received_route)
     try:
-        raise exceptions.MissingKeyException('lat')
-    except exceptions.MissingKeyException as exception:
-        return jsonify(exception.text), exception.status_code
-    
-    return 'hi'
+        __fit_drone_data_points_and_add_to_db(received_route)
+        first_point = received_route[0]
+        last_point = received_route[-1]
+        route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
+        if route:
+            route.end_time = last_point['time']
+            db.merge(route)
+            db.commit()
+        else:
+            raise exceptions.RouteNotFoundException('drone_id: {}, start_time: {}'.format(first_point['id'], first_point['time']))
+    except (exceptions.MissingKeyException, exceptions.RouteNotFoundException) as exception:
+        return jsonify(error=exception.text), exception.status_code
+    return jsonify(route.route_id), 200
+
+
+def __fit_drone_data_points_and_add_to_db(drone_data_points):
+    for drone_data_point in drone_data_points:
+            __fit_drone_data_point(drone_data_point)
+            drone_point = Drone(drone_data_point)
+            db.merge(drone_point)
 
 
 def __fit_drone_data_point(drone_data_point):
     if 'time' not in drone_data_point:
-        return jsonify(error='missing key: time'), 400
+        raise exceptions.MissingKeyException('time')
     if 'lat' not in drone_data_point:
         raise exceptions.MissingKeyException('lat')
     if 'lon' not in drone_data_point:
-        return jsonify(error='missing key: lon'), 400
+        raise exceptions.MissingKeyException('lon')
+    if 'alt' not in drone_data_point:
+        raise exceptions.MissingKeyException('alt')
     if 'aid' in drone_data_point:
         drone_data_point['id'] = drone_data_point.pop('aid')
     if 'id' not in drone_data_point:
@@ -142,6 +142,7 @@ def __fit_drone_data_point(drone_data_point):
         drone_data_point['name'] = '{0:06d}'.format(drone_data_point['id'])
     if 'sim' not in drone_data_point:
         drone_data_point['sim'] = 1
+    return drone_data_point
 
 
 @app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
@@ -166,12 +167,16 @@ def get_route_points_by_routeid(routeid):
 def delete_route_by_routeid(routeid):
     try:
         route_to_delete = db.get_route_by_routeid(routeid)
+        delete_route_and_data_points(route_to_delete)
     except exceptions.RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
+    return jsonify(int(routeid)), 200
+
+
+def delete_route_and_data_points(route_to_delete):
     db.delete_data_points_by_route(route_to_delete)
     db.delete(route_to_delete)
     db.commit()
-    return jsonify(int(routeid)), 200
 
 
 @app.route('/routes/<routeid>/interpolated')

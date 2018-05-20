@@ -1,8 +1,9 @@
 class RouteNotFoundException(Exception):
 
-    def __init__(self, routeid):
-        self.text = 'routeid {} does not exist'.format(routeid)
-        super().__init__(self.text)
+    def __init__(self, identifier):
+        self.text = 'route could not be found by {}'.format(identifier)
+        self.status_code = 404
+        super().__init__(self.text, self.status_code)
 
 
 class MissingKeyException(Exception):
