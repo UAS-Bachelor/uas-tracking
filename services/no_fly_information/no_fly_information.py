@@ -114,12 +114,11 @@ def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
 
 
 def point_in_polygon(x, y, z, polygon):
-    n = len(polygon)
     inside = False
-    p1x, p1y, p1z = polygon[0]
+    p1x, p1y, p1z = polygon[-1]
 
-    for i in range(n + 1):
-        p2x, p2y, p2z = polygon[i % n]
+    for i in range(len(polygon)):
+        p2x, p2y, p2z = polygon[i]
         if y > min(p1y, p2y):
             if y <= max(p1y, p2y):
                 if x <= max(p1x, p2x):
