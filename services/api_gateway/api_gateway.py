@@ -138,15 +138,16 @@ def get_3d_map():
 
 @app.route('/routes/<routeid>/3d')
 def get_3d_map_by_routeid(routeid):
+    data = {}
     try:
-        drone_route_list = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
+        data['drone_route_list'] = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
 
     try:
-        map_3d = get('map_3d', '/routes/3d', json=drone_route_list)
+        map_3d = get('map_3d', '/routes/3d', json=data)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
@@ -181,8 +182,11 @@ def get_2d_live_map():
 
 @app.route('/live/3d')
 def get_3d_live_map():
+    data = {}
+    data['live'] = get_url_string('drone_information', '/live')
+    data['no_fly_zones'] = get_url_string('no_fly_information', '/zones')
     try:
-        map_3d = get('map_3d')
+        map_3d = get('map_3d', json=data)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:

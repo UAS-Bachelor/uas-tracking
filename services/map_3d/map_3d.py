@@ -28,15 +28,11 @@ def index():
 @app.route('/live/3d')
 def get_3d_live_map():
     '''Returns a 3D map'''
-    try:
-        live_drones_url = get_url_string('drone_information', '/live')
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
-    
-    try:
-        kml_url = get_url_string('no_fly_information', '/zones')
-    except requests.exceptions.ConnectionError:
-        return 'No fly information service unavailable'
+    if not request.is_json:
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    live_drones_url = data['live']
+    kml_url = data['no_fly_zones']
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
@@ -44,35 +40,10 @@ def get_3d_live_map():
 def get_3d_map():
     '''Returns a 3D map with a route drawn on it, that corresponds to the provided route id'''
     if not request.is_json:
-        return jsonify(error='missing drone data'), 400
-    drone_route_list = request.get_json(force=True)
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    drone_route_list = data['drone_route_list']
     return render_template('map.html', drone_route_list=drone_route_list)
-
-
-def get(service_name, path=''):
-    url = get_url_string(service_name, path)
-    response = requests.get(url)
-    raise_for_status_code(response)
-    return response.text
-
-
-def get_url_string(service_name, path=''):
-    if request and path == '':
-        path = request.path
-    service_config = config[service_name]
-    url = 'http://{}:{}{}'
-    if request.remote_addr == '127.0.0.1' or not request.remote_addr:
-        url = url.format('127.0.0.1', service_config['port'], path)
-    else:
-        url = url.format(service_config['host'], service_config['port'], path)
-    return url
-
-
-def raise_for_status_code(response):
-    if not response:
-        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.text = response.text
-        raise exception
 
 
 if __name__ == '__main__':
