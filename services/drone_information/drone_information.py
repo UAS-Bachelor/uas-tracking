@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, jsonify
+from flask import Flask, render_template, url_for, request, jsonify, abort
 from flask_cors import CORS
 import sys
 import argparse
@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from database_driver import DatabaseDriver, Drone, Route
 from interpolator import spline_interpolate
 from time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
-from exceptions import RouteNotFoundException
+import exceptions
 
 
 __config_file = os.path.join(os.path.dirname(__file__), 'cfg/config.json')
@@ -56,7 +56,7 @@ def get_live_drone_by_id(droneid):
     return jsonify(current_drone), 200
 
 
-@app.route('/routes', methods = ['GET', 'POST'])
+@app.route('/routes', methods = ['GET', 'POST', 'PUT'])
 def routes():
     '''Returns a list of all drone routes'''
     if request.method == 'GET':
@@ -64,6 +64,9 @@ def routes():
 
     elif request.method == 'POST':
         return post_drone_route()
+    
+    elif request.method == 'PUT':
+        return put_drone_route()
 
 
 def get_drone_routes():
@@ -111,6 +114,36 @@ def post_drone_route():
     return jsonify(route.route_id), 201
 
 
+def put_drone_route():
+    received_route = request.get_json(force=True)
+    print(received_route)
+    try:
+        raise exceptions.MissingKeyException('lat')
+    except exceptions.MissingKeyException as exception:
+        return jsonify(exception.text), exception.status_code
+    
+    return 'hi'
+
+
+def __fit_drone_data_point(drone_data_point):
+    if 'time' not in drone_data_point:
+        return jsonify(error='missing key: time'), 400
+    if 'lat' not in drone_data_point:
+        raise exceptions.MissingKeyException('lat')
+    if 'lon' not in drone_data_point:
+        return jsonify(error='missing key: lon'), 400
+    if 'aid' in drone_data_point:
+        drone_data_point['id'] = drone_data_point.pop('aid')
+    if 'id' not in drone_data_point:
+        drone_data_point['id'] = 910
+    if 'time_stamp' not in drone_data_point:
+        drone_data_point['time_stamp'] = epoch_to_datetime_with_dashes(drone_data_point['time'])
+    if 'name' not in drone_data_point:
+        drone_data_point['name'] = '{0:06d}'.format(drone_data_point['id'])
+    if 'sim' not in drone_data_point:
+        drone_data_point['sim'] = 1
+
+
 @app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
 def route_by_routeid(routeid):
     if request.method == 'GET':
@@ -124,7 +157,7 @@ def get_route_points_by_routeid(routeid):
     '''Returns list of coordinates, timestamps and drone information, for the route that corresponds to the provided route id'''
     try:
         route = db.get_route_by_routeid(routeid)
-    except RouteNotFoundException as exception:
+    except exceptions.RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
     list_of_drone_dicts = db.get_data_points_by_route(route)
     return jsonify(list_of_drone_dicts), 200
@@ -133,7 +166,7 @@ def get_route_points_by_routeid(routeid):
 def delete_route_by_routeid(routeid):
     try:
         route_to_delete = db.get_route_by_routeid(routeid)
-    except RouteNotFoundException as exception:
+    except exceptions.RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
     db.delete_data_points_by_route(route_to_delete)
     db.delete(route_to_delete)
@@ -146,7 +179,7 @@ def get_route_by_routeid_interpolated(routeid):
     '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
     try:
         route = db.get_route_by_routeid(routeid)
-    except RouteNotFoundException as exception:
+    except exceptions.RouteNotFoundException as exception:
         return jsonify(error=exception.text), 404
     list_of_drone_dicts = db.get_data_points_by_route(route)
     if len(list_of_drone_dicts) > 3:
@@ -170,4 +203,4 @@ if __name__ == '__main__':
     print('Running {} service version {}'.format(args.prog, args.version))
     os.system('title {} service version {} on {}:{}'.format(
         args.prog, args.version, args.address, args.port))
-    app.run(host=args.address, port=args.port, debug=args.debug, threaded=True)
+    app.run(host=args.address, port=args.port, debug=True, threaded=True) #args.debug
