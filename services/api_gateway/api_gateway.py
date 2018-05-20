@@ -26,6 +26,8 @@ def drone_routes():
 
     elif request.method == 'POST':
         return post_drone_route()
+    
+    return '', 405
 
 
 def get_drone_routes():
@@ -68,6 +70,8 @@ def route_by_routeid(routeid):
 
     elif request.method == 'DELETE':
         return delete_route_by_routeid(routeid)
+    
+    return '', 405
 
 
 def get_route_by_routeid(routeid):
@@ -103,15 +107,17 @@ def get_2d_map():
 
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
+    data = {}
     try:
-        drone_route_list = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
+        data['drone_route_list'] = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
         return 'Drone information service unavailable', 503
     
+    data['no_fly_zones'] = get_url_string('no_fly_information', '/zones')
     try:
-        map_2d = get('map_2d', '/routes/2d', json=drone_route_list)
+        map_2d = get('map_2d', '/routes/2d', json=data)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
@@ -161,8 +167,11 @@ def get_live():
 
 @app.route('/live/2d')
 def get_2d_live_map():
+    data = {}
+    data['live'] = get_url_string('drone_information', '/live')
+    data['no_fly_zones'] = get_url_string('no_fly_information', '/zones')
     try:
-        map_2d = get('map_2d')
+        map_2d = get('map_2d', json=data)
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:
