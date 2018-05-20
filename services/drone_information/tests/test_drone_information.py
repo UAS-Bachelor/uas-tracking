@@ -79,6 +79,15 @@ def test_post_illegal_route_missing_lon(client, drone_data_points):
     assert 'missing key: lon' == response_text['error']
 
 
+def test_post_illegal_route_missing_alt(client, drone_data_points):
+    delete_key('alt', drone_data_points)
+    response = client.post('/routes', json=drone_data_points)
+    response_text = json.loads(response.data)
+    assert response.status_code == 400
+    assert 'error' in response_text
+    assert 'missing key: alt' == response_text['error']
+
+
 def test_post_route_default_id(client, drone_data_points):
     delete_key('id', drone_data_points)
     post_response = post_route(client, drone_data_points)
@@ -97,7 +106,7 @@ def test_put_existing_route_to_extend_it(client, drone_data_points):
     assert len(first_response_text) == 1
     assert first_response_text[-1]['time'] == drone_data_points[0]['time']
 
-    second_put_response = put_route(client, drone_data_points)
+    second_put_response = put_route(client, drone_data_points, int(first_post_response.data))
     second_get_response = client.get('/routes/{}'.format(int(second_put_response.data)))
     second_response_text = json.loads(second_get_response.data)
     assert second_get_response.status_code == 200
@@ -110,7 +119,7 @@ def test_put_existing_route_to_extend_it(client, drone_data_points):
 
 
 def test_put_route_that_does_not_exist(client, drone_data_points):
-    put_response = put_route(client, drone_data_points)
+    put_response = put_route(client, drone_data_points, '-1')
     
     assert put_response.status_code == 404
 
@@ -180,8 +189,8 @@ def post_route(client, drone_data_points):
     return response
 
 
-def put_route(client, drone_data_points):
-    response = client.put('/routes', json=drone_data_points)
+def put_route(client, drone_data_points, routeid):
+    response = client.put('/routes/{}'.format(routeid), json=drone_data_points)
     return response
 
 

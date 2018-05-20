@@ -63,9 +63,6 @@ def routes():
 
     elif request.method == 'POST':
         return post_drone_route()
-    
-    elif request.method == 'PUT':
-        return put_drone_route()
 
 
 def get_drone_routes():
@@ -97,7 +94,7 @@ def post_drone_route():
     return jsonify(route.route_id), 201
 
 
-def put_drone_route():
+def put_drone_route(routeid):
     received_route = request.get_json(force=True)
     print(received_route)
     try:
@@ -105,12 +102,12 @@ def put_drone_route():
         first_point = received_route[0]
         last_point = received_route[-1]
         route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
-        if route:
+        if route and route.route_id == int(routeid):
             route.end_time = last_point['time']
             db.merge(route)
             db.commit()
         else:
-            raise exceptions.RouteNotFoundException('drone_id: {}, start_time: {}'.format(first_point['id'], first_point['time']))
+            raise exceptions.RouteNotFoundException('route_id: {}, drone_id: {}, start_time: {}'.format(routeid, first_point['id'], first_point['time']))
     except (exceptions.MissingKeyException, exceptions.RouteNotFoundException) as exception:
         return jsonify(error=exception.text), exception.status_code
     return jsonify(route.route_id), 200
@@ -145,13 +142,16 @@ def __fit_drone_data_point(drone_data_point):
     return drone_data_point
 
 
-@app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
+@app.route('/routes/<routeid>', methods = ['GET', 'PUT', 'DELETE'])
 def route_by_routeid(routeid):
     if request.method == 'GET':
         return get_route_points_by_routeid(routeid)
 
     elif request.method == 'DELETE':
         return delete_route_by_routeid(routeid)
+    
+    elif request.method == 'PUT':
+        return put_drone_route(routeid)
 
 
 def get_route_points_by_routeid(routeid):
