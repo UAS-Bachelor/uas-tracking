@@ -194,7 +194,7 @@ def get_url_string(service_name, path=''):
         path = request.path
     service_config = config[service_name]
     url = 'http://{}:{}{}'
-    if(request.remote_addr == '127.0.0.1'):
+    if request.remote_addr == '127.0.0.1' or not request.remote_addr:
         url = url.format('127.0.0.1', service_config['port'], path)
     else:
         url = url.format(service_config['host'], service_config['port'], path)
