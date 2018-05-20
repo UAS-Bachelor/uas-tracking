@@ -96,7 +96,10 @@ def drone_in_drone(drone, list_of_current_drones):
 
 
 def get_distance_between_drone_points(drone1, drone2):
-    return round(haversine((drone1['lat'], drone1['lon']), (drone2['lat'], drone2['lon'])) * 1000, 2)
+    haversine_distance = haversine((drone1['lat'], drone1['lon']), (drone2['lat'], drone2['lon'])) * 1000
+    height_distance = math.fabs(drone1['alt'] - drone2['alt']) 
+    euclidian_distance = math.sqrt(haversine_distance**2 + height_distance**2)
+    return round(euclidian_distance, 2)
 
 
 def drone_in_zone(x= 12.39, y= 55.85, z=0):# to get inside = True
