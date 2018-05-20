@@ -175,7 +175,7 @@ def test_drone_information_post(log):
 #    send_log_entry(LOG_TEST_DATA2[i])
 #    time.sleep(5)
 
-r = requests.get("http://uas.heltner.net/routes/2d", json=
+r = requests.put("http://127.0.0.1:5001/routes", json=
                     [{
                       'aid': LOG_TEST_DATA2[0]['aid'], 
                       'lat': LOG_TEST_DATA2[0]['lat'], 

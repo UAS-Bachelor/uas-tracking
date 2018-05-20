@@ -48,10 +48,23 @@ def post_drone_route():
     return post_response
 
 
-@app.route('/routes/<routeid>', methods = ['GET', 'DELETE'])
+def put_drone_route(routeid):
+    try:
+        put_response = put('drone_information', '/routes/{}'.format(routeid))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'Drone information service unavailable', 503
+    return put_response
+
+
+@app.route('/routes/<routeid>', methods = ['GET', 'PUT', 'DELETE'])
 def route_by_routeid(routeid):
     if request.method == 'GET':
         return get_route_by_routeid(routeid)
+
+    elif request.moethod == 'PUT':
+        return put_drone_route(routeid)
 
     elif request.method == 'DELETE':
         return delete_route_by_routeid(routeid)
@@ -178,6 +191,13 @@ def get(service_name, path='', json=None):
 def post(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.post(url, json=request.json)
+    raise_for_status_code(response)
+    return response.text
+
+
+def put(service_name, path=''):
+    url = get_url_string(service_name, path)
+    response = requests.put(url, json=request.json)
     raise_for_status_code(response)
     return response.text
 

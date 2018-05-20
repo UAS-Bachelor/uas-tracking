@@ -47,7 +47,7 @@ class DatabaseDriver:
                     .filter(Route.route_id == routeid)\
                     .first()
         if not route:
-            raise RouteNotFoundException(routeid)
+            raise RouteNotFoundException('routeid: {}'.format(routeid))
         return route
     
 
