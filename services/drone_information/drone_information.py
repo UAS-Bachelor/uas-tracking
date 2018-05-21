@@ -108,14 +108,15 @@ def put_drone_route(routeid):
             db.merge(drone_point)
         first_point = received_route[0]
         last_point = received_route[-1]
-        route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
-        if route and route.route_id == int(routeid):
+        route = db.get_route_by_routeid(routeid)
+        if route and route.drone_id == int(first_point['id']):
+            route.start_time = first_point['time']
             route.end_time = last_point['time']
             db.merge(route)
             db.commit()
         else:
             db.rollback()
-            raise exceptions.RouteNotFoundException('route_id: {}, drone_id: {}, start_time: {}'.format(routeid, first_point['id'], first_point['time']))
+            raise exceptions.RouteNotFoundException('route_id: {}, drone_id: {}'.format(routeid, first_point['id']))
     except (exceptions.MissingKeyException, exceptions.RouteNotFoundException) as exception:
         return jsonify(error=exception.text), exception.status_code
     return jsonify(route.route_id), 200
