@@ -94,6 +94,10 @@ class DatabaseDriver:
 
     def commit(self):
         db.session.commit()
+    
+
+    def rollback(self):
+        db.session.rollback()
 
 
     def result_to_list_of_dicts(self, results):

@@ -80,7 +80,8 @@ def post_drone_route():
     received_route = request.get_json(force=True)
     print(received_route)
     try:
-        __fit_drone_data_points_and_add_to_db(received_route)
+        for drone_data_point in received_route:
+            __fit_drone_data_point(drone_data_point)
         first_point = received_route[0]
         last_point = received_route[-1]
         route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
@@ -89,6 +90,9 @@ def post_drone_route():
             route.end_time = last_point['time']
         else: #route doesn't exist
             route = Route(drone_id=first_point['id'], start_time=first_point['time'], end_time=last_point['time'])
+        for drone_data_point in received_route:
+            drone_point = Drone(drone_data_point)
+            db.merge(drone_point)
         db.add(route)
         db.commit()
     except exceptions.MissingKeyException as exception:
@@ -100,7 +104,10 @@ def put_drone_route(routeid):
     received_route = request.get_json(force=True)
     print(received_route)
     try:
-        __fit_drone_data_points_and_add_to_db(received_route)
+        for drone_data_point in received_route:
+            __fit_drone_data_point(drone_data_point)
+            drone_point = Drone(drone_data_point)
+            db.merge(drone_point)
         first_point = received_route[0]
         last_point = received_route[-1]
         route = db.get_route_by_droneid_and_start_time(first_point['id'], first_point['time'])
@@ -109,17 +116,11 @@ def put_drone_route(routeid):
             db.merge(route)
             db.commit()
         else:
+            db.rollback()
             raise exceptions.RouteNotFoundException('route_id: {}, drone_id: {}, start_time: {}'.format(routeid, first_point['id'], first_point['time']))
     except (exceptions.MissingKeyException, exceptions.RouteNotFoundException) as exception:
         return jsonify(error=exception.text), exception.status_code
     return jsonify(route.route_id), 200
-
-
-def __fit_drone_data_points_and_add_to_db(drone_data_points):
-    for drone_data_point in drone_data_points:
-            __fit_drone_data_point(drone_data_point)
-            drone_point = Drone(drone_data_point)
-            db.merge(drone_point)
 
 
 def __fit_drone_data_point(drone_data_point):
