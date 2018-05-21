@@ -107,7 +107,7 @@ def test_put_existing_route_to_extend_it(client, drone_data_points):
     assert first_response_text[-1]['time'] == drone_data_points[0]['time']
 
     second_put_response = put_route(client, drone_data_points, int(first_post_response.data))
-    second_get_response = client.get('/routes/{}'.format(int(second_put_response.data)))
+    second_get_response = client.get('/routes/{}'.format(int(first_post_response.data)))
     second_response_text = json.loads(second_get_response.data)
     assert second_get_response.status_code == 200
     assert len(second_response_text) == 2
