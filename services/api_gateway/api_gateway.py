@@ -90,17 +90,6 @@ def delete_route_by_routeid(routeid):
     return delete_response
 
 
-@app.route('/routes/2d')
-def get_2d_map():
-    try:
-        map_2d = get('map_2d', '/routes/2d', json=request.json)
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '2D map service unavailable', 503
-    return render_template('layout.html', html=map_2d)
-
-
 @app.route('/routes/<routeid>/2d')
 def get_2d_map_by_routeid(routeid):
     data = {}
@@ -119,17 +108,6 @@ def get_2d_map_by_routeid(routeid):
     except requests.exceptions.ConnectionError:
         return '2D map service unavailable', 503
     return render_template('layout.html', html=map_2d)
-
-
-@app.route('/routes/3d')
-def get_3d_map():
-    try:
-        map_3d = get('map_3d', '/routes/3d', json=request.json)
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return '3D map service unavailable', 503
-    return render_template('layout.html', html=map_3d)
 
 
 @app.route('/routes/<routeid>/3d')
