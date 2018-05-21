@@ -56,15 +56,13 @@ def get_live_drone_by_id(droneid):
     return jsonify(current_drone), 200
 
 
-@app.route('/routes', methods = ['GET', 'POST', 'PUT'])
+@app.route('/routes', methods = ['GET', 'POST'])
 def routes():
     if request.method == 'GET':
         return get_drone_routes()
 
     elif request.method == 'POST':
         return post_drone_route()
-    
-    return '', 405
 
 
 def get_drone_routes():
@@ -150,13 +148,11 @@ def route_by_routeid(routeid):
     if request.method == 'GET':
         return get_route_points_by_routeid(routeid)
 
-    elif request.method == 'DELETE':
-        return delete_route_by_routeid(routeid)
-    
     elif request.method == 'PUT':
         return put_drone_route(routeid)
-    
-    return '', 405
+
+    elif request.method == 'DELETE':
+        return delete_route_by_routeid(routeid)
 
 
 def get_route_points_by_routeid(routeid):

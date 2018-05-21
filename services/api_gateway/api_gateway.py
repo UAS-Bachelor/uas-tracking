@@ -26,8 +26,6 @@ def drone_routes():
 
     elif request.method == 'POST':
         return post_drone_route()
-    
-    return '', 405
 
 
 def get_drone_routes():
@@ -70,8 +68,6 @@ def route_by_routeid(routeid):
 
     elif request.method == 'DELETE':
         return delete_route_by_routeid(routeid)
-    
-    return '', 405
 
 
 def get_route_by_routeid(routeid):
