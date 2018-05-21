@@ -109,7 +109,7 @@ def put_drone_route(routeid):
         first_point = received_route[0]
         last_point = received_route[-1]
         route = db.get_route_by_routeid(routeid)
-        if route and route.drone_id == int(first_point['id']):
+        if route and int(route.drone_id) == int(first_point['id']):
             route.start_time = first_point['time']
             route.end_time = last_point['time']
             db.merge(route)
