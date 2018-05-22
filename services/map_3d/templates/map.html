@@ -33,4 +33,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
-<script src="{{ url_for('static', filename='js/map.js', _external=True) }}"></script>
+<script src="{{ url_for('static', filename='js/map-common.js', _external=True) }}"></script>
+{% if drone_route_list is defined %}
+    <script src="{{ url_for('static', filename='js/map-historic.js', _external=True) }}"></script>
+{% endif %}
+{% if live_drones_url is defined %}
+    <script src="{{ url_for('static', filename='js/map-live.js', _external=True) }}"></script>
+{% endif %}
+{% if kml_url is defined %}
+    <script src="{{ url_for('static', filename='js/map-no-fly-zones.js', _external=True) }}"></script>
+{% endif %}
