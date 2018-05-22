@@ -1,11 +1,12 @@
 import pytest
 from unittest import mock
-from flask import Flask
+from flask import Flask, request
 import json
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import drone_information
+from exceptions import RouteNotFoundException, MissingKeyException
 
 
 @pytest.fixture
@@ -23,6 +24,20 @@ def drone_data_points():
         'lon': 10.43000,
         'alt': 100.00000,
         'time': 1524231299
+    },
+    {
+        'id': 919,
+        'lat': 55.39050,
+        'lon': 10.43000,
+        'alt': 100.00000,
+        'time': 1524231304
+    }, 
+    {
+        'id': 919,
+        'lat': 55.39050,
+        'lon': 10.44000,
+        'alt': 100.00000,
+        'time': 1524231309
     }]
 
 
@@ -51,9 +66,21 @@ def mock_drone(drone_data_points):
 @pytest.fixture
 def mock_db():
     app = Flask(__name__)
-    with app.app_context():
-        with mock.patch('drone_information.db'):
-            yield
+    with app.test_request_context():
+        with mock.patch('drone_information.db') as mock_db:
+            yield mock_db
+
+
+def compare_dicts(a, b):
+    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+
+
+def raise_routenotfoundexception(routeid):
+    raise RouteNotFoundException('routeid: {}'.format(routeid))
+
+
+def delete_key(key, collection):
+    [d.pop(key) for d in collection]
 
 
 def test_get_live(mock_db, mock_route, drone_data_points):
@@ -63,8 +90,7 @@ def test_get_live(mock_db, mock_route, drone_data_points):
     response = drone_information.get_live_drones()
     response_data = json.loads(response[0].data)
     
-    drone_data_points[0]['buffer_radius'] = 500
-    assert response_data[0] == drone_data_points[0]
+    assert compare_dicts(response_data[0], drone_data_points[0])
 
 
 def test_get_live_no_live_drones(mock_db):
@@ -83,178 +109,192 @@ def test_get_live_drone_by_id(mock_db, mock_route, drone_data_points):
     response = drone_information.get_live_drone_by_id(919)
     response_data = json.loads(response[0].data)
     
-    drone_data_points[0]['buffer_radius'] = 500
-    assert response_data == drone_data_points[0]
+    assert compare_dicts(response_data, drone_data_points[0])
 
 
-def test_get_drone_routes():
-    pass
+def test_get_live_drone_by_id_not_live(mock_db):
+    drone_information.db.get_latest_live_route_by_droneid.return_value = None
+
+    response = drone_information.get_live_drone_by_id(919)
+    response_data = json.loads(response[0].data)
+    
+    assert 'error' in response_data
 
 
+def test_get_drone_routes(mock_db, route_data):
+    drone_information.db.get_finished_routes.return_value = [route_data]
+
+    response = drone_information.get_drone_routes()
+    response_data = json.loads(response[0].data)
+    
+    assert compare_dicts(response_data[0], route_data)
 
 
+def test_get_drone_routes_no_finished_routes(mock_db, route_data):
+    drone_information.db.get_finished_routes.return_value = []
+
+    response = drone_information.get_drone_routes()
+    response_data = json.loads(response[0].data)
+    
+    assert not response_data
 
 
+def test_post_drone_route_doesnt_exist(mock_db, route_data, drone_data_points):
+    request._cached_data = json.dumps(drone_data_points)
+    drone_information.db.get_route_by_droneid_and_start_time.return_value = None
+    drone_information.db.add.side_effect = lambda route : setattr(route, 'route_id', route_data['route_id'])
 
-'''
-def test_illegal_url(client):
-    response = client.get('/illegalurl/does/not/exist')
-    assert response.status_code == 404
+    response = drone_information.post_drone_route()
+    response_data = json.loads(response[0].data)
 
-
-def test_illegal_method(client):
-    response = client.delete('/')
-    assert response.status_code == 405
-
-
-def test_post_legal_route(post_legal_route_response):
-    assert post_legal_route_response.status_code == 201
+    assert response_data == route_data['route_id']
 
 
-def test_post_illegal_route_missing_time(client, drone_data_points):
+def test_post_drone_route_exists(mock_db, route_data, mock_route, drone_data_points):
+    request._cached_data = json.dumps(drone_data_points)
+    drone_information.db.get_route_by_droneid_and_start_time.return_value = mock_route
+    drone_information.db.add.side_effect = lambda route : setattr(route, 'route_id', route_data['route_id'])
+
+    response = drone_information.post_drone_route()
+    response_data = json.loads(response[0].data)
+
+    assert response_data == route_data['route_id']
+    assert mock_route.end_time == drone_data_points[-1]['time']
+
+
+def test_put_drone_route_exists(mock_db, route_data, mock_route, drone_data_points):
+    request._cached_data = json.dumps(drone_data_points)
+    drone_information.db.get_route_by_routeid.return_value = mock_route
+
+    response = drone_information.put_drone_route(15)
+    response_data = json.loads(response[0].data)
+
+    assert response_data == route_data['route_id']
+    assert mock_route.start_time == drone_data_points[0]['time']
+    assert mock_route.end_time == drone_data_points[-1]['time']
+
+
+def test_put_drone_route_doesnt_exist(mock_db, route_data, mock_route, drone_data_points):
+    request._cached_data = json.dumps(drone_data_points)
+    drone_information.db.get_route_by_routeid.return_value = None
+
+    #with pytest.raises(RouteNotFoundException):
+    drone_information.put_drone_route(15)
+    drone_information.db.rollback.assert_called()
+
+
+def test_post_illegal_route_missing_time(drone_data_points):
     delete_key('time', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: time' == response_text['error']
+    with pytest.raises(MissingKeyException) as exception_info:
+        drone_information.__fit_drone_data_point(drone_data_points[0])
+        assert 'error' in exception_info.value
+        assert 'missing key: time' == exception_info.value['error']
 
 
-def test_post_illegal_route_missing_lat(client, drone_data_points):
+def test_post_illegal_route_missing_lat(drone_data_points):
     delete_key('lat', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: lat' == response_text['error']
+    with pytest.raises(MissingKeyException) as exception_info:
+        drone_information.__fit_drone_data_point(drone_data_points[0])
+        assert 'error' in exception_info.value
+        assert 'missing key: lat' == exception_info.value['error']
 
 
-def test_post_illegal_route_missing_lon(client, drone_data_points):
+def test_post_illegal_route_missing_lon(drone_data_points):
     delete_key('lon', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: lon' == response_text['error']
+    with pytest.raises(MissingKeyException) as exception_info:
+        drone_information.__fit_drone_data_point(drone_data_points[0])
+        assert 'error' in exception_info.value
+        assert 'missing key: lon' == exception_info.value['error']
 
 
-def test_post_illegal_route_missing_alt(client, drone_data_points):
+def test_post_illegal_route_missing_alt(drone_data_points):
     delete_key('alt', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: alt' == response_text['error']
+    with pytest.raises(MissingKeyException) as exception_info:
+        drone_information.__fit_drone_data_point(drone_data_points[0])
+        assert 'error' in exception_info.value
+        assert 'missing key: alt' == exception_info.value['error']
 
 
-def test_post_route_default_id(client, drone_data_points):
+def test_post_illegal_route_defaulted_id(drone_data_points):
     delete_key('id', drone_data_points)
-    post_response = post_route(client, drone_data_points)
-    get_response = client.get('/routes/{}'.format(int(post_response.data)))
-    assert get_response.status_code == 200
-    assert json.loads(get_response.data)[0]['id'] == '910'
-    
-    delete_route(client, int(post_response.data))
+    assert 'id' not in drone_data_points[0]
+    corrected_point = drone_information.__fit_drone_data_point(drone_data_points[0])
+    assert 'id' in corrected_point
+    assert corrected_point['id'] == 910
 
 
-def test_put_existing_route_to_extend_it(client, drone_data_points):
-    first_post_response = post_route(client, [dict(drone_data_points[0])])
-    first_get_response = client.get('/routes/{}'.format(int(first_post_response.data)))
-    first_response_text = json.loads(first_get_response.data)
-    assert first_get_response.status_code == 200
-    assert len(first_response_text) == 1
-    assert first_response_text[-1]['time'] == drone_data_points[0]['time']
+def test_get_route_points_by_routeid(mock_db, mock_route, drone_data_points):
+    drone_information.db.get_route_by_routeid.return_value = mock_route
+    drone_information.db.get_data_points_by_route.return_value = drone_data_points
 
-    second_put_response = put_route(client, drone_data_points, int(first_post_response.data))
-    second_get_response = client.get('/routes/{}'.format(int(first_post_response.data)))
-    second_response_text = json.loads(second_get_response.data)
-    assert second_get_response.status_code == 200
-    assert len(second_response_text) == 2
-    assert second_response_text[-1]['time'] == drone_data_points[1]['time']
+    response = drone_information.get_route_points_by_routeid(15)
+    response_data = json.loads(response[0].data)
 
-    assert first_post_response.data == second_put_response.data
-    
-    delete_route(client, int(second_put_response.data))
+    assert compare_dicts(response_data, drone_data_points)
 
 
-def test_put_route_that_does_not_exist(client, drone_data_points):
-    put_response = put_route(client, drone_data_points, '-1')
-    
-    assert put_response.status_code == 404
+def test_get_route_points_by_routeid_no_route(mock_db):
+    drone_information.db.get_route_by_routeid.side_effect = raise_routenotfoundexception
+
+    response = drone_information.get_route_points_by_routeid(15)
+    response_data = json.loads(response[0].data)
+
+    assert 'error' in response_data
 
 
-def test_delete_route(client, post_legal_route_response):
-    delete_response = delete_route(client, int(post_legal_route_response.data))
-    assert delete_response.status_code == 200
-    assert int(post_legal_route_response.data) == int(delete_response.data)
+def test_delete_route_by_routeid(mock_db, mock_route):
+    drone_information.db.get_route_by_routeid.return_value = mock_route
+
+    response = drone_information.delete_route_by_routeid(15)
+    response_data = json.loads(response[0].data)
+
+    assert response_data == mock_route.route_id
 
 
-def test_delete_illegal_route(client):
-    response = delete_route(client, -1)
-    assert response.status_code == 404
-    assert 'error' in json.loads(response.data)
+def test_delete_route_by_routeid_no_route(mock_db):
+    drone_information.db.get_route_by_routeid.side_effect = raise_routenotfoundexception
+
+    response = drone_information.delete_route_by_routeid(15)
+    response_data = json.loads(response[0].data)
+
+    assert 'error' in response_data
 
 
-def test_get_routes(client, post_legal_route_response):
-    get_response = get_routes(client)
-    assert any(route['route_id'] == int(post_legal_route_response.data) for route in json.loads(get_response.data))
+def test_delete_route_and_data_points(mock_db, mock_route):
+    drone_information.delete_route_and_data_points(mock_route)
+
+    drone_information.db.delete_data_points_by_route.assert_called()
+    drone_information.db.delete.assert_called()
 
 
-def test_get_route_by_routeid(client, drone_data_points, post_legal_route_response):
-    get_response = client.get('/routes/{}'.format(int(post_legal_route_response.data)))
-    assert get_response.status_code == 200
-    received_drone_data_points = json.loads(get_response.data)
+def test_get_route_by_routeid_interpolated(mock_db, mock_route, drone_data_points):
+    drone_information.db.get_route_by_routeid.return_value = mock_route
+    drone_information.db.get_data_points_by_route.return_value = drone_data_points
 
-    for drone_data_point in drone_data_points:
-        for key, value in drone_data_point.items():
-            for received_drone_data_point in received_drone_data_points:
-                assert key, value in received_drone_data_point.items()
+    response = drone_information.get_route_by_routeid_interpolated(15)
+    response_data = json.loads(response[0].data)
 
-
-def test_route_get_by_routeid_illegal(client):
-    response = client.get('/routes/-1')
-    assert response.status_code == 404
-    assert 'error' in json.loads(response.data)'''
+    assert len(response_data) > len(drone_data_points)
 
 
+def test_get_route_by_routeid_interpolated_not_enough_points(mock_db, mock_route, drone_data_points):
+    drone_information.db.get_route_by_routeid.return_value = mock_route
+    drone_information.db.get_data_points_by_route.return_value = drone_data_points[:2]
 
-'''def test_get_live_by_id(client):
-    response = client.get('/live/1')
-    assert response.status_code == 200
-    assert type(json.loads(response.data) == list)
-'''
-'''
-def test_get_live_by_id_illegal(client):
-    droneid = -1
-    response = client.get('/live/{}'.format(droneid))
-    response_text = json.loads(response.data)
-    assert response.status_code == 404
-    assert 'error' in response_text
-    assert 'drone with droneid {} is currently not in flight'.format(droneid) == response_text['error']
+    response = drone_information.get_route_by_routeid_interpolated(15)
+    response_data = json.loads(response[0].data)
+
+    assert len(response_data) == len(drone_data_points[:2])
 
 
-def get_routes(client):
-    response = client.get('/routes')
-    return response
+def test_get_route_by_routeid_interpolated_no_route(mock_db):
+    drone_information.db.get_route_by_routeid.side_effect = raise_routenotfoundexception
 
+    response = drone_information.get_route_by_routeid_interpolated(15)
+    response_data = json.loads(response[0].data)
 
-def post_route(client, drone_data_points):
-    response = client.post('/routes', json=drone_data_points)
-    return response
+    assert 'error' in response_data
 
-
-def put_route(client, drone_data_points, routeid):
-    response = client.put('/routes/{}'.format(routeid), json=drone_data_points)
-    return response
-
-
-def delete_route(client, routeid):
-    response = client.delete('/routes/{}'.format(routeid))
-    return response
-
-def delete_key(key, collection):
-    [d.pop(key) for d in collection]
-'''
 
 if __name__ == '__main__':
     pytest.main()

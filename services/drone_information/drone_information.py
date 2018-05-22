@@ -71,7 +71,7 @@ def get_drone_routes():
         drone_dict['start_time_stamp'] = epoch_to_datetime(drone_dict['start_time'])
         drone_dict['end_time_stamp'] = epoch_to_datetime(drone_dict['end_time'])
         drone_dict['duration'] = epoch_to_time(drone_dict['end_time'] - drone_dict['start_time'])
-    return jsonify(list_of_drone_dicts)
+    return jsonify(list_of_drone_dicts), 200
 
 
 def post_drone_route():
