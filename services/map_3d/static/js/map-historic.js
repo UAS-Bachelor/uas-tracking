@@ -1,32 +1,8 @@
-var viewer;
 var entity;
 var start;
 var stop;
 var lineWidth = 7;
-var liveDroneTimeOffset = 5;
 
-
-function initMap() {
-    Cesium.BingMapsApi.defaultKey = 'AlP_7a7Bu5IKn_jRniYtal7yLOFyLfCG8X-tSLiE56287FLtKqX7nko0IQmtogg5';
-    let west = 8.0;
-    let south = 53.5;
-    let east = 13.0;
-    let north = 58.0;
-
-    let rectangle = Cesium.Rectangle.fromDegrees(west, south, east, north);
-
-    Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
-    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = rectangle;
-    viewer = new Cesium.Viewer('cesiumContainer', {
-        infoBox: false,
-        selectionIndicator: false,
-        shouldAnimate: true, 
-        timeline: true, 
-        //navigationHelpButton: false
-    });
-    //Enable depth testing so things behind the terrain disappear.
-    //viewer.scene.globe.depthTestAgainstTerrain = true;
-}
 
 function initTime() {
     let routeStartTime = droneRoute[0]['time'];
@@ -42,19 +18,6 @@ function initTime() {
     viewer.clock.multiplier = 1;
 
     viewer.timeline.zoomTo(start, stop);
-}
-
-function initKml() {
-    viewer.dataSources.add(new Cesium.KmlDataSource.load(kmlUrl)).then(function (kml) {
-        let entities = kml.entities.values;
-        let extrudedHeight = entities[0]._polygon._extrudedHeight;
-        extrudedHeight._value = 1000;
-        for (let i = 0; i < entities.length; i++) {
-            if (typeof entities[i]._polygon != 'undefined') {
-                entities[i]._polygon._extrudedHeight = extrudedHeight;
-            }
-        }
-    });
 }
 
 function createTrackedDrone() {
@@ -104,67 +67,12 @@ function computeFlightCoordinates() {
     return positionProperty;
 }
 
-function updateLiveDrones() {
-    $.get(liveDronesUrl, function (listOfLiveDrones) {
-        for (let i = 0; i < listOfLiveDrones.length; i++) {
-            let liveDrone = listOfLiveDrones[i];
-            //console.log(liveDrone)
-            let droneEntity = viewer.entities.getById(liveDrone['id']);
-            if (typeof droneEntity === 'undefined') {
-                createLiveDrone(liveDrone);
-            }
-            else {
-                updateLiveDrone(droneEntity, liveDrone);
-            }
-        }
-    });
-}
-
-function updateLiveDrone(droneEntity, liveDrone) {
-    let startTime = new Date(((liveDrone['time'] + liveDroneTimeOffset) * 1000));
-    let now = new Date();
-    if(((now - startTime) / 1000) > liveDroneTimeOffset) {
-        startTime = now;
-    }
-    let time = Cesium.JulianDate.fromDate(startTime);
-    Cesium.JulianDate.addSeconds(time, liveDroneTimeOffset, time);
-
-    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
-
-    droneEntity.position.addSample(time, position);
-}
-
-function createLiveDrone(liveDrone) {
-    let positionProperty = new Cesium.SampledPositionProperty();
-
-    let startTime = new Date(((liveDrone['time'] + liveDroneTimeOffset) * 1000));
-    let time = Cesium.JulianDate.fromDate(startTime);
-
-    let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
-
-    positionProperty.addSample(time, position);
-
-    let entity = viewer.entities.add({
-        id: liveDrone['id'], 
-        position: positionProperty,
-        orientation: new Cesium.VelocityOrientationProperty(positionProperty),
-        model: {
-            uri: droneModel,
-            minimumPixelSize: 32
-        }
-    });
-    return entity;
-}
 
 function initDropdown() {
     $('#dropdownMenu').html("Viewing drone");
     $('#viewDrone').click(clickViewDrone);
     $('#viewSide').click(clickViewSide);
     $('#viewTopDown').click(clickViewTopDown);
-}
-
-function hideDropdown() {
-    $('#dropdownMenu').hide();
 }
 
 function clickViewDrone() {
@@ -213,22 +121,11 @@ function hermitePolynomialInterpolation() {
 }
 
 
-initMap();
-if (typeof droneRoute !== 'undefined' && Object.keys(droneRoute[0]).length !== 0) {
+if (Object.keys(droneRoute[0]).length !== 0) {
     initTime();
     createTrackedDrone();
     initDropdown();
 
     clickViewTopDown();
     hermitePolynomialInterpolation();
-}
-if (typeof kmlUrl !== 'undefined') {
-    initKml();
-}
-if (typeof liveDronesUrl !== 'undefined') {
-    hideDropdown();
-    updateLiveDrones();
-    setInterval(function () {
-        updateLiveDrones();
-    }, 2000);
 }
