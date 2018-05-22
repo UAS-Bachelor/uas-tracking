@@ -22,8 +22,8 @@ class DatabaseDriver:
         return db.session\
             .query(Route.route_id, Route.drone_id, Route.start_time, Route.end_time)\
             .filter(Route.end_time == None)\
-            .distinct(Route.drone_id)\
             .order_by(Route.start_time)\
+            .group_by(Route.drone_id)\
             .all()
     
 
