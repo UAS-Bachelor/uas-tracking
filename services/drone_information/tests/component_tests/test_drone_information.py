@@ -61,33 +61,6 @@ def test_post_illegal_route_missing_time(client, drone_data_points):
     assert 'missing key: time' == response_text['error']
 
 
-def test_post_illegal_route_missing_lat(client, drone_data_points):
-    delete_key('lat', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: lat' == response_text['error']
-
-
-def test_post_illegal_route_missing_lon(client, drone_data_points):
-    delete_key('lon', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: lon' == response_text['error']
-
-
-def test_post_illegal_route_missing_alt(client, drone_data_points):
-    delete_key('alt', drone_data_points)
-    response = client.post('/routes', json=drone_data_points)
-    response_text = json.loads(response.data)
-    assert response.status_code == 400
-    assert 'error' in response_text
-    assert 'missing key: alt' == response_text['error']
-
-
 def test_post_route_default_id(client, drone_data_points):
     delete_key('id', drone_data_points)
     post_response = post_route(client, drone_data_points)
