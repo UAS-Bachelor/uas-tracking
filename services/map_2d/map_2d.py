@@ -24,7 +24,7 @@ def index():
     return jsonify(func_list)
 
 
-@app.route('/live/2d')
+@app.route('/live')
 def get_2d_live_map():
     '''Returns a 2D map'''
     if not request.is_json:
@@ -35,7 +35,7 @@ def get_2d_live_map():
     return render_template('map.html', kml_url=kml_url, live_drones_url=live_drones_url)
 
 
-@app.route('/routes/2d')
+@app.route('/routes')
 def get_2d_map():
     '''Returns a 2D map with a route drawn on it, that corresponds to the provided route id'''
     if not request.is_json:

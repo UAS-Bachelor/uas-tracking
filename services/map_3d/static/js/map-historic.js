@@ -127,5 +127,5 @@ if (Object.keys(droneRoute[0]).length !== 0) {
     initDropdown();
 
     clickViewTopDown();
-    hermitePolynomialInterpolation();
+    //hermitePolynomialInterpolation();
 }

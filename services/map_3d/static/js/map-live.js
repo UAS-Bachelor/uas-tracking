@@ -6,17 +6,18 @@ function updateLiveDrones() {
             let liveDrone = listOfLiveDrones[i];
             //console.log(liveDrone)
             let droneEntity = viewer.entities.getById(liveDrone['id']);
+            let labelEntity = viewer.entities.getById('label' + liveDrone['id']);
             if (typeof droneEntity === 'undefined') {
                 createLiveDrone(liveDrone);
             }
             else {
-                updateLiveDrone(droneEntity, liveDrone);
+                updateLiveDrone(droneEntity, liveDrone, labelEntity);
             }
         }
     });
 }
 
-function updateLiveDrone(droneEntity, liveDrone) {
+function updateLiveDrone(droneEntity, liveDrone, labelEntity) {
     let startTime = new Date(((liveDrone['time'] + liveDroneTimeOffset) * 1000));
     let now = new Date();
     if(((now - startTime) / 1000) > liveDroneTimeOffset) {
@@ -27,7 +28,9 @@ function updateLiveDrone(droneEntity, liveDrone) {
 
     let position = Cesium.Cartesian3.fromDegrees(liveDrone['lon'], liveDrone['lat'], liveDrone['alt']);
 
-    droneEntity.position.addSample(time, position);
+    //droneEntity.position.addSample(time, position);
+    droneEntity.position = position;
+    labelEntity.position = position;
 }
 
 function createLiveDrone(liveDrone) {
@@ -42,13 +45,26 @@ function createLiveDrone(liveDrone) {
 
     let entity = viewer.entities.add({
         id: liveDrone['id'], 
-        position: positionProperty,
-        orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+        //position: positionProperty,
+        position: position,
+        //orientation: new Cesium.VelocityOrientationProperty(positionProperty),
         model: {
             uri: droneModel,
             minimumPixelSize: 32
         }
     });
+    viewer.entities.add({
+        id: 'label' + liveDrone['id'], 
+        label: {
+            text: liveDrone['id'], 
+            show: true,
+            showBackground: true,
+            font: '14px monospace',
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+        }, 
+        position: position
+    })
     return entity;
 }
 
