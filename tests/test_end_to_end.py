@@ -22,6 +22,11 @@ class DataHTMLParser(HTMLParser):
 
 
 @pytest.fixture
+def htmlparser():
+    yield DataHTMLParser()
+
+
+@pytest.fixture
 def app_client():
     api_gateway.app.config['TESTING'] = True
     api_gateway.config = json.load(open(api_gateway.__services_config_file))
@@ -57,32 +62,47 @@ def test_routes_service_unavailable(app_client):
     assert response.data.decode().strip() == 'Drone information service unavailable'
 
 
-def test_routes(app_client, drone_data_points):
+def test_routes(app_client, drone_data_points, htmlparser):
     server = start_server(__run_drone_information, config['drone_information']['port'])
     
     post_response = app_client.post('/routes', json=drone_data_points)
-    routeid = post_response.data.decode()
+    routeid = post_response.data.decode().strip()
     assert post_response.status_code == 201
 
     get_response = app_client.get('/routes')
     assert get_response.status_code == 200
-    parser = DataHTMLParser()
-    parser.feed(get_response.data.decode())
+    htmlparser.feed(get_response.data.decode())
 
     droneid = str(drone_data_points[0]['id'])
     start_time = epoch_to_datetime(drone_data_points[0]['time'])
     end_time = epoch_to_datetime(drone_data_points[-1]['time'])
-
-
-    print('PARSED DATA')
-    print(parser.parsed_data)
-
-    assert all(item in parser.parsed_data for item in (droneid, start_time, end_time))
+    assert all(item in htmlparser.parsed_data for item in (droneid, start_time, end_time))
 
     delete_response = app_client.delete('/routes/{}'.format(routeid))
     assert delete_response.status_code == 200
-    assert delete_response.data.decode() == routeid
-    #print(response.data.decode())
+    assert delete_response.data.decode().strip() == routeid
+
+    stop_server(server)
+
+
+def test_routes_by_routeid(app_client, drone_data_points):
+    server = start_server(__run_drone_information, config['drone_information']['port'])
+    
+    post_response = app_client.post('/routes', json=drone_data_points)
+    routeid = post_response.data.decode().strip()
+    assert post_response.status_code == 201
+
+    get_response = app_client.get('/routes/{}'.format(routeid))
+    get_response_data = json.loads(get_response.data)
+    assert get_response.status_code == 200
+    
+    for i in range(len(drone_data_points)):
+        drone_data_points[i]['id'] = str(drone_data_points[i]['id'])
+        assert all((key, value) in get_response_data[i].items() for (key, value) in drone_data_points[i].items())
+
+    delete_response = app_client.delete('/routes/{}'.format(routeid))
+    assert delete_response.status_code == 200
+    assert delete_response.data.decode().strip() == routeid
 
     stop_server(server)
 
