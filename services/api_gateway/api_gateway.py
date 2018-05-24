@@ -63,7 +63,7 @@ def route_by_routeid(routeid):
     if request.method == 'GET':
         return get_route_by_routeid(routeid)
 
-    elif request.moethod == 'PUT':
+    elif request.method == 'PUT':
         return put_drone_route(routeid)
 
     elif request.method == 'DELETE':
