@@ -109,11 +109,13 @@ def test_get_data_points_by_route(database_driver, drone, insert_finished_route)
     assert retrieved_drone['alt'] == drone.alt
     assert retrieved_drone['time'] == drone.time
 
+
 @pytest.mark.filterwarnings('ignore:DELETE')
 def test_get_finished_routes(database_driver, drone, insert_finished_route, insert_live_route):
     routes = database_driver.get_finished_routes()
     assert any(route['route_id'] != insert_live_route.route_id for route in routes)
     assert any(route['route_id'] == insert_finished_route.route_id for route in routes)
+
 
 @pytest.mark.filterwarnings('ignore:DELETE')
 def test_delete_data_points_by_route(database_driver, drone, insert_finished_route):
