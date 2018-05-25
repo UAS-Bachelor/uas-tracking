@@ -179,7 +179,7 @@ def post(service_name, path=''):
     url = get_url_string(service_name, path)
     response = requests.post(url, json=request.json)
     raise_for_status_code(response)
-    return response.text
+    return response.text, response.status_code
 
 
 def put(service_name, path=''):
