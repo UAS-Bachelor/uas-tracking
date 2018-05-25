@@ -190,7 +190,10 @@ def get_route_by_routeid_interpolated(routeid):
         return jsonify(error=exception.text), 404
     list_of_drone_dicts = db.get_data_points_by_route(route)
     if len(list_of_drone_dicts) > 3:
-        list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
+        try:
+            list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
+        except ValueError:
+            pass
     return jsonify(list_of_drone_dicts), 200
 
 
