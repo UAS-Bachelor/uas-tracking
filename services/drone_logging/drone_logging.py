@@ -85,7 +85,11 @@ def update(table, set_list, where_list):
 
 
 def get_and_store_drone_info():
-    result = get_drone_info()
+    try:
+        result = get_drone_info()
+    except requests.exceptions.ConnectionError as exception:
+        print('Encountered exception: {}'.format(exception))
+        return
     global previous_result
     global gone_drones_buffer
     new_drones = []  # De her lists af drone dicts skal gemmes i henholdsvis routes_start og routes_end i DBen
