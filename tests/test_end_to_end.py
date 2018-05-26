@@ -35,7 +35,7 @@ def client():
 
 
 @pytest.fixture
-def drone_information():
+def drone_information_server():
     server = start_server(__run_drone_information, config['drone_information']['port'])
     yield server
     stop_server(server)
@@ -69,7 +69,7 @@ def test_routes_service_unavailable(client):
     assert response.data.decode().strip() == 'Drone information service unavailable'
 
 
-def test_routes(client, drone_data_points, htmlparser, drone_information):
+def test_routes(client, drone_data_points, htmlparser, drone_information_server):
     post_response = client.post('/routes', json=drone_data_points)
     routeid = post_response.data.decode().strip()
     assert post_response.status_code == 201
@@ -88,7 +88,7 @@ def test_routes(client, drone_data_points, htmlparser, drone_information):
     assert delete_response.data.decode().strip() == routeid
 
 
-def test_routes_by_routeid(client, drone_data_points, drone_information):
+def test_routes_by_routeid(client, drone_data_points, drone_information_server):
     post_response = client.post('/routes', json=drone_data_points)
     routeid = post_response.data.decode().strip()
     assert post_response.status_code == 201
