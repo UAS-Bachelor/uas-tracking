@@ -27,11 +27,18 @@ def htmlparser():
 
 
 @pytest.fixture
-def app_client():
+def client():
     api_gateway.app.config['TESTING'] = True
     api_gateway.config = json.load(open(api_gateway.__services_config_file))
-    app_client = api_gateway.app.test_client()
-    yield app_client
+    client = api_gateway.app.test_client()
+    yield client
+
+
+@pytest.fixture
+def drone_information():
+    server = start_server(__run_drone_information, config['drone_information']['port'])
+    yield server
+    stop_server(server)
 
 
 @pytest.fixture
@@ -56,20 +63,18 @@ def epoch_to_datetime(epoch):
     return time.strftime('%d %b %Y, %H:%M:%S', time.gmtime(epoch))
 
 
-def test_routes_service_unavailable(app_client):
-    response = app_client.get('/routes')
+def test_routes_service_unavailable(client):
+    response = client.get('/routes')
     assert response.status_code == 503
     assert response.data.decode().strip() == 'Drone information service unavailable'
 
 
-def test_routes(app_client, drone_data_points, htmlparser):
-    server = start_server(__run_drone_information, config['drone_information']['port'])
-    
-    post_response = app_client.post('/routes', json=drone_data_points)
+def test_routes(client, drone_data_points, htmlparser, drone_information):
+    post_response = client.post('/routes', json=drone_data_points)
     routeid = post_response.data.decode().strip()
     assert post_response.status_code == 201
 
-    get_response = app_client.get('/routes')
+    get_response = client.get('/routes')
     assert get_response.status_code == 200
     htmlparser.feed(get_response.data.decode())
 
@@ -78,21 +83,17 @@ def test_routes(app_client, drone_data_points, htmlparser):
     end_time = epoch_to_datetime(drone_data_points[-1]['time'])
     assert all(item in htmlparser.parsed_data for item in (droneid, start_time, end_time))
 
-    delete_response = app_client.delete('/routes/{}'.format(routeid))
+    delete_response = client.delete('/routes/{}'.format(routeid))
     assert delete_response.status_code == 200
     assert delete_response.data.decode().strip() == routeid
 
-    stop_server(server)
 
-
-def test_routes_by_routeid(app_client, drone_data_points):
-    server = start_server(__run_drone_information, config['drone_information']['port'])
-    
-    post_response = app_client.post('/routes', json=drone_data_points)
+def test_routes_by_routeid(client, drone_data_points, drone_information):
+    post_response = client.post('/routes', json=drone_data_points)
     routeid = post_response.data.decode().strip()
     assert post_response.status_code == 201
 
-    get_response = app_client.get('/routes/{}'.format(routeid))
+    get_response = client.get('/routes/{}'.format(routeid))
     get_response_data = json.loads(get_response.data)
     assert get_response.status_code == 200
     
@@ -100,11 +101,9 @@ def test_routes_by_routeid(app_client, drone_data_points):
         drone_data_points[i]['id'] = str(drone_data_points[i]['id'])
         assert all((key, value) in get_response_data[i].items() for (key, value) in drone_data_points[i].items())
 
-    delete_response = app_client.delete('/routes/{}'.format(routeid))
+    delete_response = client.delete('/routes/{}'.format(routeid))
     assert delete_response.status_code == 200
     assert delete_response.data.decode().strip() == routeid
-
-    stop_server(server)
 
 
 if __name__ == '__main__':
