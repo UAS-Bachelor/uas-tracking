@@ -267,34 +267,5 @@ def test_delete_route_and_data_points(mock_db, mock_route):
     drone_information.db.delete.assert_called()
 
 
-def test_get_route_by_routeid_interpolated(mock_db, mock_route, drone_data_points):
-    drone_information.db.get_route_by_routeid.return_value = mock_route
-    drone_information.db.get_data_points_by_route.return_value = drone_data_points
-
-    response = drone_information.get_route_by_routeid_interpolated(15)
-    response_data = json.loads(response[0].data)
-
-    assert len(response_data) > len(drone_data_points)
-
-
-def test_get_route_by_routeid_interpolated_not_enough_points(mock_db, mock_route, drone_data_points):
-    drone_information.db.get_route_by_routeid.return_value = mock_route
-    drone_information.db.get_data_points_by_route.return_value = drone_data_points[:2]
-
-    response = drone_information.get_route_by_routeid_interpolated(15)
-    response_data = json.loads(response[0].data)
-
-    assert len(response_data) == len(drone_data_points[:2])
-
-
-def test_get_route_by_routeid_interpolated_no_route(mock_db):
-    drone_information.db.get_route_by_routeid.side_effect = raise_routenotfoundexception
-
-    response = drone_information.get_route_by_routeid_interpolated(15)
-    response_data = json.loads(response[0].data)
-
-    assert 'error' in response_data
-
-
 if __name__ == '__main__':
     pytest.main()

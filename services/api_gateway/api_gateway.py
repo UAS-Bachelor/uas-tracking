@@ -94,7 +94,7 @@ def delete_route_by_routeid(routeid):
 def get_2d_map_by_routeid(routeid):
     data = {}
     try:
-        data['drone_route_list'] = json.loads(get('drone_information', '/routes/{}/interpolated'.format(routeid)))
+        data['drone_route_list'] = json.loads(get('drone_information', '/routes/{}'.format(routeid)))
     except requests.exceptions.HTTPError as exception:
         return jsonify(json.loads(exception.text)), exception.errno
     except requests.exceptions.ConnectionError:

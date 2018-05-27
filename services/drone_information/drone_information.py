@@ -7,7 +7,6 @@ import requests
 import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from database_driver import DatabaseDriver, Drone, Route
-from interpolator import spline_interpolate
 from time_util import epoch_to_datetime, epoch_to_datetime_with_dashes, epoch_to_time
 import exceptions
 
@@ -179,22 +178,6 @@ def delete_route_and_data_points(route_to_delete):
     db.delete_data_points_by_route(route_to_delete)
     db.delete(route_to_delete)
     db.commit()
-
-
-@app.route('/routes/<routeid>/interpolated')
-def get_route_by_routeid_interpolated(routeid):
-    '''Returns list of interpolated (2 seconds) coordinates, timestamps and drone information, for the route that corresponds to the provided route id. Interpolation requires more than 3 coordinates.'''
-    try:
-        route = db.get_route_by_routeid(routeid)
-    except exceptions.RouteNotFoundException as exception:
-        return jsonify(error=exception.text), 404
-    list_of_drone_dicts = db.get_data_points_by_route(route)
-    if len(list_of_drone_dicts) > 3:
-        try:
-            list_of_drone_dicts = spline_interpolate(list_of_drone_dicts, interpolation_interval)
-        except ValueError:
-            pass
-    return jsonify(list_of_drone_dicts), 200
 
 
 if __name__ == '__main__':
