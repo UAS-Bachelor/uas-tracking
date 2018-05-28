@@ -110,8 +110,12 @@ def test_delete_illegal_route(client):
 
 
 def test_get_routes(client, post_legal_route_response):
-    get_response = get_routes(client)
-    assert any(route['route_id'] == int(post_legal_route_response.data) for route in json.loads(get_response.data))
+    get_response = client.get('/routes')
+    retrieved_routes = json.loads(get_response.data)
+    routeid = int(post_legal_route_response.data)
+
+    assert get_response.status_code == 200
+    assert any(route['route_id'] == routeid for route in retrieved_routes)
 
 
 def test_get_route_by_routeid(client, drone_data_points, post_legal_route_response):
