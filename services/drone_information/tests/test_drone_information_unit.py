@@ -82,6 +82,9 @@ def raise_routenotfoundexception(routeid):
 def delete_key(key, collection):
     [d.pop(key) for d in collection]
 
+def add_key(key, value, collection):
+    [d.update({key: value}) for d in collection]
+
 
 def test_get_live(mock_db, mock_route, drone_data_points):
     drone_information.db.get_live_routes.return_value = [mock_route]
@@ -185,42 +188,69 @@ def test_put_drone_route_doesnt_exist(mock_db, route_data, mock_route, drone_dat
 
 def test_post_illegal_route_missing_time(drone_data_points):
     delete_key('time', drone_data_points)
+
     with pytest.raises(MissingKeyException) as exception_info:
         drone_information.__fit_drone_data_point(drone_data_points[0])
+
         assert 'error' in exception_info.value
         assert 'missing key: time' == exception_info.value['error']
 
 
 def test_post_illegal_route_missing_lat(drone_data_points):
     delete_key('lat', drone_data_points)
+
     with pytest.raises(MissingKeyException) as exception_info:
         drone_information.__fit_drone_data_point(drone_data_points[0])
+
         assert 'error' in exception_info.value
         assert 'missing key: lat' == exception_info.value['error']
 
 
 def test_post_illegal_route_missing_lon(drone_data_points):
     delete_key('lon', drone_data_points)
+
     with pytest.raises(MissingKeyException) as exception_info:
         drone_information.__fit_drone_data_point(drone_data_points[0])
+
         assert 'error' in exception_info.value
         assert 'missing key: lon' == exception_info.value['error']
 
 
 def test_post_illegal_route_missing_alt(drone_data_points):
     delete_key('alt', drone_data_points)
+
     with pytest.raises(MissingKeyException) as exception_info:
         drone_information.__fit_drone_data_point(drone_data_points[0])
+
         assert 'error' in exception_info.value
         assert 'missing key: alt' == exception_info.value['error']
 
 
 def test_post_illegal_route_defaulted_id(drone_data_points):
     delete_key('id', drone_data_points)
+
     assert 'id' not in drone_data_points[0]
+
     corrected_point = drone_information.__fit_drone_data_point(drone_data_points[0])
+
     assert 'id' in corrected_point
     assert corrected_point['id'] == 910
+
+
+def test_post_illegal_route_aid_to_id(drone_data_points):
+    id = drone_data_points[0]['id']
+    add_key('aid', id, drone_data_points)
+    delete_key('id', drone_data_points)
+
+    assert 'id' not in drone_data_points[0]
+    assert 'aid' in drone_data_points[0]
+    assert drone_data_points[0]['aid'] == id
+
+    corrected_point = drone_information.__fit_drone_data_point(drone_data_points[0])
+    
+    assert 'id' in corrected_point
+    assert 'aid' not in corrected_point
+    assert corrected_point['id'] == id
 
 
 def test_get_route_points_by_routeid(mock_db, mock_route, drone_data_points):

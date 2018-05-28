@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from drone_information import app
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def client():
     app.config['TESTING'] = True
     client = app.test_client()
