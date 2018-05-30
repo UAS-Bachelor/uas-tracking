@@ -12,22 +12,22 @@ def send_log_entry(log):
 
 LOG_TEST_DATA = [
     {
-        'aid': 911,
-        'lat': 55.37000,
-        'lon': 10.43000,
-        'alt': 00.00000,
-    },
-    {
-        'aid': 911,
-        'lat': 55.38050,
-        'lon': 10.43000,
+        'aid': 912,
+        'lat': 55.47000,
+        'lon': 10.48000,
         'alt': 100.00000,
     },
     {
-        'aid': 911,
-        'lat': 55.39000,
-        'lon': 10.44000,
-        'alt': 300.00000,
+        'aid': 913,
+        'lat': 55.47050,
+        'lon': 10.48000,
+        'alt': 100.00000,
+    },
+    {
+        'aid': 914,
+        'lat': 55.47025,
+        'lon': 10.48025,
+        'alt': 100.00000,
     },
     {
         'aid': 911,
@@ -169,12 +169,12 @@ def test_drone_information_post(log):
 
 #test_drone_information_post(LOG_TEST_DATA[1])
 
-#for i in range(10):
-#    print('Sending {}'.format(i))
-#    send_log_entry(LOG_TEST_DATA[i])
+for i in range(10):
+    print('Sending {}'.format(i))
+    send_log_entry(LOG_TEST_DATA[i])
 #    send_log_entry(LOG_TEST_DATA2[i])
-#    time.sleep(5)
-
+    time.sleep(2)
+'''
 r = requests.put("http://127.0.0.1:5001/routes/2470", json=
                     [{
                       'aid': LOG_TEST_DATA2[0]['aid'], 
@@ -191,3 +191,4 @@ r = requests.put("http://127.0.0.1:5001/routes/2470", json=
                       'time': 1526818900
                     }])
 print(r.status_code, r.reason, r.text)
+'''

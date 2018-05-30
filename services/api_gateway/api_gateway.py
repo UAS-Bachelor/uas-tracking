@@ -168,6 +168,32 @@ def get_3d_live_map():
     return render_template('layout.html', html=map_3d)
 
 
+@app.route('/collision/zones')
+def get_zone_collisions():
+    data = {}
+    data['live'] = json.loads(get('drone_information', '/live'))
+    try:
+        zone_collision = json.loads(get('no_fly_information', '/collision/zones', json=data))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable', 503
+    return jsonify(zone_collision), 200
+
+
+@app.route('/collision/drones')
+def get_live_collisions():
+    data = {}
+    data['live'] = json.loads(get('drone_information', '/live'))
+    try:
+        drone_collision = json.loads(get('no_fly_information', '/collision/drones', json=data))
+    except requests.exceptions.HTTPError as exception:
+        return jsonify(json.loads(exception.text)), exception.errno
+    except requests.exceptions.ConnectionError:
+        return 'No fly information service unavailable', 503
+    return jsonify(drone_collision), 200
+
+
 def get(service_name, path='', json=None):
     url = get_url_string(service_name, path)
     response = requests.get(url, json=json)

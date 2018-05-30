@@ -4,7 +4,6 @@ from scripts.get_no_fly_zones import download
 from fastkml import kml
 from pygeoif import MultiPolygon
 from haversine import haversine
-import requests
 import json
 import argparse
 import sys
@@ -39,45 +38,41 @@ def get_nofly_zones_list():
     return redirect(url_for('static', filename='kml/drone_no_fly_dk.kml', _external=True))
 
 
-@app.route('/collision/zones/<droneid>')
-def get_zone_collisions_by_droneid(droneid):
-    try:
-        drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
+@app.route('/collision/zones')
+def get_zone_collisions():
+    if not request.is_json:
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    list_of_live_drones = data['live']
+
+    dict_of_colliding_drones = {}
+    for drone in list_of_live_drones:
         inside = drone_in_zone(drone['lon'], drone['lat'])
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
-    try:
-        return jsonify(inside=inside is not None, zone=inside.name), 200
-    except AttributeError:
-        return jsonify(inside=inside is not None, zone=None), 200
+        try:
+            collision = {
+                'inside': inside is not None, 
+                'zone': inside.name
+            }
+        except AttributeError:
+            collision = {
+                'inside': inside is not None, 
+                'zone': None
+            }
+        dict_of_colliding_drones[drone['id']] = collision
+    
+    return jsonify(dict_of_colliding_drones), 200
 
 
 @app.route('/collision/drones')
 def get_live_collisions():
-    try:
-        current_drones = json.loads(get('drone_information', '/live'))
-        dict_of_colliding_drones = {}
-        for drone in current_drones:
-            dict_of_colliding_drones = {**dict_of_colliding_drones, **drone_in_drone(drone, current_drones)}
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
-    return jsonify(dict_of_colliding_drones), 200
+    if not request.is_json:
+        return jsonify(error='missing resource data'), 400
+    data = request.get_json(force=True)
+    list_of_live_drones = data['live']
 
-
-@app.route('/collision/drones/<droneid>')
-def get_live_collisions_by_droneid(droneid):
-    try:
-        drone = json.loads(get('drone_information', '/live/{}'.format(droneid)))
-        current_drones = json.loads(get('drone_information', '/live'))
-        dict_of_colliding_drones = drone_in_drone(drone, current_drones)
-    except requests.exceptions.HTTPError as exception:
-        return jsonify(json.loads(exception.text)), exception.errno
-    except requests.exceptions.ConnectionError:
-        return 'Drone information service unavailable', 503
+    dict_of_colliding_drones = {}
+    for drone in list_of_live_drones:
+        dict_of_colliding_drones = {**dict_of_colliding_drones, **drone_in_drone(drone, list_of_live_drones)}
     return jsonify(dict_of_colliding_drones), 200
 
 
@@ -132,32 +127,6 @@ def point_in_polygon(x, y, z, polygon):
                             inside = not inside
         p1x, p1y, p1z = p2x, p2y, p2z
     return inside
-
-
-def get(service_name, path=''):
-    url = get_url_string(service_name, path)
-    response = requests.get(url)
-    raise_for_status_code(response)
-    return response.text
-
-
-def get_url_string(service_name, path=''):
-    if request and path == '':
-        path = request.path
-    service_config = config[service_name]
-    url = 'http://{}:{}{}'
-    if(request.remote_addr == '127.0.0.1'):
-        url = url.format('127.0.0.1', service_config['port'], path)
-    else:
-        url = url.format(service_config['host'], service_config['port'], path)
-    return url
-
-
-def raise_for_status_code(response):
-    if not response:
-        exception = requests.exceptions.HTTPError(response.status_code, response.reason)
-        exception.text = response.text
-        raise exception
 
 
 def load_file(file_name):
